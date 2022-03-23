@@ -6,7 +6,7 @@ from simple_backend.service.node_service import retrieve_nodes_structure
 
 retrieve_nodes_structure()
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:7000", "https://simple-ui.herokuapp.com"])
+CORS(app, origins=["http://localhost:7000", "https://frontend-rainfall.herokuapp.com"])
 api = Api(app)
 initialize_routes(api)
 
