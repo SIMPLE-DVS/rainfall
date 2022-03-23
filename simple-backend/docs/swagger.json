@@ -1,0 +1,842 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "RAINFALL REST API",
+    "description": "Api for RAINFALL backend",
+    "contact": {
+      "email": "m.s@studenti.unicam.it"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0-oas3"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Nodes",
+      "description": "APIs to retrieve information about nodes."
+    },
+    {
+      "name": "Conversion",
+      "description": "APIs to manage the conversion and export to dataflow."
+    },
+    {
+      "name": "Repository",
+      "description": "APIs to manage the content of the repositories."
+    }
+  ],
+  "paths": {
+    "/nodes": {
+      "get": {
+        "tags": [
+          "Nodes"
+        ],
+        "summary": "Get all node structures.",
+        "description": "Get the structure of all the nodes.",
+        "responses": {
+          "200": {
+            "description": "List containing the structure of each node.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NodeStructure"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{clazz}": {
+      "get": {
+        "tags": [
+          "Nodes"
+        ],
+        "summary": "Get node structure by class name.",
+        "description": "Get the structure of the node by class name.",
+        "parameters": [
+          {
+            "name": "clazz",
+            "in": "path",
+            "description": "Node class name",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Structure of the node {name}.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeStructure"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nodes/tag": {
+      "get": {
+        "tags": [
+          "Nodes"
+        ],
+        "summary": "Get all nodes by tag.",
+        "description": "Get all nodes that belong to one or more specific tags.",
+        "parameters": [
+          {
+            "name": "library",
+            "in": "query",
+            "description": "Optional query parameter to specify a library tag.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Pandas"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Optional query parameter to specify a node type tag.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Input"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List containing the structure of each node filtered by the chosen tags.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NodeStructure"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config": {
+      "post": {
+        "tags": [
+          "Conversion"
+        ],
+        "summary": "Creates a dataflow.",
+        "description": "Send the informations to create a dataflow.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/configurationRequestBody"
+        },
+        "responses": {
+          "201": {
+            "description": "Configuration created"
+          },
+          "400": {
+            "description": "invalid input, object invalid"
+          }
+        }
+      }
+    },
+    "/repositories": {
+      "get": {
+        "tags": [
+          "Repository"
+        ],
+        "summary": "Get repositories from output dir.",
+        "description": "Gets all the repositories within the output directory.",
+        "responses": {
+          "200": {
+            "description": "List of names of the repositories in the output directory.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRepositoriesSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repositories/{repository}": {
+      "get": {
+        "tags": [
+          "Repository"
+        ],
+        "summary": "Get the repository content.",
+        "description": "Gets the content of the repository.",
+        "parameters": [
+          {
+            "name": "repository",
+            "in": "path",
+            "description": "Name of the repository to inspect.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "repo1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Content of the repository.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Getschemas"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Repository not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_404"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Repository"
+        ],
+        "summary": "Create new repository.",
+        "description": "Creates a new repository in the output directory.",
+        "parameters": [
+          {
+            "name": "repository",
+            "in": "path",
+            "description": "Name of the repository to create.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "repo1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Information on the created repository.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Postschemas"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Repository not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_404"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Repository"
+        ],
+        "summary": "Delete a repository.",
+        "description": "Deletes an existing repository in the output directory.",
+        "parameters": [
+          {
+            "name": "repository",
+            "in": "path",
+            "description": "Name of the repository to delete.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "repo1"
+          },
+          {
+            "name": "shallow",
+            "in": "query",
+            "description": "Whether to store the repository in the archive for later retrieve or to permanently delete it.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content."
+          },
+          "404": {
+            "description": "Repository not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_404"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repositories/{repository}/dataflows/{id}": {
+      "get": {
+        "tags": [
+          "Repository"
+        ],
+        "summary": "Get the content of a dataflow.",
+        "description": "Gets the content of a dataflow stored in a repository.",
+        "parameters": [
+          {
+            "name": "repository",
+            "in": "path",
+            "description": "Name of the repository to look into.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "repo1"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Unique identifier of the dataflow.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "dataflow1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Information on the created repository.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataflowSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Repository not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_404"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Repository"
+        ],
+        "summary": "Delete a dataflow.",
+        "description": "Deletes an existing dataflow stored in the repository.",
+        "parameters": [
+          {
+            "name": "repository",
+            "in": "path",
+            "description": "Name of the repository where the dataflow is stored.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "repo1"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Unique identifier of the dataflow.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "dataflow1"
+          },
+          {
+            "name": "shallow",
+            "in": "query",
+            "description": "Whether to store the dataflow in the archive for later retrieve or to permanently delete it.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content."
+          },
+          "404": {
+            "description": "Repository not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_404"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NodeStructure": {
+        "required": [
+          "clazz",
+          "descrition",
+          "input",
+          "methods",
+          "name",
+          "output",
+          "package",
+          "parameter",
+          "tags"
+        ],
+        "type": "object",
+        "properties": {
+          "clazz": {
+            "type": "string",
+            "description": "Class name of the node.",
+            "example": "CSVLoader"
+          },
+          "package": {
+            "type": "string",
+            "description": "Module in which the node is contained.",
+            "example": "spark.loader.CSVLoader"
+          },
+          "name": {
+            "type": "string",
+            "description": "User friendly name of the node.",
+            "example": "CSV Loader"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the node.",
+            "example": "Node used to load a csv file."
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Input of the node.",
+            "example": {
+              "dataset": "DataFrame"
+            }
+          },
+          "output": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Output of the node.",
+            "example": {
+              "dataset": "Dataframe"
+            }
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/NodeStructureParameter"
+          },
+          "methods": {
+            "type": "array",
+            "description": "Methods of the node.",
+            "example": [
+              "fit",
+              "predict"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "NodeStructureParameter": {
+        "required": [
+          "default_value",
+          "description",
+          "is_mandatory",
+          "name",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the parameter.",
+            "example": "path"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the parameter.",
+            "example": "str"
+          },
+          "is_mandatory": {
+            "type": "boolean",
+            "description": "Specify whether the parameter is mandatory.",
+            "example": true
+          },
+          "default_value": {
+            "type": "object",
+            "description": "Default value of the parameter. Can be either: a string, a number, an integer, a boolean, null.",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the parameter.",
+            "example": "Path of the CSV file."
+          }
+        },
+        "description": "Structure of the parameters the can be set in a node."
+      },
+      "NodeConfiguration": {
+        "required": [
+          "dependencies",
+          "nodes",
+          "pipeline_uid"
+        ],
+        "properties": {
+          "pipeline_uid": {
+            "type": "string",
+            "description": "Unique identifier of a dataflow."
+          },
+          "nodes": {
+            "type": "array",
+            "additionalProperties": true,
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/LibraryNode"
+                },
+                {
+                  "$ref": "#/components/schemas/CustomNode"
+                }
+              ]
+            }
+          },
+          "ui": {
+            "type": "object",
+            "description": "Json representation of the graphical Dataflow."
+          }
+        }
+      },
+      "Node": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/LibraryNode"
+          },
+          {
+            "$ref": "#/components/schemas/CustomNode"
+          }
+        ]
+      },
+      "CustomNode": {
+        "required": [
+          "code",
+          "function_name",
+          "node",
+          "node_id",
+          "parameters",
+          "then"
+        ],
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "unique identifier of the node in the graph.",
+            "example": "loader"
+          },
+          "node": {
+            "type": "string",
+            "description": "class name of the node to use.",
+            "example": "PandasCSVLoader"
+          },
+          "function_name": {
+            "type": "string",
+            "description": "Name of the entry point function to call in the code.",
+            "example": "sum"
+          },
+          "code": {
+            "type": "string",
+            "description": "Python code to execute.",
+            "example": "def sum(inp, outp):\n pass"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "parameters to set in the node.",
+            "example": {
+              "path": "./prova.csv",
+              "delimiter": ";"
+            }
+          },
+          "then": {
+            "type": "array",
+            "description": "List of <dest_id: dest_input> this node has to be connected to.",
+            "items": {
+              "$ref": "#/components/schemas/CustomNode_then"
+            }
+          }
+        }
+      },
+      "LibraryNode": {
+        "required": [
+          "node",
+          "node_id",
+          "parameters",
+          "then"
+        ],
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "unique identifier of the node in the graph.",
+            "example": "loader"
+          },
+          "node": {
+            "type": "string",
+            "description": "class name of the node to use.",
+            "example": "PandasCSVLoader"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "parameters to set in the node.",
+            "example": {
+              "path": "./prova.csv",
+              "delimiter": ";"
+            }
+          },
+          "then": {
+            "type": "array",
+            "description": "List of <dest_id: dest_input> this node has to be connected to.",
+            "items": {
+              "$ref": "#/components/schemas/CustomNode_then"
+            }
+          }
+        }
+      },
+      "DataflowSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of a Dataflow.",
+            "example": "dataflow12318961724"
+          },
+          "path": {
+            "type": "string",
+            "description": "Local path in which the dataflow is stored.",
+            "example": "c:\\Users\\user\\Desktop\\output_dir"
+          },
+          "script": {
+            "$ref": "#/components/schemas/DataflowScriptSchema"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Representation of the metadata stored in a Dataflow.",
+            "example": {}
+          },
+          "has_ui": {
+            "type": "boolean",
+            "description": "Whether the dataflow contains the json to load it in the UI.",
+            "example": true
+          }
+        },
+        "description": "Representation of a Dataflow stored in the repository."
+      },
+      "DataflowScriptSchema": {
+        "type": "object",
+        "properties": {
+          "script_name": {
+            "type": "string",
+            "description": "Name of the file.",
+            "example": "dataflow12318961724.py"
+          },
+          "rows": {
+            "type": "integer",
+            "description": "Number of rows of the file.",
+            "example": 56
+          },
+          "size": {
+            "type": "integer",
+            "description": "Size of the python file in bytes.",
+            "example": 351
+          },
+          "content": {
+            "type": "string",
+            "description": "Content of the python file.",
+            "example": "import rain \n ..."
+          }
+        },
+        "description": "Representation of the python script stored in a Dataflow."
+      },
+      "GetRepositoriesSchema": {
+        "required": [
+          "repositories"
+        ],
+        "type": "object",
+        "properties": {
+          "repositories": {
+            "type": "array",
+            "description": "List of repository names.",
+            "example": [
+              "repo1",
+              "repo2"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Getschemas": {
+        "required": [
+          "content",
+          "path",
+          "repository"
+        ],
+        "type": "object",
+        "properties": {
+          "repository": {
+            "type": "string",
+            "description": "Name of the repository.",
+            "example": "repo1"
+          },
+          "path": {
+            "type": "string",
+            "description": "Local path to the repository.",
+            "example": "c:\\Users\\user\\Desktop\\output_dir\\repo1"
+          },
+          "content": {
+            "type": "array",
+            "description": "List of filenames contained in the repository.",
+            "example": [
+              "dataflow1",
+              "dataflow2"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Postschemas": {
+        "required": [
+          "content",
+          "path",
+          "repository"
+        ],
+        "type": "object",
+        "properties": {
+          "repository": {
+            "type": "string",
+            "description": "Name of the repository.",
+            "example": "repo1"
+          },
+          "path": {
+            "type": "string",
+            "description": "Local path to the repository.",
+            "example": "c:\\Users\\user\\Desktop\\output_dir\\repo1"
+          },
+          "uri": {
+            "type": "string",
+            "description": "Uri to get the repository content.",
+            "format": "url",
+            "example": "/repositories/repo1"
+          }
+        }
+      },
+      "inline_response_404": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error description.",
+            "example": "Repository {repository} not found."
+          }
+        }
+      },
+      "CustomNode_then": {
+        "type": "object",
+        "properties": {
+          "sent_to": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": {
+          "type": "string"
+        },
+        "example": null
+      }
+    },
+    "requestBodies": {
+      "configurationRequestBody": {
+        "description": "A JSON object for reusable request body containing the details of a configuration.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/NodeConfiguration"
+            }
+          }
+        },
+        "required": true
+      }
+    }
+  }
+}
