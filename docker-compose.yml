@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+
+  backend:
+    build:
+      context: simple-backend
+      dockerfile: Dockerfile
+    # Change to expose!
+    ports:
+      - "5000:5000"
+    restart: always
+    container_name: simple_backend
+
+  frontend:
+    depends_on:
+      - backend
+    build:
+      context: simple-ui
+      dockerfile: Dockerfile
+    # Change to expose!
+    ports:
+      - "7000:7000"
+    restart: always
+    container_name: simple_ui
