@@ -27,10 +27,12 @@ class ConfigurationsApi(Resource):
             script = config_service.generate_script(ordered_nodes, ordered_edges)
 
             timestamp = int(time.time() * 1000)
-            zip_file = config_service.generate_artifacts(script, body.get("dependencies"), body.get("ui"), timestamp)
+            zip_file = config_service.generate_artifacts(body["repository"], script, body.get("dependencies"), body.get("ui"), timestamp)
 
-            return send_file(zip_file, attachment_filename=f"dataflow{timestamp}.zip", as_attachment=True,
-                             mimetype="application/zip")
-
+            return {
+                "id": zip_file.stem,
+                "path": str(zip_file),
+                "uri": f"/repositories/{body.get('repository')}/dataflows/{zip_file.stem}"
+            }
         except Exception as e:
             return {"message": e.__str__()}, 500

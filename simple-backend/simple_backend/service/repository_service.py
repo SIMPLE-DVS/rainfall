@@ -1,16 +1,12 @@
 import shutil
 import zipfile
-from pathlib import Path
-from typing import List, Union, Optional
+from typing import List, Optional
 
 import yaml
 from yaml import SafeLoader
 
 from simple_backend.model.repository_model import Dataflow, DataflowScript, DataflowMetadata, DataflowUI
-from simple_backend.schemas.repository_schemas import GetDataflowMetadataSchema
-
-BASE_OUTPUT_DIR = Path("../output_repositories").resolve()
-ARCHIVE_DIR = Path(BASE_OUTPUT_DIR / ".archive").resolve()
+from simple_backend.config import BASE_OUTPUT_DIR, ARCHIVE_DIR
 
 
 def get_repositories_names() -> List[str]:

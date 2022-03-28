@@ -2,11 +2,14 @@ import io
 import json
 import zipfile
 from datetime import datetime
+from pathlib import Path
+from typing import List
 
 import yaml
 
 from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend.service.dag_generator import DagCreator
+from simple_backend.config import BASE_OUTPUT_DIR
 
 
 def check_dag(nodes):
@@ -31,7 +34,7 @@ def generate_script(nodes, edges):
     return script
 
 
-def get_requirements(libs):
+def get_requirements(libs: List[str]) -> List[str]:
     """
     Method that returns the corresponding version of the given Python dependencies, useful to re-create the
     environment of a given Dataflow
@@ -46,7 +49,13 @@ def get_requirements(libs):
     return requirements
 
 
-def generate_artifacts(script, dependencies, config, timestamp):
+def get_repository_path(repository: str) -> Path:
+    repository_path = BASE_OUTPUT_DIR / repository
+    repository_path.mkdir(exist_ok=True)
+    return repository_path
+
+
+def generate_artifacts(repository: str, script: str, dependencies: List[str], config: dict, timestamp: int) -> Path:
     """
     Method that stores the artifacts (script, requirements, GUI configuration, other metadata)
     """
@@ -62,8 +71,10 @@ def generate_artifacts(script, dependencies, config, timestamp):
         zip_file.writestr("ui.json", json.dumps(config))
     zip_buffer.seek(0)
 
-    with open(f"artifacts/dataflow{timestamp}.zip", 'wb') as zipObj:
-        zipObj.write(zip_buffer.getvalue())
-    zip_buffer.seek(0)
+    repo_path = get_repository_path(repository)
+    dataflow_path = repo_path / f"dataflow{timestamp}.zip"
 
-    return zip_buffer
+    with dataflow_path.open('wb') as zipObj:
+        zipObj.write(zip_buffer.getvalue())
+
+    return dataflow_path
