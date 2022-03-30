@@ -10,6 +10,11 @@ const routes: RouteRecordRaw[] = [
         redirect: '/canvas',
       },
       {
+        path: 'd3',
+        name: 'd3',
+        component: () => import('pages/D3Page.vue'),
+      },
+      {
         path: 'canvas',
         name: 'canvas',
         component: () => import('pages/Fabric.vue'),
