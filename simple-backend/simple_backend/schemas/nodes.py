@@ -1,7 +1,7 @@
 from typing import List
 
-from marshmallow import Schema, fields, post_load
-from pydantic import BaseModel
+from marshmallow import Schema, fields, post_load, ValidationError as Mve
+from pydantic import BaseModel, ValidationError as Pve
 
 
 class Node(BaseModel):
@@ -15,7 +15,7 @@ class Node(BaseModel):
             The unique identifier that each node must have.
 
         node : string
-            The full-name formed by \textit{package + module + class}, useful to dynamically import the
+            The full-name formed by {package + module + class}, useful to dynamically import the
             module and to return the wanted class representing one step of the pipeline
 
         parameters : dict
@@ -52,7 +52,7 @@ class CustomNode(Node):
             The unique identifier that each node must have.
 
         node : string
-            The full-name formed by \textit{package + module + class}, useful to dynamically import the
+            The full-name formed by {package + module + class}, useful to dynamically import the
             module and to return the wanted class representing one step of the pipeline
 
         parameters : dict
@@ -98,7 +98,7 @@ class ConfigurationNode:
         for node in nodes:
             try:
                 nodes_obj.append(CustomNodeSchema().load(node))
-            except Exception as e:
+            except (Mve, Pve):
                 nodes_obj.append(NodeSchema().load(node))
         return nodes_obj
 
@@ -106,3 +106,11 @@ class ConfigurationNode:
 class NodeQuery(Schema):
     library = fields.String(required=False)
     type = fields.String(required=False)
+
+
+class ConfigurationSchema(Schema):
+    pipeline_uid = fields.String(required=True)
+    nodes = fields.List(fields.Dict(), required=True)
+    dependencies = fields.List(fields.String(), required=True)
+    ui = fields.List(fields.Dict(), required=True)
+    repository = fields.String(required=True)
