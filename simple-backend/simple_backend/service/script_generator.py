@@ -62,6 +62,5 @@ class ScriptGenerator:
         }
 
         temp_stream = self.jinja_template.render(jinja_vars)
-
-        print(temp_stream)
+        # print(temp_stream)
         return temp_stream

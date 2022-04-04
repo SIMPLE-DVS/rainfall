@@ -1,5 +1,6 @@
 from flask_restful import Resource, request, abort
 
+from simple_backend.errors import BadRequestError
 from simple_backend.service import repository_service as rs
 from simple_backend.schemas.repository_schemas import RepoDeleteQuery, GetDataflowSchema
 
@@ -20,7 +21,7 @@ class Repository(Resource):
         try:
             content = rs.get_repository_content(repository)
         except FileNotFoundError as e:
-            return {"error": e.strerror}, 404
+            raise BadRequestError(e.strerror)
 
         return {
             "repository": repository,
@@ -55,7 +56,7 @@ class Repository(Resource):
             else:
                 rs.delete_repository(repository)
         except FileNotFoundError as e:
-            return {"error": e.strerror}, 404
+            raise BadRequestError(e.strerror)
 
         return {}, 204
 
@@ -82,7 +83,7 @@ class Dataflow(Resource):
         try:
             dataflow = rs.get_dataflow_from_repository(repository, id)
         except FileNotFoundError as e:
-            return {"error": e.strerror}, 404
+            raise BadRequestError(e.strerror)
 
         serialized_dataflow = GetDataflowSchema().dump(dataflow)
         return serialized_dataflow, 200
@@ -97,6 +98,6 @@ class Dataflow(Resource):
             else:
                 rs.delete_dataflow(repository, id)
         except FileNotFoundError as e:
-            abort(404)
+            raise BadRequestError(e.strerror)
 
         return {}, 204

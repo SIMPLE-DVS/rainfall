@@ -1,5 +1,4 @@
-import time
-from flask import request, send_file
+from flask import request
 from flask_restful import Resource
 from marshmallow import ValidationError as Mve
 from pydantic import ValidationError as Pve
@@ -31,8 +30,7 @@ class ConfigurationsApi(Resource):
 
         script = config_service.generate_script(ordered_nodes, ordered_edges)
 
-        timestamp = int(time.time() * 1000)
-        zip_file = config_service.generate_artifacts(configuration["repository"], script, configuration.get("dependencies"), configuration.get("ui"), timestamp)
+        zip_file = config_service.generate_artifacts(configuration["repository"], script, configuration.get("dependencies"), configuration.get("ui"))
 
         return {
             "id": zip_file.stem,

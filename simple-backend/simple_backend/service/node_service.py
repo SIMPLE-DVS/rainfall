@@ -4,6 +4,8 @@ from typing import List
 
 import requests
 
+from simple_backend.errors import CustomNodeConfigurationError, FirebaseNodesRetrievalError, FileWriteError, \
+    FileReadError
 from simple_backend.schemas.nodes import CustomNode
 
 
@@ -15,12 +17,12 @@ def find_custom_node_params(code: str, main_func: str):
     try:
         m1 = re.findall(r1, code, re.MULTILINE)[0]
     except Exception:
-        raise Exception(f"There is no '{main_func}' function!")
+        raise CustomNodeConfigurationError(f"There is no '{main_func}' function!", 400)
     r2 = r"((?:, *)?(?P<g>[a-zA-Z_\d-]+)(?:: *[a-zA-Z\"]+)?(?: *= *[a-zA-Z\"]+)?)"
     m2 = [m.group("g") for m in re.finditer(r2, m1, re.MULTILINE)]
     if len(m2) < 2:
-        raise Exception(
-            "The signature of the function {} should be: {}(input, output, ...kwargs)".format(main_func, main_func))
+        raise CustomNodeConfigurationError(
+            f"The signature of the function {main_func} should be: {main_func}(input, output, ...kwargs)", 400)
 
     inputs = get_variables_matches(
         code, r"{}(?:\[|\.get\()\"([a-zA-Z_\d-]+)\"".format(m2[0])
@@ -50,7 +52,7 @@ def check_custom_node_code(custom_nodes: List[CustomNode]):
         if node.function_name not in functions:
             functions.append(node.function_name)
         else:
-            raise Exception("Duplicated function name!")
+            raise CustomNodeConfigurationError(f"Duplicated function name in node {node.node_id}!", 400)
         # TODO check imports
         # get code, split \n, add to a list those string that contains "import",
         # check if other imports are already in the list, if yes remove the import from the code,
@@ -64,17 +66,23 @@ def retrieve_nodes_structure():
     res = requests.get(url="https://firebasestorage.googleapis.com/v0/b/rainfall-firebase.appspot.com/o"
                            "/rain_structure.json?alt=media")
     if res.status_code != 200:
-        raise Exception(f"Firebase nodes request failed: {res.reason}")
-    with open("nodes.json", 'w') as f:
-        f.write(res.text)
+        raise FirebaseNodesRetrievalError(f"Firebase nodes request failed: {res.reason}", 500)
+    try:
+        with open("nodes.json", 'w') as f:
+            f.write(res.text)
+    except OSError as e:
+        raise FileWriteError(f"Error during nodes writing: {e.__str__()}", 500)
 
 
 def get_nodes_structure():
     """
     Returns the available Rain nodes
     """
-    with open("nodes.json", 'r') as f:
-        nodes = json.load(f)
+    try:
+        with open("nodes.json", 'r') as f:
+            nodes = json.load(f)
+    except OSError as e:
+        raise FileReadError(f"Error during nodes reading: {e.__str__()}", 500)
     return nodes["nodes"]
 
 
@@ -82,8 +90,11 @@ def get_node(clazz):
     """
     Returns the node with the specified clazz
     """
-    with open("nodes.json", 'r') as f:
-        nodes = json.load(f)
+    try:
+        with open("nodes.json", 'r') as f:
+            nodes = json.load(f)
+    except OSError as e:
+        raise FileReadError(f"Error during nodes reading: {e.__str__()}", 500)
     for node in nodes["nodes"]:
         if node["clazz"] == clazz:
             return node
@@ -119,9 +130,11 @@ def get_nodes_by_tag(tag: dict):
     nodes_by_tag = []
     if not tag:
         return nodes_by_tag
-
-    with open("nodes.json", 'r') as f:
-        nodes = json.load(f)["nodes"]
+    try:
+        with open("nodes.json", 'r') as f:
+            nodes = json.load(f)["nodes"]
+    except OSError as e:
+        raise FileReadError(f"Error during nodes reading: {e.__str__()}", 500)
 
     if len(tag) == 2:
         nodes_by_tag = get_nodes_by_lib_and_tag(tag["library"], tag["type"], nodes)
