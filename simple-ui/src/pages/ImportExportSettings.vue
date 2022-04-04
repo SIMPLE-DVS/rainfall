@@ -32,104 +32,7 @@
     <q-separator spaced=""></q-separator>
 
     <div class="q-pa-md q-gutter-sm">
-      <p>{{ $t('export.setting') }}</p>
-      <q-input
-        v-model="startIP"
-        :label="$t('export.startingIP')"
-        mask="###.###.###.###"
-        fill-mask="0"
-        :rules="[(val) => isIPValid(startIP), validateIPRange(startIP, endIP)]"
-      ></q-input>
-      <q-input
-        v-model="endIP"
-        :label="$t('export.endingIP')"
-        mask="###.###.###.###"
-        fill-mask="0"
-        :rules="[(val) => isIPValid(endIP), validateIPRange(startIP, endIP)]"
-      ></q-input>
-      <q-btn
-        color="primary"
-        :label="$t('export.check')"
-        @click="checkDevices(startIP, endIP)"
-        :disabled="!validateIPRange(startIP, endIP)"
-      ></q-btn>
-    </div>
-
-    <div class="q-pa-sm q-gutter-sm" v-if="devices.length > 0">
-      <q-expansion-item class="q-pa-sm q-gutter-y-sm">
-        <template v-slot:header>
-          <q-item-section>{{
-            $t('export.range', { from: actualStart, to: actualEnd })
-          }}</q-item-section>
-          <q-item-section side>{{
-            selected.length + $t('export.selected')
-          }}</q-item-section>
-        </template>
-        <q-list class="row justify-content" style="max-width: 100%">
-          <q-item
-            v-for="n in Math.min(
-              devicesPerPage,
-              devices.length - (current - 1) * devicesPerPage
-            )"
-            :key="n"
-          >
-            <q-item-section class="row justify-center items-center">
-              <q-item>
-                <q-item-section avatar>
-                  <q-avatar icon="computer"></q-avatar>
-                </q-item-section>
-                <q-checkbox
-                  v-model="selected"
-                  :val="
-                    ipToNumber(actualStart) +
-                    ((current - 1) * devicesPerPage + n - 1)
-                  "
-                ></q-checkbox>
-              </q-item>
-              <q-item-label class="q-pb-sm">{{
-                numberToIP(
-                  ipToNumber(actualStart) +
-                    ((current - 1) * devicesPerPage + n - 1)
-                )
-              }}</q-item-label>
-              <q-chip v-if="Math.random() < 0.5">
-                <q-avatar icon="circle" class="text-green"></q-avatar>
-                <q-item-label caption>{{
-                  $t('export.available')
-                }}</q-item-label>
-              </q-chip>
-              <q-chip v-else>
-                <q-avatar icon="circle" class="text-red"></q-avatar>
-                <q-item-label caption>{{ $t('export.busy') }}</q-item-label>
-              </q-chip>
-            </q-item-section>
-          </q-item>
-        </q-list>
-
-        <q-pagination
-          class="q-pa-sm justify-center"
-          v-model="current"
-          :max="
-            devices.length % devicesPerPage == 0
-              ? devices.length / devicesPerPage
-              : Math.floor(devices.length / devicesPerPage) + 1
-          "
-          :max-pages="6"
-          boundary-numbers
-        />
-        <div class="row justify-center">
-          {{
-            $t('export.pagination', {
-              from: (current - 1) * devicesPerPage + 1,
-              to: Math.min(
-                devices.length,
-                (current - 1) * devicesPerPage + devicesPerPage
-              ),
-              total: devices.length,
-            })
-          }}
-        </div>
-      </q-expansion-item>
+      <p>REPOSITORIES</p>
     </div>
   </q-page>
 </template>
@@ -153,66 +56,6 @@ export default {
   setup() {
     const filePicker: Ref<QFile> = ref(null);
     const file: Ref<File> = ref(null);
-    let startIP = ref('255.255.255.255');
-    let endIP = ref('255.255.255.255');
-    let devices = ref([]);
-    let isRangeValid = ref(true);
-    let current = ref(1);
-    const devicesPerPage = 32;
-    let actualStart = ref('');
-    let actualEnd = ref('');
-    let selected = ref([]);
-
-    const ipRegEx = new RegExp(
-      '((00[0-9]|0[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}(00[0-9]|0[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
-    );
-
-    const isIPValid = (ip: string) => {
-      return ipRegEx.test(ip);
-    };
-
-    const ipToNumber = (ip: string) => {
-      return ip
-        .split('.')
-        .map((p) => parseInt(p))
-        .reverse()
-        .reduce((acc, val, i) => acc + val * 256 ** i, 0);
-    };
-
-    const numberToIP = (n: number) => {
-      var part1 = (n & 255).toString().padStart(3, '0');
-      var part2 = ((n >> 8) & 255).toString().padStart(3, '0');
-      var part3 = ((n >> 16) & 255).toString().padStart(3, '0');
-      var part4 = ((n >> 24) & 255).toString().padStart(3, '0');
-
-      return `${part4}.${part3}.${part2}.${part1}`;
-    };
-
-    const validateIPRange = (start: string, end: string) => {
-      if (!isIPValid(start) || !isIPValid(end)) return false;
-      if (ipToNumber(start) > ipToNumber(end)) return false;
-      return true;
-    };
-
-    const checkDevices = (start: string, end: string) => {
-      let fromNum = ipToNumber(start);
-      let toNum = ipToNumber(end);
-      if (devices.value.length != toNum - fromNum + 1) {
-        current.value = 1;
-      }
-      if (
-        fromNum != ipToNumber(actualStart.value) ||
-        toNum != ipToNumber(actualEnd.value)
-      ) {
-        selected.value = [];
-        devices.value = [];
-        for (let i = fromNum; i <= toNum; i++) {
-          devices.value.push(i);
-        }
-        actualStart.value = start;
-        actualEnd.value = end;
-      }
-    };
 
     const downloadZip = async () => {
       const canvasStore = useCanvasStore();
@@ -385,23 +228,9 @@ export default {
     };
 
     return {
-      startIP,
-      endIP,
-      isIPValid,
-      isRangeValid,
-      validateIPRange,
-      checkDevices,
-      devices,
-      ipToNumber,
-      numberToIP,
-      current,
-      devicesPerPage,
-      actualStart,
-      actualEnd,
-      selected,
-      getZip,
       filePicker,
       file,
+      getZip,
       loadUI,
       saveUI,
     };

@@ -10,15 +10,6 @@ export default {
     no: 'NO',
     deleteNodeQuestion: 'Sei sicuro di volere cancellare il nodo?',
   },
-  executor: {
-    enabled: 'Esecutore Abilitato',
-    disabled: 'Esecutore Disabilitato',
-    name: 'Nome esecutore',
-    setting: 'Impostazione',
-    current: 'Esecutori correnti',
-    fullSetting: 'Impostazioni { executorName }',
-    next: 'Avanti',
-  },
   export: {
     setting: 'Impostazioni Esportazione',
     check: 'Controlla dispositivi',

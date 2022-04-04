@@ -94,12 +94,6 @@
             :to="{ name: 'canvas' }"
           />
           <q-route-tab
-            name="executor"
-            icon="settings"
-            label="Executor"
-            :to="{ name: 'executor' }"
-          />
-          <q-route-tab
             name="import_export"
             icon="import_export"
             label="Import/Export"

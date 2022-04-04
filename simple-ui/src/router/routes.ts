@@ -20,11 +20,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/Fabric.vue'),
       },
       {
-        path: 'executor',
-        name: 'executor',
-        component: () => import('pages/ExecutorSettings.vue'),
-      },
-      {
         path: 'import_export',
         name: 'import_export',
         component: () => import('pages/ImportExportSettings.vue'),
