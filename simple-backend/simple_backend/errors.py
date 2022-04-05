@@ -7,12 +7,12 @@ class RainfallHTTPException(HTTPException):
         self.code = code
 
     def handle_error(self):
-        return self.msg, self.code
+        return {"message": self.msg}, self.code
 
 
-class ConfigurationError(RainfallHTTPException):
-    def __init__(self, msg, code):
-        super(ConfigurationError, self).__init__(msg, code)
+class SchemaValidationError(RainfallHTTPException):
+    def __init__(self, msg):
+        super(SchemaValidationError, self).__init__(msg, 400)
 
 
 class DagCycleError(RainfallHTTPException):
@@ -21,23 +21,23 @@ class DagCycleError(RainfallHTTPException):
 
 
 class CustomNodeConfigurationError(RainfallHTTPException):
-    def __init__(self, msg, code):
-        super(CustomNodeConfigurationError, self).__init__(msg, code)
+    def __init__(self, msg):
+        super(CustomNodeConfigurationError, self).__init__(msg, 400)
 
 
 class FirebaseNodesRetrievalError(RainfallHTTPException):
-    def __init__(self, msg, code):
-        super(FirebaseNodesRetrievalError, self).__init__(msg, code)
+    def __init__(self, msg):
+        super(FirebaseNodesRetrievalError, self).__init__(msg, 500)
 
 
 class FileReadError(RainfallHTTPException):
-    def __init__(self, msg, code):
-        super(FileReadError, self).__init__(msg, code)
+    def __init__(self, msg):
+        super(FileReadError, self).__init__(msg, 500)
 
 
 class FileWriteError(RainfallHTTPException):
-    def __init__(self, msg, code):
-        super(FileWriteError, self).__init__(msg, code)
+    def __init__(self, msg):
+        super(FileWriteError, self).__init__(msg, 500)
 
 
 class BadRequestError(RainfallHTTPException):
@@ -46,12 +46,12 @@ class BadRequestError(RainfallHTTPException):
 
 
 class HttpQueryError(RainfallHTTPException):
-    def __init__(self, msg, code):
-        super(HttpQueryError, self).__init__(msg, code)
+    def __init__(self, msg):
+        super(HttpQueryError, self).__init__(msg, 400)
 
 
 def register_errors(app):
-    app.register_error_handler(ConfigurationError, ConfigurationError.handle_error)
+    app.register_error_handler(SchemaValidationError, SchemaValidationError.handle_error)
     app.register_error_handler(DagCycleError, DagCycleError.handle_error)
     app.register_error_handler(CustomNodeConfigurationError, CustomNodeConfigurationError.handle_error)
     app.register_error_handler(FirebaseNodesRetrievalError, FirebaseNodesRetrievalError.handle_error)

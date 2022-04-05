@@ -3,7 +3,7 @@ from flask_restful import Resource
 from marshmallow import ValidationError as Mve
 from pydantic import ValidationError as Pve
 
-from simple_backend.errors import ConfigurationError
+from simple_backend.errors import SchemaValidationError
 from simple_backend.schemas.nodes import ConfigurationNode, CustomNode, ConfigurationSchema
 from simple_backend.service import config_service, node_service
 
@@ -18,7 +18,7 @@ class ConfigurationsApi(Resource):
             configuration = ConfigurationSchema().load(request.get_json())
             nodes = ConfigurationNode().load(configuration.get("nodes"))
         except (Mve, Pve) as e:
-            raise ConfigurationError(f"The configuration has a wrong structure:\n{e.__str__()}", 400)
+            raise SchemaValidationError(f"The configuration has a wrong structure: {e.__str__()}")
 
         dag = config_service.check_dag(nodes)
 
@@ -30,7 +30,8 @@ class ConfigurationsApi(Resource):
 
         script = config_service.generate_script(ordered_nodes, ordered_edges)
 
-        zip_file = config_service.generate_artifacts(configuration["repository"], script, configuration.get("dependencies"), configuration.get("ui"))
+        zip_file = config_service.generate_artifacts(configuration.get("repository"), script,
+                                                     configuration.get("dependencies"), configuration.get("ui"))
 
         return {
             "id": zip_file.stem,

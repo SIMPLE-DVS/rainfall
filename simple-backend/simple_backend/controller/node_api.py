@@ -42,7 +42,7 @@ class NodesByTagApi(Resource):
         try:
             tag = NodeQuery().load(request.args)
         except ValidationError:
-            raise HttpQueryError("Query non valid, use 'library' and/or 'type' keys", 400)
+            raise HttpQueryError("Query non valid, use 'library' and/or 'type' keys")
         nodes = node_service.get_nodes_by_tag(tag)
         if nodes:
             return nodes, 200

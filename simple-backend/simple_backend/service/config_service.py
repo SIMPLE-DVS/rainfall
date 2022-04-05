@@ -47,7 +47,7 @@ def get_requirements(libs: List[str]) -> List[str]:
         with open("nodes.json", 'r') as f:
             dependencies = json.load(f)["dependencies"]
     except OSError as e:
-        raise FileReadError(f"Error during nodes reading: {e.__str__()}", 500)
+        raise FileReadError(f"Error during nodes reading: {e.__str__()}")
 
     for dep in dependencies:
         if any(lib in dep for lib in libs):
@@ -84,6 +84,6 @@ def generate_artifacts(repository: str, script: str, dependencies: List[str], co
         with dataflow_path.open('wb') as zipObj:
             zipObj.write(zip_buffer.getvalue())
     except (OSError, Exception) as e:
-        raise FileWriteError(f"Error during artifacts zip writing: {e.__str__()}", 500)
+        raise FileWriteError(f"Error during artifacts zip writing: {e.__str__()}")
 
     return dataflow_path

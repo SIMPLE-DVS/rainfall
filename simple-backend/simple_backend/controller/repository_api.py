@@ -1,6 +1,7 @@
 from flask_restful import Resource, request, abort
+from marshmallow import ValidationError
 
-from simple_backend.errors import BadRequestError
+from simple_backend.errors import BadRequestError, HttpQueryError, SchemaValidationError
 from simple_backend.service import repository_service as rs
 from simple_backend.schemas.repository_schemas import RepoDeleteQuery, GetDataflowSchema
 
@@ -21,7 +22,7 @@ class Repository(Resource):
         try:
             content = rs.get_repository_content(repository)
         except FileNotFoundError as e:
-            raise BadRequestError(e.strerror)
+            raise BadRequestError(e.__str__())
 
         return {
             "repository": repository,
@@ -34,11 +35,7 @@ class Repository(Resource):
         try:
             rs.create_repository(repository)
         except FileExistsError:
-            return {
-                "error": "Already existing repository!",
-                "path": str(rs.BASE_OUTPUT_DIR / repository),
-                "uri": f"/repositories/{repository}",
-            }, 404
+            raise BadRequestError(f"Repository '{repository}' already exists in {str(rs.BASE_OUTPUT_DIR)}")
 
         return {
             "repository": repository,
@@ -48,15 +45,16 @@ class Repository(Resource):
 
     def delete(self, repository: str):
         """ Delete a repository from the output directory. """
-        is_shallow = RepoDeleteQuery().load(request.args)
-        is_shallow = True if "shallow" in is_shallow else False
         try:
-            if is_shallow:
-                rs.shallow_delete_repository(repository)
-            else:
-                rs.delete_repository(repository)
-        except FileNotFoundError as e:
-            raise BadRequestError(e.strerror)
+            is_shallow = RepoDeleteQuery().load(request.args)
+        except ValidationError:
+            raise HttpQueryError("Query not valid, use 'shallow==true/false'")
+        is_shallow = True if "shallow" in is_shallow else False
+
+        if is_shallow:
+            rs.shallow_delete_repository(repository)
+        else:
+            rs.delete_repository(repository)
 
         return {}, 204
 
@@ -80,24 +78,24 @@ class Dataflow(Resource):
     """ REST APIs to manage a single dataflow. """
     def get(self, repository: str, id: str):
         """ Gets the specified Dataflow from the repository. """
+        dataflow = rs.get_dataflow_from_repository(repository, id)
         try:
-            dataflow = rs.get_dataflow_from_repository(repository, id)
-        except FileNotFoundError as e:
-            raise BadRequestError(e.strerror)
-
-        serialized_dataflow = GetDataflowSchema().dump(dataflow)
+            serialized_dataflow = GetDataflowSchema().dump(dataflow)
+        except ValidationError as e:
+            raise SchemaValidationError(f"The requested artifact has a wrong structure: {e.__str__()}")
         return serialized_dataflow, 200
 
     def delete(self, repository: str, id: str):
         """ Deletes a Dataflow in the repository. """
-        is_shallow = RepoDeleteQuery().load(request.args)
-        is_shallow = True if "shallow" in is_shallow else False
         try:
-            if is_shallow:
-                rs.shallow_delete_dataflow(repository, id)
-            else:
-                rs.delete_dataflow(repository, id)
-        except FileNotFoundError as e:
-            raise BadRequestError(e.strerror)
+            is_shallow = RepoDeleteQuery().load(request.args)
+        except ValidationError:
+            raise HttpQueryError("Query not valid, use 'shallow==true/false'")
+        is_shallow = True if "shallow" in is_shallow else False
+
+        if is_shallow:
+            rs.shallow_delete_dataflow(repository, id)
+        else:
+            rs.delete_dataflow(repository, id)
 
         return {}, 204
