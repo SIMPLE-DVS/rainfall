@@ -79,7 +79,8 @@
         </div>
         <div
           v-else
-          v-draggable="prop.node.id"
+          :draggable="true"
+          @dragstart="$event.dataTransfer.setData('text', prop.node.id)"
           style="border: 2px solid gray; padding: 5px"
         >
           <q-tooltip anchor="center right" self="center right" :delay="750">
@@ -98,15 +99,12 @@
 import { defineComponent, ref, Ref, nextTick, watch } from 'vue';
 import { QTree } from 'quasar';
 import { api } from '../boot/axios';
-import { draggable } from 'v-drag-drop';
 import { QTreeNode, SimpleNodeStructure } from './models';
 import { useConfigStore } from 'stores/configStore';
 
 // TODO: manage API call failure (e.g. show a 'Pull to refresh')
 export default defineComponent({
   name: 'NodeCollection',
-
-  directives: { draggable },
 
   setup() {
     const configStore = useConfigStore();

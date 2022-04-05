@@ -1,25 +1,9 @@
 <template>
-  <div
-    style="
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      padding: 0;
-      margin: 0;
-      border: 0;
-    "
-    class="fill-height fill-width"
-  >
+  <div class="full-space">
     <svg
-      class="mindmap-svg fill-height fill-width"
-      style="
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        padding: 0;
-        margin: 0;
-        border: 0;
-      "
+      class="d3-svg full-space"
+      @dragover="allowDrop($event)"
+      @drop="drop($event)"
     >
       <g></g>
     </svg>
@@ -34,7 +18,20 @@ export default defineComponent({
   name: 'D3Canvas',
 
   setup() {
+    const allowDrop = (e: DragEvent) => {
+      e.preventDefault();
+    };
+    const drop = (e: DragEvent) => {
+      e.preventDefault();
+      const data = e.dataTransfer.getData('text');
+      console.log(data);
+    };
+
     onMounted(() => {
+      const d3elem = document.getElementsByClassName('d3-svg')[0];
+      const d3svg = d3.select(d3elem);
+      const d3g = d3svg.selectChild('g');
+
       interface DataType {
         id: number;
         x: number;
@@ -52,8 +49,8 @@ export default defineComponent({
         this: Element,
         e: d3.D3ZoomEvent<d3.ZoomedElementBaseType, unknown>
       ) {
-        if (this == document.getElementsByClassName('mindmap-svg')[0]) {
-          d3.select('svg g').attr('transform', e.transform.toString());
+        if (this == d3elem) {
+          d3g.attr('transform', e.transform.toString());
         }
       }
 
@@ -62,7 +59,7 @@ export default defineComponent({
         e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, DataType>
       ) {
         if (
-          this != document.getElementsByClassName('mindmap-svg')[0] &&
+          this != d3elem &&
           (e.sourceEvent.target as SVGElement).nodeName != 'circle'
         ) {
           d3.select(this).attr(
@@ -112,16 +109,21 @@ export default defineComponent({
       }
 
       function drawCircles() {
-        const enterSelection = d3
-          .select('svg g')
+        const enterSelection = d3g
           .selectAll('g')
           .data(data)
           .join('g')
           .attr('id', (d) => d.id)
           .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
-          .call(d3.drag().on('drag', handleDrag) as never)
+          .call(
+            d3
+              .drag()
+              .on('start', function (this: d3.BaseType) {
+                d3.select(this).raise();
+              })
+              .on('drag', handleDrag) as never
+          )
           .on('mouseover', function (this: d3.BaseType) {
-            d3.select(this).raise();
             d3.select(this).classed('active', true);
           })
           .on('mouseout', function (this: d3.BaseType) {
@@ -147,8 +149,7 @@ export default defineComponent({
             const maxInputSize =
               d3.max(
                 d.i.map((d) => {
-                  const node = d3
-                    .select('svg g')
+                  const node = d3g
                     .append('text')
                     .attr('font-size', '20px')
                     .text(d)
@@ -161,8 +162,7 @@ export default defineComponent({
             const maxOutputSize =
               d3.max(
                 d.o.map((d) => {
-                  const node = d3
-                    .select('svg g')
+                  const node = d3g
                     .append('text')
                     .attr('font-size', '20px')
                     .text(d)
@@ -242,7 +242,7 @@ export default defineComponent({
               d3
                 .drag()
                 .on('start', function (this) {
-                  d3.select('svg g')
+                  d3g
                     .append('path')
                     .attr('type', 'current')
                     .attr('stroke', 'green')
@@ -289,7 +289,7 @@ export default defineComponent({
                     const topMostCircle = compatibleCircles[
                       compatibleCircles.length - 1
                     ] as SVGCircleElement;
-                    d3.select('svg g')
+                    d3g
                       .append('path')
                       .attr('stroke', 'green')
                       .attr('stroke-width', 3)
@@ -353,8 +353,7 @@ export default defineComponent({
             18;
           const maxInputSize = d3.max(
             d.i.map((d) => {
-              const node = d3
-                .select('svg g')
+              const node = d3g
                 .append('text')
                 .attr('font-size', '20px')
                 .text(d)
@@ -372,8 +371,7 @@ export default defineComponent({
             18;
           const maxOutputSize = d3.max(
             d.o.map((d) => {
-              const node = d3
-                .select('svg g')
+              const node = d3g
                 .append('text')
                 .attr('font-size', '20px')
                 .text(d)
@@ -406,7 +404,7 @@ export default defineComponent({
             });
         });
 
-        d3.select('svg g').selectAll('text').raise();
+        d3g.selectAll('text').raise();
       }
 
       function getPath() {
@@ -426,7 +424,7 @@ export default defineComponent({
         const path = getPath();
         data[0].path = path;
         data[numPoints - 1].path = path;
-        d3.select('svg g')
+        d3g
           .append('path')
           .attr('stroke', 'green')
           .attr('stroke-width', 3)
@@ -438,7 +436,7 @@ export default defineComponent({
         d3.select('path').attr('d', getPath().toString());
       }
 
-      d3.select('svg')
+      d3svg
         .call(d3.zoom().on('zoom', handleZoom) as never)
         .on('dblclick.zoom', null);
 
@@ -448,12 +446,24 @@ export default defineComponent({
       generateAndDrawPath();
     });
 
-    return {};
+    return {
+      allowDrop,
+      drop,
+    };
   },
 });
 </script>
 
 <style scoped>
+.full-space {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
 svg :deep(.active) {
   outline: 3px solid #1976d2;
   outline-offset: 3px;

@@ -8,8 +8,8 @@
       margin: 0;
       border: 0;
     "
-    v-droppable
-    @v-drag-drop="handleDrop"
+    @dragover="allowDrop($event)"
+    @drop="drop($event)"
   >
     <canvas
       id="canvas"
@@ -35,7 +35,6 @@
 
 <script lang="ts">
 import { onMounted, defineComponent, ref, watch, onUnmounted } from 'vue';
-import { droppable } from 'v-drag-drop';
 import { fabric } from 'fabric';
 import { debounce, event, useQuasar } from 'quasar';
 import CustomNodeDialog from './customNode/CustomNodeDialog.vue';
@@ -64,8 +63,6 @@ export default defineComponent({
   name: 'FabricComponent',
 
   components: { CustomNodeDialog },
-
-  directives: { droppable },
 
   setup() {
     const $q = useQuasar();
@@ -317,10 +314,19 @@ export default defineComponent({
       event.stopAndPrevent(opt.e);
     };
 
-    const handleDrop = (d: string, _: boolean, e: DragEvent) => {
+    const allowDrop = (e: DragEvent) => {
+      e.preventDefault();
+    };
+
+    const drop = (e: DragEvent) => {
+      e.preventDefault();
+      const d = e.dataTransfer.getData('text');
       if (d === 'rain.nodes.custom.custom.CustomNode') {
         showCustomNodeDialog.value = true;
       } else {
+        if (!configStore.nodeStructures.has(d)) {
+          return;
+        }
         const pt = fabricCanvas.getPointer(e);
         const node = createCanvasNode(pt.x, pt.y, d);
         fabricCanvas.add(node);
@@ -672,7 +678,8 @@ export default defineComponent({
     onUnmounted(removeListeners);
 
     return {
-      handleDrop,
+      allowDrop,
+      drop,
       showCustomNodeDialog,
       onYesClicked,
       addCustomCanvasNode,
