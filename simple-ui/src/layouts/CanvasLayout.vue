@@ -113,7 +113,7 @@ import LocaleChanger from 'components/LocaleChanger.vue';
 import NodeCollection from 'components/NodeCollection.vue';
 import ConfigFormComponent from 'components/ConfigFormComponent.vue';
 import { useCanvasStore } from 'stores/canvasStore';
-import { FabricNode } from 'components/fabricModels';
+import { NodeInfo } from 'src/components/models';
 
 export default defineComponent({
   name: 'CanvasLayout',
@@ -128,7 +128,7 @@ export default defineComponent({
     const canvasStore = useCanvasStore();
     const leftDrawerOpen = ref(false);
     const rightDrawerOpen = ref(false);
-    const selectedNode = ref(null as FabricNode);
+    const selectedNode = ref(null as NodeInfo);
 
     watch(
       () => canvasStore.selectedNode,

@@ -15,9 +15,7 @@
 
     <q-separator color="primary" inset spaced />
 
-    <div
-      v-if="node.nodePackage.includes('rain.nodes.custom.custom.CustomNode')"
-    >
+    <div v-if="node.package.includes('rain.nodes.custom.custom.CustomNode')">
       <div class="row justify-center">
         <q-btn
           label="Edit"
@@ -75,13 +73,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, watch } from 'vue';
+import { defineComponent, PropType, ref, Ref, watch } from 'vue';
 import { useConfigStore } from 'stores/configStore';
 import { useCustomStore } from 'stores/customStore';
 import { FabricNode } from './fabricModels';
 import {
   ComponentTypeRegexes,
   CustomNodeStructure,
+  NodeInfo,
   SimpleNodeParameter,
 } from './models';
 import StringConfigComponent from './nodeConfigComponents/StringConfigComponent.vue';
@@ -109,7 +108,7 @@ export default defineComponent({
 
   props: {
     node: {
-      type: FabricNode,
+      type: Object as PropType<NodeInfo>,
       required: true,
     },
   },
@@ -130,16 +129,22 @@ export default defineComponent({
       }
     );
 
-    const updateNode = (node: FabricNode) => {
-      nodeDescription.value = getNodeDescription(node);
-      nodeConfigStructure.value = getNodeConfigStructure(node);
+    const updateNode = (node: NodeInfo) => {
+      const nodeStructure = configStore.getNodeStructureByNodePackage(
+        node.package
+      );
+      nodeDescription.value = nodeStructure.description;
+      nodeConfigStructure.value = nodeStructure.parameter.reduce(
+        (acc, value) => Object.assign(acc, { [value.name]: value }),
+        {}
+      );
       nodeConfigComponents.value = new Map<string, string>(
         Object.entries(nodeConfigStructure.value).map((v) => [
           v[0],
           getConfigComponent((v[1] as SimpleNodeParameter).type),
         ])
       );
-      nodeConfigData.value = getNodeConfigData(node);
+      nodeConfigData.value = configStore.nodeConfigs.get(node.name);
     };
 
     const getConfigComponent = (type: string) => {
@@ -151,28 +156,6 @@ export default defineComponent({
         }
       }
       return component;
-    };
-
-    const getNodeDescription = (node: FabricNode) => {
-      const nodeStructure = configStore.getNodeStructureByNodePackage(
-        node.nodePackage
-      );
-      return nodeStructure.description;
-    };
-
-    const getNodeConfigStructure = (node: FabricNode) => {
-      const nodeStructure = configStore.getNodeStructureByNodePackage(
-        node.nodePackage
-      );
-      const nodeConfigStructure = nodeStructure.parameter.reduce(
-        (acc, value) => Object.assign(acc, { [value.name]: value }),
-        {}
-      );
-      return nodeConfigStructure;
-    };
-
-    const getNodeConfigData = (node: FabricNode) => {
-      return configStore.nodeConfigs.get(node.name);
     };
 
     const editCustomNode = (node: FabricNode) => {
@@ -190,7 +173,6 @@ export default defineComponent({
 
     return {
       configStore,
-      getConfigComponent,
       nodeDescription,
       nodeConfigStructure,
       nodeConfigComponents,

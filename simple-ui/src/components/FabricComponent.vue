@@ -195,7 +195,7 @@ export default defineComponent({
       }
 
       configStore.addNodeStructure(nodeStructure);
-      configStore.setNodeConfig(node);
+      configStore.setNodeConfig(node.nodePackage, node.name);
       fabricCanvas.setActiveObject(node);
 
       return node;
@@ -331,7 +331,7 @@ export default defineComponent({
         const node = createCanvasNode(pt.x, pt.y, d);
         fabricCanvas.add(node);
         canvasStore.addCanvasNode(node);
-        configStore.setNodeConfig(node);
+        configStore.setNodeConfig(node.nodePackage, node.name);
         fabricCanvas.setActiveObject(node);
       }
     };
@@ -428,7 +428,10 @@ export default defineComponent({
             });
             fabricCanvas.setActiveObject(cloneSelection);
             if (cloneNodes.length == 1) {
-              canvasStore.selectedNode = cloneNodes[0];
+              canvasStore.selectedNode = {
+                name: cloneNodes[0].name,
+                package: cloneNodes[0].nodePackage,
+              };
             }
             fabricCanvas.setViewportTransform(canvasStore.canvasTransform);
             fabricCanvas.requestRenderAll();
@@ -447,7 +450,11 @@ export default defineComponent({
 
     const handleSelection = (opt: fabric.IEvent<Event>) => {
       if (opt.target instanceof FabricNode) {
-        canvasStore.selectedNode = opt.target;
+        const target = opt.target as FabricNode;
+        canvasStore.selectedNode = {
+          name: target.name,
+          package: target.nodePackage,
+        };
       }
     };
 

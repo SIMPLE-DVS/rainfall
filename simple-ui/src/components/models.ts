@@ -27,6 +27,11 @@ export const ManageableComponentTypes = new Map<string, string>([
   ['list of float', 'ListConfigComponent'],
 ]);
 
+export interface NodeInfo {
+  name: string;
+  package: string;
+}
+
 export interface AnyParameterConfig {
   type: string;
   value: unknown;

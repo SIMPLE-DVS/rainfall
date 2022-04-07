@@ -41,10 +41,8 @@ export const useConfigStore = defineStore('config', {
         })
       );
     },
-    setNodeConfig(node: FabricNode) {
-      const nodeStructure: SimpleNodeStructure = this.nodeStructures.get(
-        node.nodePackage
-      );
+    setNodeConfig(clazz: string, id: string) {
+      const nodeStructure: SimpleNodeStructure = this.nodeStructures.get(clazz);
       const nodeConfigContent: { [index: string]: unknown } = {};
       nodeStructure.parameter.forEach((p) => {
         switch (p.type) {
@@ -58,7 +56,7 @@ export const useConfigStore = defineStore('config', {
             break;
           case ComponentTypeRegexes.get('Any').exec(p.type)?.input:
             nodeConfigContent[p.name] = null;
-            this.nodeAnyConfigs.set(node.name + '$' + p.name, {
+            this.nodeAnyConfigs.set(id + '$' + p.name, {
               type: 'str',
               value: null,
             });
@@ -71,7 +69,7 @@ export const useConfigStore = defineStore('config', {
             break;
         }
       });
-      this.nodeConfigs.set(node.name, nodeConfigContent);
+      this.nodeConfigs.set(id, nodeConfigContent);
     },
     removeNodeConfig(node: FabricNode) {
       this.nodeConfigs.delete(node.name);

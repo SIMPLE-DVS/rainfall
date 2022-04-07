@@ -7,6 +7,7 @@ import {
   InputFabricPort,
   OutputFabricPort,
 } from 'src/components/fabricModels';
+import { NodeInfo } from 'src/components/models';
 
 export const useCanvasStore = defineStore('canvas', {
   state: () => ({
@@ -14,7 +15,7 @@ export const useCanvasStore = defineStore('canvas', {
     canvasNodes: new Map<string, FabricNode>(),
     canvasEdges: new Map<string, FabricEdge>(),
     canvasTransform: [1, 0, 0, 1, 0, 0],
-    selectedNode: null as FabricNode,
+    selectedNode: null as NodeInfo,
     selectedPort: null as FabricPort,
     selectedEdge: null as FabricEdge,
     doubleClick: false,
