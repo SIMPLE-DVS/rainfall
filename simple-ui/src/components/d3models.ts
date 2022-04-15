@@ -1,14 +1,13 @@
 import * as d3 from 'd3';
 import { debounce } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
+import { useConfigStore } from 'src/stores/configStore';
 
 export interface DataType {
   name: string;
   package: string;
   x: number;
   y: number;
-  inputs: Map<string, string>;
-  outputs: Map<string, string>;
 }
 
 interface GenericCoords {
@@ -88,13 +87,17 @@ export function createNode(
   d3g: d3.Selection<d3.BaseType, unknown, null, undefined>,
   data: DataType
 ) {
+  const configStore = useConfigStore();
+  const nodeStructure = configStore.getNodeStructureByNodePackage(data.package);
+  const inputs = new Map<string, string>(Object.entries(nodeStructure.input));
+  const outputs = new Map<string, string>(Object.entries(nodeStructure.output));
   const selection = createGroup(d3elem, d3g, data);
-  const backgroundRect = createBackgroundRect(selection, d3g);
+  const backgroundRect = createBackgroundRect(selection, d3g, inputs, outputs);
   const titleRect = createTitleRect(selection, backgroundRect);
   createTitle(selection, backgroundRect, titleRect);
-  createPorts(selection, backgroundRect, d3g);
-  createTexts(selection, backgroundRect);
-  createSeparator(selection, backgroundRect, d3g);
+  createPorts(selection, backgroundRect, d3g, inputs, outputs);
+  createTexts(selection, backgroundRect, inputs, outputs);
+  createSeparator(selection, backgroundRect, d3g, inputs, outputs);
   return selection;
 }
 
@@ -186,7 +189,9 @@ function createGroup(
 
 function createBackgroundRect(
   selection: d3.Selection<SVGGElement, DataType, null, undefined>,
-  d3g: d3.Selection<d3.BaseType, unknown, null, undefined>
+  d3g: d3.Selection<d3.BaseType, unknown, null, undefined>,
+  inputs: Map<string, string>,
+  outputs: Map<string, string>
 ) {
   return selection
     .insert('rect')
@@ -194,15 +199,11 @@ function createBackgroundRect(
       const titleSize = calculateTextLength(d3g, data.name, titleFontSize);
       const maxInputSize =
         d3.max(
-          [...data.inputs.keys()].map((d) =>
-            calculateTextLength(d3g, d, fontSize)
-          )
+          [...inputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
         ) || 0;
       const maxOutputSize =
         d3.max(
-          [...data.outputs.keys()].map((d) =>
-            calculateTextLength(d3g, d, fontSize)
-          )
+          [...outputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
         ) || 0;
       const totalSize = maxInputSize + maxOutputSize + 36;
       const separatorSize = maxInputSize == 0 || maxOutputSize == 0 ? 0 : 50;
@@ -210,10 +211,7 @@ function createBackgroundRect(
         ? titleSize
         : totalSize + separatorSize;
     })
-    .attr(
-      'height',
-      (data) => (Math.max(data.inputs.size, data.outputs.size) + 1) * 36
-    )
+    .attr('height', (Math.max(inputs.size, outputs.size) + 1) * 36)
     .attr('x', function (this) {
       return -this.getAttribute('width') / 2;
     })
@@ -265,7 +263,9 @@ function createTitle(
 function createPorts(
   selection: d3.Selection<SVGGElement, DataType, null, undefined>,
   backgroundRect: d3.Selection<SVGRectElement, DataType, null, undefined>,
-  d3g: d3.Selection<d3.BaseType, unknown, null, undefined>
+  d3g: d3.Selection<d3.BaseType, unknown, null, undefined>,
+  inputs: Map<string, string>,
+  outputs: Map<string, string>
 ) {
   let from: { x: number; y: number } = null;
   let compatiblePorts: d3.Selection<
@@ -277,23 +277,23 @@ function createPorts(
   return selection.each(function (this, data) {
     d3.select(this)
       .selectAll('circle')
-      .data([...data.inputs, ...data.outputs])
+      .data([...inputs, ...outputs])
       .enter()
       .insert('circle')
       .attr('data-parent', data.name)
       .attr('data-name', (d) => d[0])
       .attr('data-type', (d) => d[1])
-      .attr('data-io', (_, i) => (i < data.inputs.size ? 'input' : 'output'))
+      .attr('data-io', (_, i) => (i < inputs.size ? 'input' : 'output'))
       .attr('cx', (_, i) => {
         const x = +backgroundRect.attr('width') / 2;
-        return i < data.inputs.size ? -x : x;
+        return i < inputs.size ? -x : x;
       })
       .attr(
         'cy',
         (_, i) =>
           +backgroundRect.attr('y') +
           18 +
-          (i < data.inputs.size ? i + 1 : i + 1 - data.inputs.size) * 36
+          (i < inputs.size ? i + 1 : i + 1 - inputs.size) * 36
       )
       .attr('r', radius)
       .attr('fill', 'gray')
@@ -420,30 +420,32 @@ function createPorts(
 
 function createTexts(
   selection: d3.Selection<SVGGElement, DataType, null, undefined>,
-  backgroundRect: d3.Selection<SVGRectElement, DataType, null, undefined>
+  backgroundRect: d3.Selection<SVGRectElement, DataType, null, undefined>,
+  inputs: Map<string, string>,
+  outputs: Map<string, string>
 ) {
-  return selection.each(function (this, data) {
+  return selection.each(function (this) {
     d3.select(this)
       .selectAll('text[type=param')
-      .data([...data.inputs, ...data.outputs])
+      .data([...inputs, ...outputs])
       .enter()
       .insert('text')
       .text((d) => d[0])
       .attr('type', 'param')
-      .attr('text-anchor', (_, i) => (i < data.inputs.size ? 'start' : 'end'))
+      .attr('text-anchor', (_, i) => (i < inputs.size ? 'start' : 'end'))
       .attr('dominant-baseline', 'central')
       .attr('fill', 'black')
       .attr('font-size', fontSize)
       .attr('x', (_, i) => {
         const x = +backgroundRect.attr('width') / 2;
-        return i < data.inputs.size ? -x + 18 : x - 18;
+        return i < inputs.size ? -x + 18 : x - 18;
       })
       .attr(
         'y',
         (_, i) =>
           +backgroundRect.attr('y') +
           18 +
-          (i < data.inputs.size ? i + 1 : i + 1 - data.inputs.size) * 36
+          (i < inputs.size ? i + 1 : i + 1 - inputs.size) * 36
       );
   });
 }
@@ -451,19 +453,21 @@ function createTexts(
 function createSeparator(
   selection: d3.Selection<SVGGElement, DataType, null, undefined>,
   backgroundRect: d3.Selection<SVGRectElement, DataType, null, undefined>,
-  d3g: d3.Selection<d3.BaseType, unknown, null, undefined>
+  d3g: d3.Selection<d3.BaseType, unknown, null, undefined>,
+  inputs: Map<string, string>,
+  outputs: Map<string, string>
 ) {
-  return selection.each(function (this, data) {
-    if (data.inputs.size == 0 || data.outputs.size == 0) {
+  return selection.each(function (this) {
+    if (inputs.size == 0 || outputs.size == 0) {
       return;
     }
     const start = -backgroundRect.attr('width') / 2 + 18;
     const maxInputSize = d3.max(
-      [...data.inputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
+      [...inputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
     );
     const end = +backgroundRect.attr('width') / 2 - 18;
     const maxOutputSize = d3.max(
-      [...data.outputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
+      [...outputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
     );
     const x = (start + maxInputSize + end - maxOutputSize) / 2;
     d3.select(this)

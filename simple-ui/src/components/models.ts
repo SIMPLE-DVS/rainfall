@@ -32,6 +32,19 @@ export interface NodeInfo {
   package: string;
 }
 
+export interface CustomNodeInfo {
+  name: string;
+  package: string;
+  clazz: string;
+  inputs: string[];
+  outputs: string[];
+  parameters: string[];
+  packages: string[];
+  function: string;
+  code: string;
+  editMode: boolean;
+}
+
 export interface AnyParameterConfig {
   type: string;
   value: unknown;

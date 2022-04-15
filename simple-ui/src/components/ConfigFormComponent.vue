@@ -64,7 +64,7 @@
         label="Reset to default"
         color="primary"
         @click="
-          configStore.setNodeConfig(node);
+          configStore.setNodeConfig(node.package, node.name);
           $emit('resetNode');
         "
       ></q-btn>
@@ -76,13 +76,7 @@
 import { defineComponent, PropType, ref, Ref, watch } from 'vue';
 import { useConfigStore } from 'stores/configStore';
 import { useCustomStore } from 'stores/customStore';
-import { FabricNode } from './fabricModels';
-import {
-  ComponentTypeRegexes,
-  CustomNodeStructure,
-  NodeInfo,
-  SimpleNodeParameter,
-} from './models';
+import { ComponentTypeRegexes, NodeInfo, SimpleNodeParameter } from './models';
 import StringConfigComponent from './nodeConfigComponents/StringConfigComponent.vue';
 import BoolConfigComponent from './nodeConfigComponents/BoolConfigComponent.vue';
 import IntConfigComponent from './nodeConfigComponents/IntConfigComponent.vue';
@@ -158,15 +152,8 @@ export default defineComponent({
       return component;
     };
 
-    const editCustomNode = (node: FabricNode) => {
-      const structure = configStore.getNodeStructureByNodePackage(
-        node.nodePackage
-      ) as CustomNodeStructure;
-      customStore.name = node.name;
-      customStore.function_name = structure.function_name;
-      customStore.code = structure.code;
-      customStore.editMode = true;
-      customStore.nodeToEdit = node.name;
+    const editCustomNode = (node: NodeInfo) => {
+      customStore.nodeToEdit = node;
     };
 
     updateNode(props.node);

@@ -1,22 +1,16 @@
 <template>
-  <q-dialog
-    persistent
-    full-width
-    full-height
-    @show="
-      code = customStore.code;
-      functionName = customStore.function_name;
-    "
-  >
+  <q-dialog ref="dialogRef" persistent full-width full-height>
     <q-card>
-      <q-card-section class="row items-center">
+      <q-card-actions align="right">
+        <q-btn icon="close" flat round dense v-close-popup />
+      </q-card-actions>
+      <q-card-section class="column items-center">
         Code Editor
-        <q-space />
         <q-input
-          :disable="customStore.editMode"
+          :disable="node != null"
           dense
           outlined
-          v-model="customStore.name"
+          v-model="customNodeInfo.name"
           label="My Custom Node Name"
           lazy-rules
           :rules="[
@@ -24,23 +18,11 @@
           ]"
         >
         </q-input>
-        <q-space />
-        <q-btn
-          icon="close"
-          flat
-          round
-          dense
-          v-close-popup
-          @click="
-            customStore.editMode = false;
-            customStore.nodeToEdit = null;
-          "
-        />
       </q-card-section>
       <q-card-section>
         <prism-editor
-          class="my-editor"
-          v-model="code"
+          class="editor"
+          v-model="customNodeInfo.code"
           :highlight="highlighter"
           lineNumbers
           autoStyleLineNumbers
@@ -56,25 +38,19 @@
           class="q-pr-md"
           dense
           outlined
-          v-model="functionName"
+          v-model="customNodeInfo.function"
           :options="options"
           label="Function Name"
         />
         <q-btn
           :disable="
-            customStore.name == null ||
-            customStore.name.trim() == '' ||
-            functionName == null
+            customNodeInfo.name == null ||
+            customNodeInfo.name.trim() == '' ||
+            customNodeInfo.function == null
           "
           color="primary"
           label="create custom node"
-          @click="
-            checkCustomNode().then((res) => {
-              if (res) {
-                $emit('onCreateCustomNode');
-              }
-            })
-          "
+          @click="onOKClick()"
         ></q-btn>
       </q-card-actions>
     </q-card>
@@ -82,29 +58,65 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, PropType, reactive, ref, toRefs, toRaw } from 'vue';
 import { PrismEditor } from 'vue-prism-editor';
 import 'vue-prism-editor/dist/prismeditor.min.css';
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-python';
 import 'prismjs/themes/prism-tomorrow.css';
-import { useCustomStore } from 'stores/customStore';
 import { api } from 'src/boot/axios';
-import { debounce, Notify } from 'quasar';
+import { debounce, useDialogPluginComponent, useQuasar } from 'quasar';
 import { AxiosError, AxiosResponse } from 'axios';
+import { CustomNodeInfo, CustomNodeStructure, NodeInfo } from '../models';
+import { useConfigStore } from 'src/stores/configStore';
 
 export default defineComponent({
   name: 'CustomNodeDialog',
 
   components: { PrismEditor },
 
-  emits: ['onCreateCustomNode'],
+  emits: { ...useDialogPluginComponent.emitsObject },
 
-  setup() {
-    const customStore = useCustomStore();
-    const code = ref(customStore.code);
+  props: {
+    node: {
+      type: Object as PropType<NodeInfo>,
+      required: false,
+    },
+  },
+
+  setup(props) {
+    const $q = useQuasar();
+
+    const { dialogRef, onDialogOK } = useDialogPluginComponent();
+
+    const customNodeInfo = reactive({
+      name: 'My Custom Node',
+      package: '',
+      clazz: '',
+      inputs: [],
+      outputs: [],
+      parameters: [],
+      packages: [],
+      function: null,
+      code: "print('OK')",
+      editMode: false,
+    } as CustomNodeInfo);
+
+    if (props.node) {
+      const nodeInfo = toRefs(props.node);
+      customNodeInfo.package = nodeInfo.package.value;
+      const configStore = useConfigStore();
+      const nodeStructure = configStore.getNodeStructureByNodePackage(
+        customNodeInfo.package
+      ) as CustomNodeStructure;
+      customNodeInfo.name = nodeStructure.name;
+      customNodeInfo.clazz = nodeStructure.clazz;
+      customNodeInfo.function = nodeStructure.function_name;
+      customNodeInfo.code = nodeStructure.code;
+      customNodeInfo.editMode = true;
+    }
+
     const options = ref([]);
-    const functionName = ref(customStore.function_name);
 
     function getMatches(str: string) {
       const regex = /def (.+?)\(.+?,.+?\):/gm;
@@ -123,10 +135,9 @@ export default defineComponent({
     }
 
     const debouncedCodeChanged = debounce(() => {
-      customStore.code = code.value;
-      options.value = getMatches(code.value);
-      if (!options.value.includes(functionName.value)) {
-        functionName.value = null;
+      options.value = getMatches(customNodeInfo.code);
+      if (!options.value.includes(customNodeInfo.function)) {
+        customNodeInfo.function = null;
       }
     }, 500);
 
@@ -134,32 +145,35 @@ export default defineComponent({
       return highlight(code, languages.python, 'python');
     }
 
+    const onOKClick = async () => {
+      await checkCustomNode().then(() => {
+        onDialogOK(toRaw(customNodeInfo));
+      });
+    };
+
     async function checkCustomNode(): Promise<boolean> {
       let retVal = false;
       await api
         .post('/custom/check', {
-          function_name: functionName.value,
-          code: code.value,
+          function_name: customNodeInfo.function,
+          code: customNodeInfo.code,
         })
         .then((res: AxiosResponse) => {
-          console.log(res.data);
           const data = res.data as {
             inputs: string[];
             outputs: string[];
             parameters: string[];
           };
 
-          customStore.inputs = data.inputs;
-          customStore.outputs = data.outputs;
-          customStore.parameters = data.parameters;
-          customStore.function_name = functionName.value;
-
+          customNodeInfo.clazz = customNodeInfo.name.replace(/\s/g, '');
+          customNodeInfo.inputs = data.inputs;
+          customNodeInfo.outputs = data.outputs;
+          customNodeInfo.parameters = data.parameters;
           retVal = true;
         })
         .catch((err: AxiosError) => {
-          Notify.create({
+          $q.notify({
             message: (err.response.data as { message: string }).message,
-            position: 'top',
             type: 'negative',
           });
           retVal = false;
@@ -168,12 +182,11 @@ export default defineComponent({
     }
 
     return {
-      code,
+      dialogRef,
+      onOKClick,
+      customNodeInfo,
       options,
-      customStore,
-      functionName,
       highlighter,
-      slide: ref(1),
       debouncedCodeChanged,
       checkCustomNode,
     };
@@ -182,7 +195,7 @@ export default defineComponent({
 </script>
 
 <style>
-.my-editor {
+.editor {
   background: #2d2d2d;
   color: #ccc;
 

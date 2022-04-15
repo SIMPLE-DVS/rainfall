@@ -27,7 +27,7 @@
       v-model="showCustomNodeDialog"
       @onCreateCustomNode="
         showCustomNodeDialog = false;
-        addCustomCanvasNode();
+        addCustomCanvasNode(customNodeInfo);
       "
     ></custom-node-dialog>
   </div>
@@ -43,6 +43,7 @@ import { useConfigStore } from 'stores/configStore';
 import { useCustomStore } from 'stores/customStore';
 import {
   AnyParameterConfig,
+  CustomNodeInfo,
   CustomNodeStructure,
   SimpleNodeParameter,
   SimpleNodeStructure,
@@ -133,16 +134,16 @@ export default defineComponent({
       return nodeStructureId;
     };
 
-    const addCustomCanvasNode = () => {
-      const className = customStore.name.replace(/\s/g, '');
+    const addCustomCanvasNode = (customNodeInfo: CustomNodeInfo) => {
+      const className = customNodeInfo.clazz;
       const center = fabricCanvas.getVpCenter();
       const nodeId = createCanvasNodeId(className);
       const nodeStructureId = getNextNodeStructureId();
       const inputsMap = new Map<string, string>(
-        customStore.inputs.map((i) => [i, 'custom'])
+        customNodeInfo.inputs.map((i) => [i, 'custom'])
       );
       const outputsMap = new Map<string, string>(
-        customStore.outputs.map((o) => [o, 'custom'])
+        customNodeInfo.outputs.map((o) => [o, 'custom'])
       );
       const inputs = [...inputsMap.entries()].reduce(
         (acc, value) => Object.assign(acc, { [value[0]]: value[1] }),
@@ -152,7 +153,7 @@ export default defineComponent({
         (acc, value) => Object.assign(acc, { [value[0]]: value[1] }),
         {}
       );
-      const parameters = customStore.parameters.map((p) => {
+      const parameters = customNodeInfo.parameters.map((p) => {
         return {
           name: p,
           type: 'Any',
@@ -164,7 +165,7 @@ export default defineComponent({
 
       const node = new FabricNode(
         nodeId,
-        customStore.name,
+        customNodeInfo.name,
         nodeStructureId,
         center.x,
         center.y,
@@ -183,13 +184,13 @@ export default defineComponent({
           library: 'Custom',
           type: 'Custom',
         },
-        name: customStore.name,
+        name: customNodeInfo.name,
         description: 'A Custom Node.',
-        function_name: customStore.function_name,
-        code: customStore.code,
+        function_name: customNodeInfo.function,
+        code: customNodeInfo.code,
       };
 
-      if (!customStore.editMode) {
+      if (!customNodeInfo.editMode) {
         fabricCanvas.add(node);
         canvasStore.addCanvasNode(node);
       }
