@@ -15,7 +15,7 @@ export const useCanvasStore = defineStore('canvas', {
     canvasNodes: new Map<string, FabricNode>(),
     canvasEdges: new Map<string, FabricEdge>(),
     canvasTransform: [1, 0, 0, 1, 0, 0],
-    selectedNode: null as NodeInfo,
+    selectedNodes: [] as NodeInfo[],
     selectedPort: null as FabricPort,
     selectedEdge: null as FabricEdge,
     doubleClick: false,

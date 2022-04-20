@@ -26,7 +26,7 @@
         <locale-changer></locale-changer>
 
         <q-btn
-          v-if="(tab == 'ui' || tab == 'd3') && selectedNode != null"
+          v-if="(tab == 'ui' || tab == 'd3') && selectedNodes.length == 1"
           dense
           flat
           round
@@ -58,9 +58,9 @@
       side="right"
     >
       <config-form-component
-        v-if="selectedNode != null"
+        v-if="selectedNodes.length == 1"
         :key="resetKey"
-        :node="selectedNode"
+        :node="selectedNodes[0]"
         @resetNode="resetKey++"
       ></config-form-component>
     </q-drawer>
@@ -128,23 +128,24 @@ export default defineComponent({
     const canvasStore = useCanvasStore();
     const leftDrawerOpen = ref(false);
     const rightDrawerOpen = ref(false);
-    const selectedNode = ref(null as NodeInfo);
+    const selectedNodes = ref([] as NodeInfo[]);
 
     watch(
-      () => canvasStore.selectedNode,
+      () => canvasStore.selectedNodes,
       (newVal) => {
-        selectedNode.value = newVal;
-        if (newVal == null) {
+        selectedNodes.value = newVal;
+        if (newVal.length != 1) {
           rightDrawerOpen.value = false;
         }
-      }
+      },
+      { deep: true }
     );
 
     watch(
       () => canvasStore.doubleClick,
       () => {
         canvasStore.doubleClick = false;
-        if (canvasStore.selectedNode != null) {
+        if (canvasStore.selectedNodes.length == 1) {
           rightDrawerOpen.value = true;
         }
       }
@@ -162,7 +163,7 @@ export default defineComponent({
       },
 
       tab: ref('ui'),
-      selectedNode,
+      selectedNodes,
       resetKey: ref(0),
       canvasStore,
     };

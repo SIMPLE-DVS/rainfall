@@ -429,10 +429,12 @@ export default defineComponent({
             });
             fabricCanvas.setActiveObject(cloneSelection);
             if (cloneNodes.length == 1) {
-              canvasStore.selectedNode = {
-                name: cloneNodes[0].name,
-                package: cloneNodes[0].nodePackage,
-              };
+              canvasStore.selectedNodes = [
+                {
+                  name: cloneNodes[0].name,
+                  package: cloneNodes[0].nodePackage,
+                },
+              ];
             }
             fabricCanvas.setViewportTransform(canvasStore.canvasTransform);
             fabricCanvas.requestRenderAll();
@@ -452,15 +454,17 @@ export default defineComponent({
     const handleSelection = (opt: fabric.IEvent<Event>) => {
       if (opt.target instanceof FabricNode) {
         const target = opt.target as FabricNode;
-        canvasStore.selectedNode = {
-          name: target.name,
-          package: target.nodePackage,
-        };
+        canvasStore.selectedNodes = [
+          {
+            name: target.name,
+            package: target.nodePackage,
+          },
+        ];
       }
     };
 
     const handleClearSelection = () => {
-      canvasStore.selectedNode = null;
+      canvasStore.selectedNodes = [];
     };
 
     const handleDoubleClick = (opt: fabric.IEvent<Event>) => {
@@ -523,7 +527,7 @@ export default defineComponent({
 
     const loadUIFileIfExists = () => {
       if (canvasStore.uiFile != null) {
-        canvasStore.selectedNode = null;
+        canvasStore.selectedNodes = [];
         canvasStore.selectedPort = null;
         canvasStore.selectedEdge = null;
         canvasStore.doubleClick = false;
@@ -585,8 +589,10 @@ export default defineComponent({
       edges.forEach((e) => {
         fabricCanvas.add(e);
       });
-      if (canvasStore.selectedNode != null) {
-        fabricCanvas.setActiveObject(nodes.get(canvasStore.selectedNode.name));
+      if (canvasStore.selectedNodes.length == 1) {
+        fabricCanvas.setActiveObject(
+          nodes.get(canvasStore.selectedNodes[0].name)
+        );
       }
     };
 

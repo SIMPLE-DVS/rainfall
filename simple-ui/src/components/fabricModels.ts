@@ -212,10 +212,12 @@ export class FabricNode extends fabric.Group {
     const canvasStore = useCanvasStore();
     s.on('mouseup', (e: fabric.IEvent<Event>) => {
       if (e.isClick) {
-        canvasStore.selectedNode = {
-          name: this.name,
-          package: this.nodePackage,
-        };
+        canvasStore.selectedNodes = [
+          {
+            name: this.name,
+            package: this.nodePackage,
+          },
+        ];
         canvasStore.doubleClick = true;
       }
     });
