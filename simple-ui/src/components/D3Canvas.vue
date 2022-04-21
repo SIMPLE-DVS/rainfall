@@ -20,6 +20,7 @@ import {
   createNode,
   DataType,
   extractTranslateCoords,
+  GenericCoords,
   handleGroupDrag,
   selectNode,
 } from 'components/d3models';
@@ -49,7 +50,7 @@ export default defineComponent({
     let d3g: d3.Selection<Element, unknown, null, undefined> = null;
     let d3selRect: d3.Selection<SVGRectElement, unknown, null, undefined> =
       null;
-    // let rightDrag: GenericCoords = null;
+    let rightDrag: GenericCoords = null;
 
     onMounted(() => {
       d3elem = document.getElementsByClassName('d3-svg')[0];
@@ -66,68 +67,98 @@ export default defineComponent({
         }
       }
 
-      // TODO: select multiple nodes with right mouse button
-      /*function handleDragStart(
+      function handleDragStart(
         this: Element,
         e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, unknown>
       ) {
-        console.log('start');
-        if (event.rightClick(e.sourceEvent)) {
-          const transform = d3.zoomTransform(d3elem);
-          const x = transform.invertX(e.sourceEvent.offsetX);
-          const y = transform.invertX(e.sourceEvent.offsetY);
-          d3svg
-            .insert('rect')
-            .attr('data-type', 'selection')
-            .attr('x', x)
-            .attr('y', y)
-            .attr('width', 0)
-            .attr('height', 0)
-            .attr('fill', '#1976d2')
-            .attr('opacity', 0.5);
-          rightDrag = { x: x, y: y };
-        }
+        const x = e.sourceEvent.offsetX;
+        const y = e.sourceEvent.offsetY;
+        d3svg
+          .insert('rect')
+          .attr('data-type', 'selection')
+          .attr('x', x)
+          .attr('y', y)
+          .attr('width', 0)
+          .attr('height', 0)
+          .attr('fill', '#1976d2')
+          .attr('opacity', 0.5);
+        rightDrag = { x: x, y: y };
       }
 
       function handleDrag(
         this: Element,
         e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, unknown>
       ) {
-        console.log('drag');
-        if (rightDrag != null) {
-          event.stopAndPrevent(e.sourceEvent);
-          const transform = d3.zoomTransform(d3elem);
-          const x = transform.invertX(e.sourceEvent.offsetX);
-          const y = transform.invertY(e.sourceEvent.offsetY);
-          const selectionRect = d3.select('rect[data-type=selection]');
-          selectionRect
-            .attr('x', rightDrag.x < x ? rightDrag.x : x)
-            .attr('y', rightDrag.y < y ? rightDrag.y : y)
-            .attr('width', Math.abs(x - rightDrag.x))
-            .attr('height', Math.abs(y - rightDrag.y));
+        if (rightDrag == null) {
+          return;
         }
+        const x = e.sourceEvent.offsetX;
+        const y = e.sourceEvent.offsetY;
+        const selectionRect = d3.select('rect[data-type=selection]');
+        selectionRect
+          .attr('x', rightDrag.x < x ? rightDrag.x : x)
+          .attr('y', rightDrag.y < y ? rightDrag.y : y)
+          .attr('width', Math.abs(x - rightDrag.x))
+          .attr('height', Math.abs(y - rightDrag.y));
       }
 
       function handleDragEnd(
         this: Element,
         e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, unknown>
       ) {
-        console.log('end');
-        if (event.rightClick(e.sourceEvent)) {
-          rightDrag = null;
-          d3.selectAll('rect[data-type=selection]').remove();
+        if (rightDrag == null) {
+          return;
         }
-        // TODO: intersect selection rectangles and groups,
-        // update canvasStore.selectedNodes
+        const transform = d3.zoomTransform(d3elem);
+        const x = e.sourceEvent.offsetX;
+        const y = e.sourceEvent.offsetY;
+        const left = transform.invertX(rightDrag.x < x ? rightDrag.x : x);
+        const top = transform.invertY(rightDrag.y < y ? rightDrag.y : y);
+        const right = transform.invertX(rightDrag.x < x ? x : rightDrag.x);
+        const bottom = transform.invertY(rightDrag.y < y ? y : rightDrag.y);
+        rightDrag = null;
+        d3.selectAll('rect[data-type=selection]').remove();
+        const nodes = d3g.selectAll<SVGGElement, DataType>('g');
+        nodes.each((d) => {
+          d.selected = false;
+        });
+        canvasStore.selectedNodes = d3g
+          .selectAll<SVGGElement, DataType>('g')
+          .filter(function (this) {
+            const coords = extractTranslateCoords(
+              this.getAttribute('transform')
+            );
+            const box = this.getBBox();
+            return (
+              left <= coords.x + box.width / 2 &&
+              coords.x - box.width / 2 <= right &&
+              top <= coords.y + box.height / 2 &&
+              coords.y - box.height / 2 <= bottom
+            );
+          })
+          .each(function (this, d) {
+            d.selected = true;
+            d3.select(this).raise();
+          })
+          .nodes()
+          .map((n) => {
+            return {
+              name: n.getAttribute('data-id'),
+              package: n.getAttribute('data-package'),
+            } as NodeInfo;
+          });
       }
 
-      d3sel.call(
+      d3svg.call(
         d3
           .drag()
+          .filter((e: Event) => {
+            return event.rightClick(e as MouseEvent);
+          })
           .on('start', handleDragStart)
           .on('drag', handleDrag)
           .on('end', handleDragEnd) as never
-      );*/
+      );
 
       d3svg
         .call(
@@ -138,11 +169,9 @@ export default defineComponent({
               if (e.type == 'wheel') {
                 return !(e as WheelEvent).ctrlKey;
               }
-
               if (event.rightClick(e as MouseEvent)) {
                 return false;
               }
-
               return true;
             })
             .on('zoom', handleZoom)
@@ -182,12 +211,9 @@ export default defineComponent({
           let right: number = null;
           let bottom: number = null;
           newVal.forEach((v) => {
-            const coords = extractTranslateCoords(
-              d3g.select('g[data-id=' + v.name + ']').attr('transform')
-            );
-            const box = (
-              d3g.select('g[data-id=' + v.name + ']').node() as SVGGElement
-            ).getBBox();
+            const group = d3g.select<SVGGElement>('g[data-id=' + v.name + ']');
+            const coords = extractTranslateCoords(group.attr('transform'));
+            const box = group.node().getBBox();
             if (left == null || coords.x + box.x < left) {
               left = coords.x + box.x;
             }

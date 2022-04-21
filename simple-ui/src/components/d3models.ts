@@ -90,6 +90,7 @@ function toggleNode(g: Element, d: DataType) {
     );
   } else {
     d3.select(g).classed('hovered', false);
+    d3.select(g).raise();
     canvasStore.selectedNodes.push({
       name: g.getAttribute('data-id'),
       package: g.getAttribute('data-package'),
@@ -191,7 +192,6 @@ function createGroup(
     .call(
       d3
         .drag<SVGGElement, DataType>()
-        .container(d3selRect.node())
         .on('start', function (this) {
           selectNode(this, d3g, false);
           d3selRect.attr('visibility', 'hidden');
