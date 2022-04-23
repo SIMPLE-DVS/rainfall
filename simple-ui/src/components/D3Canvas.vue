@@ -255,7 +255,7 @@ export default defineComponent({
                       .attr('y', +d3.select(this).attr('y') + e.dy);
                     selectedNodes.each((_, i, a) => {
                       d3.select(a[i]).call(() => {
-                        handleGroupDrag.call(a[i], e, d3elem);
+                        handleGroupDrag.call(a[i], e);
                       });
                     });
                   }
@@ -325,7 +325,7 @@ export default defineComponent({
         const nodeStructure = configStore.getNodeStructureByNodePackage(clazz);
         const id = createNodeId(nodeStructure.clazz);
         const transform = d3.zoomTransform(d3elem);
-        const addedNode = createNode(d3elem, d3g, d3selRect, {
+        const addedNode = createNode(d3g, d3selRect, {
           name: id,
           package: clazz,
           x: transform.invertX(x),
@@ -420,8 +420,6 @@ export default defineComponent({
   fill-opacity: 0.25;
   stroke: #1976d2;
   stroke-width: 3px;
-  stroke-dasharray: 10, 10;
-  stroke-linejoin: round;
 }
 
 svg :deep(.hovered) {

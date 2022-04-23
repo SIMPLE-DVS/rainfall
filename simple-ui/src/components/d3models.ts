@@ -38,16 +38,16 @@ function calculatePath(coords: PathCoords) {
 }
 
 function extractPathCoords(path: SVGPathElement): PathCoords {
-  const fromParentId = path.getAttribute('data-from-parent');
-  const fromPortName = path.getAttribute('data-from-port');
+  const fromParentId = path.dataset['fromParent'];
+  const fromPortName = path.dataset['fromPort'];
   const fromParent = d3.select('g[data-id=' + fromParentId + ']');
   const fromPort = d3.select(
     'circle[data-parent=' + fromParentId + '][data-name=' + fromPortName + ']'
   );
   const fromParentCoords = extractTranslateCoords(fromParent.attr('transform'));
 
-  const toParentId = path.getAttribute('data-to-parent');
-  const toPortName = path.getAttribute('data-to-port');
+  const toParentId = path.dataset['toParent'];
+  const toPortName = path.dataset['toPort'];
   const toParent = d3.select('g[data-id=' + toParentId + ']');
   const toPort = d3.select(
     'circle[data-parent=' + toParentId + '][data-name=' + toPortName + ']'
@@ -63,7 +63,7 @@ function extractPathCoords(path: SVGPathElement): PathCoords {
 }
 
 export function selectNode(
-  g: Element,
+  g: SVGGElement | HTMLElement,
   d3g: d3.Selection<Element, unknown, null, undefined>,
   addNode: boolean
 ) {
@@ -77,23 +77,23 @@ export function selectNode(
   d3.select(g).raise();
   d3.select<Element, DataType>(g).datum().selected = true;
   canvasStore.selectedNodes.push({
-    name: g.getAttribute('data-id'),
-    package: g.getAttribute('data-package'),
+    name: g.dataset['id'],
+    package: g.dataset['package'],
   });
 }
 
-function toggleNode(g: Element, d: DataType) {
+function toggleNode(g: SVGGElement, d: DataType) {
   const canvasStore = useCanvasStore();
   if (d.selected) {
     canvasStore.selectedNodes = canvasStore.selectedNodes.filter(
-      (n) => n.name != g.getAttribute('data-id')
+      (n) => n.name != g.dataset['id']
     );
   } else {
     d3.select(g).classed('hovered', false);
     d3.select(g).raise();
     canvasStore.selectedNodes.push({
-      name: g.getAttribute('data-id'),
-      package: g.getAttribute('data-package'),
+      name: g.dataset['id'],
+      package: g.dataset['package'],
     });
   }
   d.selected = !d.selected;
@@ -109,12 +109,40 @@ export function clearSelection(
   canvasStore.selectedNodes = [];
 }
 
-const radius = 12;
+function portContainsPoint(c: SVGCircleElement, e: Event) {
+  return (
+    Math.pow(+c.getAttribute('cx') - d3.pointer(e, c)[0], 2) +
+      Math.pow(+c.getAttribute('cy') - d3.pointer(e, c)[1], 2) <=
+    portRadius * portRadius
+  );
+}
+
+function removeConnectedEdges(c: SVGCircleElement) {
+  const fromOrTo = c.dataset['io'] == 'input' ? 'to' : 'from';
+  d3.selectAll<SVGPathElement, unknown>(
+    `path[data-${fromOrTo}-parent=${c.dataset['parent']}][data-${fromOrTo}-port=${c.dataset['name']}]`
+  ).remove();
+}
+
+function checkPorts(d3g: d3.Selection<Element, unknown, null, undefined>) {
+  d3g.selectAll<SVGCircleElement, unknown>('circle').each(function (this) {
+    const fromOrTo = this.dataset['io'] == 'input' ? 'to' : 'from';
+    const hasEdges = !d3
+      .select<SVGPathElement, unknown>(
+        `path[data-${fromOrTo}-parent=${this.dataset['parent']}][data-${fromOrTo}-port=${this.dataset['name']}]`
+      )
+      .empty();
+    d3.select(this).classed('connected', hasEdges);
+  });
+}
+
+const portRadius = 12;
+const rectRadius = 10;
+const selectionOffset = 5;
 const fontSize = '20px';
 const titleFontSize = '32px';
 
 export function createNode(
-  d3elem: Element,
   d3g: d3.Selection<Element, unknown, null, undefined>,
   d3selRect: d3.Selection<SVGRectElement, unknown, null, undefined>,
   data: DataType
@@ -123,7 +151,7 @@ export function createNode(
   const nodeStructure = configStore.getNodeStructureByNodePackage(data.package);
   const inputs = new Map<string, string>(Object.entries(nodeStructure.input));
   const outputs = new Map<string, string>(Object.entries(nodeStructure.output));
-  const selection = createGroup(d3elem, d3g, d3selRect, data);
+  const selection = createGroup(d3g, d3selRect, data);
   const backgroundRect = createBackgroundRect(selection, d3g, inputs, outputs);
   const titleRect = createTitleRect(selection, backgroundRect);
   createTitle(selection, backgroundRect, titleRect);
@@ -134,30 +162,23 @@ export function createNode(
 }
 
 export function handleGroupDrag(
-  this: Element,
-  e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, unknown>,
-  d3elem: Element
+  this: SVGGElement,
+  e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, unknown>
 ) {
-  if (this != d3elem) {
-    const datum = d3.select<Element, DataType>(this).datum();
-    d3.select(this).attr(
-      'transform',
-      'translate(' + (datum.x += e.dx) + ',' + (datum.y += e.dy) + ')'
-    );
+  const datum = d3.select<Element, DataType>(this).datum();
+  d3.select(this).attr(
+    'transform',
+    'translate(' + (datum.x += e.dx) + ',' + (datum.y += e.dy) + ')'
+  );
 
-    debounce(() => {
-      d3.selectAll<SVGPathElement, unknown>(
-        'path[data-from-parent=' +
-          this.getAttribute('data-id') +
-          '],path[data-to-parent=' +
-          this.getAttribute('data-id') +
-          ']'
-      ).attr('d', function (this) {
-        const coords = extractPathCoords(this);
-        return calculatePath(coords);
-      });
-    }, 10)();
-  }
+  debounce(() => {
+    d3.selectAll<SVGPathElement, unknown>(
+      `path[data-from-parent=${this.dataset['id']}],path[data-to-parent=${this.dataset['id']}]`
+    ).attr('d', function (this) {
+      const coords = extractPathCoords(this);
+      return calculatePath(coords);
+    });
+  }, 10)();
 }
 
 function calculateTextLength(
@@ -178,7 +199,6 @@ export function extractTranslateCoords(transform: string): GenericCoords {
 }
 
 function createGroup(
-  d3elem: Element,
   d3g: d3.Selection<Element, unknown, null, undefined>,
   d3selRect: d3.Selection<SVGRectElement, unknown, null, undefined>,
   data: DataType
@@ -202,7 +222,7 @@ function createGroup(
             this,
             e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, DataType>
           ) {
-            handleGroupDrag.call(this, e, d3elem);
+            handleGroupDrag.call(this, e);
           }
         )
         .on(
@@ -214,10 +234,10 @@ function createGroup(
             d3.select(this).classed('hovered', false);
             const bbox = d3.select(this).node().getBBox();
             d3selRect
-              .attr('x', e.subject.x + bbox.x - 5)
-              .attr('y', e.subject.y + bbox.y - 5)
-              .attr('width', bbox.width + 10)
-              .attr('height', bbox.height + 10);
+              .attr('x', e.subject.x + bbox.x - selectionOffset)
+              .attr('y', e.subject.y + bbox.y - selectionOffset)
+              .attr('width', bbox.width + selectionOffset * 2)
+              .attr('height', bbox.height + selectionOffset * 2);
             d3selRect.attr('visibility', null);
           }
         ) as never
@@ -227,9 +247,19 @@ function createGroup(
         toggleNode(this, d);
       }
     })
-    .on('dblclick', () => {
-      const canvasStore = useCanvasStore();
-      canvasStore.doubleClick = true;
+    .on('dblclick', function (this, e: PointerEvent) {
+      const portDoubleClicked = d3
+        .select(this)
+        .selectAll<SVGCircleElement, unknown>('circle')
+        .nodes()
+        .find((c) => portContainsPoint(c, e));
+      if (portDoubleClicked != null) {
+        removeConnectedEdges(portDoubleClicked);
+        checkPorts(d3g);
+      } else {
+        const canvasStore = useCanvasStore();
+        canvasStore.doubleClick = true;
+      }
     })
     .on('mouseover', function (this, _, d) {
       if (!d.selected) {
@@ -272,8 +302,8 @@ function createBackgroundRect(
     .attr('y', function (this) {
       return -this.getAttribute('height') / 2;
     })
-    .attr('rx', 10)
-    .attr('ry', 10)
+    .attr('rx', rectRadius)
+    .attr('ry', rectRadius)
     .attr('fill', '#f5f5f5')
     .attr('stroke', 'black')
     .attr('stroke-width', 2);
@@ -291,8 +321,8 @@ function createTitleRect(
       return -this.getAttribute('width') / 2;
     })
     .attr('y', backgroundRect.attr('y'))
-    .attr('rx', 10)
-    .attr('ry', 10)
+    .attr('rx', rectRadius)
+    .attr('ry', rectRadius)
     .attr('fill', '#ff8038')
     .attr('stroke', 'black')
     .attr('stroke-width', 2);
@@ -304,7 +334,7 @@ function createTitle(
   backgroundRect: d3.Selection<SVGRectElement, DataType, null, undefined>,
   titleRect: d3.Selection<SVGRectElement, DataType, null, undefined>
 ) {
-  return selection
+  selection
     .insert('text')
     .text((data) => data.name)
     .attr('y', +backgroundRect.attr('y') + +titleRect.attr('height') / 2)
@@ -322,140 +352,131 @@ function createPorts(
   outputs: Map<string, string>
 ) {
   let from: { x: number; y: number } = null;
-  let compatiblePorts: d3.Selection<Element, unknown, HTMLElement, unknown> =
-    null;
-  return selection.each(function (this, data) {
-    d3.select(this)
-      .selectAll('circle')
-      .data([...inputs, ...outputs])
-      .enter()
-      .insert('circle')
-      .attr('data-parent', data.name)
-      .attr('data-name', (d) => d[0])
-      .attr('data-type', (d) => d[1])
-      .attr('data-io', (_, i) => (i < inputs.size ? 'input' : 'output'))
-      .attr('cx', (_, i) => {
-        const x = +backgroundRect.attr('width') / 2;
-        return i < inputs.size ? -x : x;
-      })
-      .attr(
-        'cy',
-        (_, i) =>
-          +backgroundRect.attr('y') +
-          18 +
-          (i < inputs.size ? i + 1 : i + 1 - inputs.size) * 36
-      )
-      .attr('r', radius)
-      .attr('fill', 'gray')
-      .attr('stroke', 'black')
-      .attr('stroke-width', 2)
-      .call(
-        d3
-          .drag()
-          .on('start', function (this) {
-            d3.select(this.parentElement).classed('hovered', false);
-            selectNode(this.parentElement, d3g, false);
+  let compatiblePorts: d3.Selection<
+    SVGCircleElement,
+    unknown,
+    HTMLElement,
+    unknown
+  > = null;
+  selection
+    .selectAll('circle')
+    .data([...inputs, ...outputs])
+    .enter()
+    .insert('circle')
+    .attr('data-parent', selection.datum().name)
+    .attr('data-name', (d) => d[0])
+    .attr('data-type', (d) => d[1])
+    .attr('data-io', (_, i) => (i < inputs.size ? 'input' : 'output'))
+    .attr('cx', (_, i) => {
+      const x = +backgroundRect.attr('width') / 2;
+      return i < inputs.size ? -x : x;
+    })
+    .attr(
+      'cy',
+      (_, i) =>
+        +backgroundRect.attr('y') +
+        18 +
+        (i < inputs.size ? i + 1 : i + 1 - inputs.size) * 36
+    )
+    .attr('r', portRadius)
+    .attr('fill', 'gray')
+    .attr('stroke', 'black')
+    .attr('stroke-width', 2)
+    .call(
+      d3
+        .drag<SVGCircleElement, unknown>()
+        .on('start', function (this) {
+          d3.select(this.parentElement).classed('hovered', false);
+          selectNode(this.parentElement, d3g, false);
+          d3g
+            .append('path')
+            .attr('data-type', 'current')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 3)
+            .attr('fill', 'none')
+            .lower();
+          from = {
+            x: +this.getAttribute('cx'),
+            y: +this.getAttribute('cy'),
+          };
+          compatiblePorts = d3.selectAll(
+            'circle[data-io=' +
+              (this.dataset['io'] == 'input' ? 'output' : 'input') +
+              '][data-parent]:not([data-parent=' +
+              this.dataset['parent'] +
+              '])'
+          );
+          if (this.dataset['type'] == 'custom') {
+            compatiblePorts.classed('compatible', true);
+          } else {
+            compatiblePorts = compatiblePorts
+              .filter(
+                '[data-type=' + this.dataset['type'] + '],[data-type=custom]'
+              )
+              .classed('compatible', true);
+          }
+        })
+        .on('drag', (e) => {
+          d3.select('path[data-type=current]').attr(
+            'd',
+            calculatePath({
+              xFrom: selection.datum().x + from.x,
+              yFrom: selection.datum().y + from.y,
+              xTo: selection.datum().x + e.x,
+              yTo: selection.datum().y + e.y,
+            })
+          );
+        })
+        .on('end', function (this, e) {
+          const hoveredPorts = compatiblePorts
+            .nodes()
+            .filter((c) => portContainsPoint(c, e));
+          if (hoveredPorts.length > 0) {
+            const topMostPort = hoveredPorts[hoveredPorts.length - 1];
+            const coords = extractTranslateCoords(
+              topMostPort.parentElement.getAttribute('transform')
+            );
+            const isInput = this.dataset['io'] == 'input';
+            removeConnectedEdges(isInput ? this : topMostPort);
+            checkPorts(d3g);
             d3g
               .append('path')
-              .attr('data-type', 'current')
+              .attr(
+                'data-from-parent',
+                isInput ? topMostPort.dataset['parent'] : this.dataset['parent']
+              )
+              .attr(
+                'data-from-port',
+                isInput ? topMostPort.dataset['name'] : this.dataset['name']
+              )
+              .attr(
+                'data-to-parent',
+                isInput ? this.dataset['parent'] : topMostPort.dataset['parent']
+              )
+              .attr(
+                'data-to-port',
+                isInput ? this.dataset['name'] : topMostPort.dataset['name']
+              )
               .attr('stroke', 'black')
               .attr('stroke-width', 3)
               .attr('fill', 'none')
-              .lower();
-            from = {
-              x: +this.getAttribute('cx'),
-              y: +this.getAttribute('cy'),
-            };
-            compatiblePorts = d3.selectAll(
-              'circle[data-io=' +
-                (this.getAttribute('data-io') == 'input' ? 'output' : 'input') +
-                '][data-parent]:not([data-parent=' +
-                this.getAttribute('data-parent') +
-                '])'
-            );
-            if (this.getAttribute('data-type') == 'custom') {
-              compatiblePorts.classed('compatible', true);
-            } else {
-              compatiblePorts = compatiblePorts
-                .filter(
-                  '[data-type=' +
-                    this.getAttribute('data-type') +
-                    '],[data-type=custom]'
-                )
-                .classed('compatible', true);
-            }
-          })
-          .on('drag', (e) => {
-            d3.select('path[data-type=current]').attr(
-              'd',
-              calculatePath({
-                xFrom: data.x + from.x,
-                yFrom: data.y + from.y,
-                xTo: data.x + e.x,
-                yTo: data.y + e.y,
+              .attr('d', () => {
+                return calculatePath({
+                  xFrom: selection.datum().x + +this.getAttribute('cx'),
+                  yFrom: selection.datum().y + +this.getAttribute('cy'),
+                  xTo: coords.x + +topMostPort.getAttribute('cx'),
+                  yTo: coords.y + +topMostPort.getAttribute('cy'),
+                });
               })
-            );
-          })
-          .on('end', function (this, e) {
-            const hoveredPorts = compatiblePorts.nodes().filter((c) => {
-              return (
-                Math.pow(+c.getAttribute('cx') - d3.pointer(e, c)[0], 2) +
-                  Math.pow(+c.getAttribute('cy') - d3.pointer(e, c)[1], 2) <=
-                radius * radius
-              );
-            });
-            if (hoveredPorts.length > 0) {
-              const topMostPort = hoveredPorts[hoveredPorts.length - 1];
-              const coords = extractTranslateCoords(
-                topMostPort.parentElement.getAttribute('transform')
-              );
-              d3g
-                .append('path')
-                .attr(
-                  'data-from-parent',
-                  this.getAttribute('data-io') == 'input'
-                    ? topMostPort.getAttribute('data-parent')
-                    : this.getAttribute('data-parent')
-                )
-                .attr(
-                  'data-from-port',
-                  this.getAttribute('data-io') == 'input'
-                    ? topMostPort.getAttribute('data-name')
-                    : this.getAttribute('data-name')
-                )
-                .attr(
-                  'data-to-parent',
-                  this.getAttribute('data-io') == 'input'
-                    ? this.getAttribute('data-parent')
-                    : topMostPort.getAttribute('data-parent')
-                )
-                .attr(
-                  'data-to-port',
-                  this.getAttribute('data-io') == 'input'
-                    ? this.getAttribute('data-name')
-                    : topMostPort.getAttribute('data-name')
-                )
-                .attr('stroke', 'black')
-                .attr('stroke-width', 3)
-                .attr('fill', 'none')
-                .attr('d', () => {
-                  return calculatePath({
-                    xFrom: data.x + +this.getAttribute('cx'),
-                    yFrom: data.y + +this.getAttribute('cy'),
-                    xTo: coords.x + +topMostPort.getAttribute('cx'),
-                    yTo: coords.y + +topMostPort.getAttribute('cy'),
-                  });
-                })
-                .lower();
-              d3.select(this).classed('connected', true);
-              d3.select(topMostPort).classed('connected', true);
-            }
-            from = null;
-            d3.select('path[data-type=current]').remove();
-            d3.selectAll('circle').classed('compatible', false);
-          }) as never
-      );
-  });
+              .lower();
+            d3.select(this).classed('connected', true);
+            d3.select(topMostPort).classed('connected', true);
+          }
+          from = null;
+          d3.select('path[data-type=current]').remove();
+          d3.selectAll('circle').classed('compatible', false);
+        }) as never
+    );
 }
 
 function createTexts(
@@ -464,30 +485,28 @@ function createTexts(
   inputs: Map<string, string>,
   outputs: Map<string, string>
 ) {
-  return selection.each(function (this) {
-    d3.select(this)
-      .selectAll('text[type=param')
-      .data([...inputs, ...outputs])
-      .enter()
-      .insert('text')
-      .text((d) => d[0])
-      .attr('type', 'param')
-      .attr('text-anchor', (_, i) => (i < inputs.size ? 'start' : 'end'))
-      .attr('dominant-baseline', 'central')
-      .attr('fill', 'black')
-      .attr('font-size', fontSize)
-      .attr('x', (_, i) => {
-        const x = +backgroundRect.attr('width') / 2;
-        return i < inputs.size ? -x + 18 : x - 18;
-      })
-      .attr(
-        'y',
-        (_, i) =>
-          +backgroundRect.attr('y') +
-          18 +
-          (i < inputs.size ? i + 1 : i + 1 - inputs.size) * 36
-      );
-  });
+  selection
+    .selectAll('text[type=param]')
+    .data([...inputs, ...outputs])
+    .enter()
+    .insert('text')
+    .text((d) => d[0])
+    .attr('type', 'param')
+    .attr('text-anchor', (_, i) => (i < inputs.size ? 'start' : 'end'))
+    .attr('dominant-baseline', 'central')
+    .attr('fill', 'black')
+    .attr('font-size', fontSize)
+    .attr('x', (_, i) => {
+      const x = +backgroundRect.attr('width') / 2;
+      return i < inputs.size ? -x + 18 : x - 18;
+    })
+    .attr(
+      'y',
+      (_, i) =>
+        +backgroundRect.attr('y') +
+        18 +
+        (i < inputs.size ? i + 1 : i + 1 - inputs.size) * 36
+    );
 }
 
 function createSeparator(
@@ -497,26 +516,24 @@ function createSeparator(
   inputs: Map<string, string>,
   outputs: Map<string, string>
 ) {
-  return selection.each(function (this) {
-    if (inputs.size == 0 || outputs.size == 0) {
-      return;
-    }
-    const start = -backgroundRect.attr('width') / 2 + 18;
-    const maxInputSize = d3.max(
-      [...inputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
-    );
-    const end = +backgroundRect.attr('width') / 2 - 18;
-    const maxOutputSize = d3.max(
-      [...outputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
-    );
-    const x = (start + maxInputSize + end - maxOutputSize) / 2;
-    d3.select(this)
-      .insert('line')
-      .attr('stroke', 'black')
-      .attr('stroke-width', 2)
-      .attr('x1', x)
-      .attr('y1', +backgroundRect.attr('y') + 36)
-      .attr('x2', x)
-      .attr('y2', +backgroundRect.attr('y') + +backgroundRect.attr('height'));
-  });
+  if (inputs.size == 0 || outputs.size == 0) {
+    return;
+  }
+  const start = -backgroundRect.attr('width') / 2 + 18;
+  const maxInputSize = d3.max(
+    [...inputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
+  );
+  const end = +backgroundRect.attr('width') / 2 - 18;
+  const maxOutputSize = d3.max(
+    [...outputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
+  );
+  const x = (start + maxInputSize + end - maxOutputSize) / 2;
+  selection
+    .insert('line')
+    .attr('stroke', 'black')
+    .attr('stroke-width', 2)
+    .attr('x1', x)
+    .attr('y1', +backgroundRect.attr('y') + 36)
+    .attr('x2', x)
+    .attr('y2', +backgroundRect.attr('y') + +backgroundRect.attr('height'));
 }

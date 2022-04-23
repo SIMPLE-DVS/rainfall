@@ -115,14 +115,6 @@ export default defineComponent({
     const nodeConfigComponents: Ref<Map<string, string>> = ref();
     const nodeConfigData: Ref<{ [index: string]: unknown }> = ref({});
 
-    watch(
-      () => props.node,
-      (newVal) => {
-        (document.activeElement as HTMLElement)?.blur();
-        updateNode(newVal);
-      }
-    );
-
     const updateNode = (node: NodeInfo) => {
       const nodeStructure = configStore.getNodeStructureByNodePackage(
         node.package
@@ -156,7 +148,14 @@ export default defineComponent({
       customStore.nodeToEdit = node;
     };
 
-    updateNode(props.node);
+    watch(
+      () => props.node,
+      (newVal) => {
+        (document.activeElement as HTMLElement)?.blur();
+        updateNode(newVal);
+      },
+      { immediate: true }
+    );
 
     return {
       configStore,
