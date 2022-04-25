@@ -399,7 +399,7 @@ export class FabricNode extends fabric.Group {
       n.selectable = false;
       this.canvas.fxRemove(n);
     });
-    configStore.removeNodeConfig(this);
+    configStore.removeNodeConfig(this.name);
   };
 
   cloneNode = (cloneNodeId: string) => {

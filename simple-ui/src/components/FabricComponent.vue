@@ -398,7 +398,10 @@ export default defineComponent({
                 const newCanvasNode = nodeToClone.cloneNode(cloneNodeId);
                 fabricCanvas.add(newCanvasNode);
                 canvasStore.addCanvasNode(newCanvasNode);
-                configStore.cloneNodeConfig(nodeToClone, newCanvasNode);
+                configStore.cloneNodeConfig(
+                  { name: nodeName, package: nodeToClone.nodePackage },
+                  newCanvasNode.name
+                );
                 cloneNodes.push(newCanvasNode);
               }
             });

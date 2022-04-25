@@ -61,8 +61,11 @@ import { defineComponent, onMounted, watch } from 'vue';
 import * as d3 from 'd3';
 import {
   clearSelection,
+  copyGroups,
   createNode,
+  getNextNodeId,
   DataType,
+  deleteGroup,
   extractTranslateCoords,
   GenericCoords,
   handleGroupDrag,
@@ -85,7 +88,6 @@ export default defineComponent({
   name: 'D3Canvas',
 
   setup() {
-    // TODO: fix double click on node
     const $q = useQuasar();
     const configStore = useConfigStore();
     const customStore = useCustomStore();
@@ -106,7 +108,18 @@ export default defineComponent({
       d3com = d3g.selectChild('.commands');
       d3com.attr('visibility', 'hidden');
       d3com.selectAll<SVGGElement, unknown>('.command.copy').on('click', () => {
-        console.log('COPY');
+        $q.dialog({
+          message: 'Are you sure you want to copy the node(s)?',
+          cancel: true,
+        }).onOk(() => {
+          const names = canvasStore.selectedNodes.map((n) => n.name);
+          const groups = d3g
+            .selectAll<SVGGElement, unknown>('.node')
+            .filter(function (this) {
+              return names.includes(this.dataset['id']);
+            });
+          copyGroups(d3g, d3sel, groups);
+        });
       });
       d3com.selectAll<SVGGElement, unknown>('.command.edit').on('click', () => {
         console.log('EDIT');
@@ -114,7 +127,15 @@ export default defineComponent({
       d3com
         .selectAll<SVGGElement, unknown>('.command.delete')
         .on('click', () => {
-          console.log('DELETE');
+          $q.dialog({
+            message: 'Are you sure you want to delete the node(s)?',
+            cancel: true,
+          }).onOk(() => {
+            canvasStore.selectedNodes.forEach((n) =>
+              deleteGroup(d3g, d3g.select('.node[data-id=' + n.name + ']'))
+            );
+            canvasStore.selectedNodes = [];
+          });
         });
 
       function handleZoom(
@@ -302,8 +323,6 @@ export default defineComponent({
               (left + right) / 2 - this.getBBox().width / 2
             },${top - this.getBBox().height - selectionOffset * 2})`;
           });
-          // TODO: double click on node doesn't work if this line is enabled
-          //.raise();
           d3sel
             .attr(
               'transform',
@@ -373,18 +392,6 @@ export default defineComponent({
       });
     };
 
-    const createNodeId = (nodeClass: string) => {
-      let nodeId = '';
-      for (let i = 1; true; i++) {
-        nodeId = `${nodeClass}${i}`;
-        if (d3g.select('.node[data-id=' + nodeId + ']').empty()) {
-          break;
-        }
-      }
-
-      return nodeId;
-    };
-
     const getNextCustomNodeStructureId = () => {
       let nodeStructureId = '';
       for (let i = 1; true; i++) {
@@ -418,7 +425,7 @@ export default defineComponent({
           return;
         }
         const nodeStructure = configStore.getNodeStructureByNodePackage(clazz);
-        const id = createNodeId(nodeStructure.clazz);
+        const id = getNextNodeId(d3g, nodeStructure.clazz);
         const transform = d3.zoomTransform(d3elem);
         const addedNode = createNode(d3g, d3sel, {
           name: id,

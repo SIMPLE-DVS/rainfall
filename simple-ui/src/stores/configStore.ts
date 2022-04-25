@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
-import { FabricNode } from 'src/components/fabricModels';
 import {
   AnyParameterConfig,
   ComponentTypeRegexes,
+  NodeInfo,
   SimpleNodeStructure,
 } from 'src/components/models';
 
@@ -71,25 +71,25 @@ export const useConfigStore = defineStore('config', {
       });
       this.nodeConfigs.set(id, nodeConfigContent);
     },
-    removeNodeConfig(node: FabricNode) {
-      this.nodeConfigs.delete(node.name);
+    removeNodeConfig(name: string) {
+      this.nodeConfigs.delete(name);
       [...this.nodeAnyConfigs.keys()].forEach((s) => {
-        if (s.split('$')[0] === node.name) {
+        if (s.split('$')[0] === name) {
           this.nodeAnyConfigs.delete(s);
         }
       });
     },
-    cloneNodeConfig(from: FabricNode, to: FabricNode) {
-      const configToClone = { ...this.nodeConfigs.get(from.name) };
+    cloneNodeConfig(original: NodeInfo, clone: string) {
+      const configToClone = { ...this.nodeConfigs.get(original.name) };
       if (configToClone) {
-        this.nodeConfigs.set(to.name, configToClone);
+        this.nodeConfigs.set(clone, configToClone);
         const nodeStructure: SimpleNodeStructure = this.nodeStructures.get(
-          from.nodePackage
+          original.package
         );
         nodeStructure.parameter.forEach((p) => {
           if (/^any$/i.test(p.type)) {
-            this.nodeAnyConfigs.set(to.name + '$' + p.name, {
-              ...this.nodeAnyConfigs.get(from.name + '$' + p.name),
+            this.nodeAnyConfigs.set(clone + '$' + p.name, {
+              ...this.nodeAnyConfigs.get(original.name + '$' + p.name),
             });
           }
         });
