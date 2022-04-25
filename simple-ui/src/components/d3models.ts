@@ -40,7 +40,7 @@ function calculatePath(coords: PathCoords) {
 function extractPathCoords(path: SVGPathElement): PathCoords {
   const fromParentId = path.dataset['fromParent'];
   const fromPortName = path.dataset['fromPort'];
-  const fromParent = d3.select('g[data-id=' + fromParentId + ']');
+  const fromParent = d3.select('.node[data-id=' + fromParentId + ']');
   const fromPort = d3.select(
     'circle[data-parent=' + fromParentId + '][data-name=' + fromPortName + ']'
   );
@@ -48,7 +48,7 @@ function extractPathCoords(path: SVGPathElement): PathCoords {
 
   const toParentId = path.dataset['toParent'];
   const toPortName = path.dataset['toPort'];
-  const toParent = d3.select('g[data-id=' + toParentId + ']');
+  const toParent = d3.select('.node[data-id=' + toParentId + ']');
   const toPort = d3.select(
     'circle[data-parent=' + toParentId + '][data-name=' + toPortName + ']'
   );
@@ -69,7 +69,7 @@ export function selectNode(
 ) {
   const canvasStore = useCanvasStore();
   if (!addNode) {
-    d3g.selectAll<SVGGElement, DataType>('g').each((d) => {
+    d3g.selectChildren<SVGGElement, DataType>('.node').each((d) => {
       d.selected = false;
     });
     canvasStore.selectedNodes = [];
@@ -102,7 +102,7 @@ function toggleNode(g: SVGGElement, d: DataType) {
 export function clearSelection(
   d3g: d3.Selection<Element, unknown, null, undefined>
 ) {
-  d3g.selectAll<SVGGElement, DataType>('g').each((d) => {
+  d3g.selectChildren<SVGGElement, DataType>('.node').each((d) => {
     d.selected = false;
   });
   const canvasStore = useCanvasStore();
@@ -138,20 +138,20 @@ function checkPorts(d3g: d3.Selection<Element, unknown, null, undefined>) {
 
 const portRadius = 12;
 const rectRadius = 10;
-const selectionOffset = 5;
 const fontSize = '20px';
 const titleFontSize = '32px';
+export const selectionOffset = 5;
 
 export function createNode(
   d3g: d3.Selection<Element, unknown, null, undefined>,
-  d3selRect: d3.Selection<SVGRectElement, unknown, null, undefined>,
+  d3sel: d3.Selection<SVGGElement, unknown, null, undefined>,
   data: DataType
 ) {
   const configStore = useConfigStore();
   const nodeStructure = configStore.getNodeStructureByNodePackage(data.package);
   const inputs = new Map<string, string>(Object.entries(nodeStructure.input));
   const outputs = new Map<string, string>(Object.entries(nodeStructure.output));
-  const selection = createGroup(d3g, d3selRect, data);
+  const selection = createGroup(d3g, d3sel, data);
   const backgroundRect = createBackgroundRect(selection, d3g, inputs, outputs);
   const titleRect = createTitleRect(selection, backgroundRect);
   createTitle(selection, backgroundRect, titleRect);
@@ -200,12 +200,13 @@ export function extractTranslateCoords(transform: string): GenericCoords {
 
 function createGroup(
   d3g: d3.Selection<Element, unknown, null, undefined>,
-  d3selRect: d3.Selection<SVGRectElement, unknown, null, undefined>,
+  d3sel: d3.Selection<SVGGElement, unknown, null, undefined>,
   data: DataType
 ) {
   return d3g
     .append('g')
     .datum(data)
+    .classed('node', true)
     .attr('data-id', data.name)
     .attr('data-package', data.package)
     .attr('transform', 'translate(' + data.x + ',' + data.y + ')')
@@ -214,7 +215,8 @@ function createGroup(
         .drag<SVGGElement, DataType>()
         .on('start', function (this) {
           selectNode(this, d3g, false);
-          d3selRect.attr('visibility', 'hidden');
+          d3sel.attr('display', 'none');
+          d3g.select('.commands').attr('visibility', 'hidden');
         })
         .on(
           'drag',
@@ -222,6 +224,7 @@ function createGroup(
             this,
             e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, DataType>
           ) {
+            d3g.select('.commands').attr('visibility', 'hidden');
             handleGroupDrag.call(this, e);
           }
         )
@@ -233,12 +236,28 @@ function createGroup(
           ) {
             d3.select(this).classed('hovered', false);
             const bbox = d3.select(this).node().getBBox();
-            d3selRect
-              .attr('x', e.subject.x + bbox.x - selectionOffset)
-              .attr('y', e.subject.y + bbox.y - selectionOffset)
+            d3sel
+              .attr(
+                'transform',
+                `translate(${e.subject.x + bbox.x - selectionOffset},${
+                  e.subject.y + bbox.y - selectionOffset
+                })`
+              )
+              .attr('display', null)
+              .select('.sel-rect')
               .attr('width', bbox.width + selectionOffset * 2)
               .attr('height', bbox.height + selectionOffset * 2);
-            d3selRect.attr('visibility', null);
+            const coords = extractTranslateCoords(d3sel.attr('transform'));
+            d3g
+              .select<SVGGElement>('.commands')
+              .attr('visibility', null)
+              .attr('transform', function (this) {
+                return `translate(${
+                  coords.x +
+                  d3sel.node().getBBox().width / 2 -
+                  this.getBBox().width / 2
+                },${coords.y - this.getBBox().height - selectionOffset})`;
+              });
           }
         ) as never
     )
