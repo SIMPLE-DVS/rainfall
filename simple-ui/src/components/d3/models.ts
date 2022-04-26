@@ -2,148 +2,17 @@ import * as d3 from 'd3';
 import { debounce } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { useConfigStore } from 'src/stores/configStore';
-
-export interface DataType {
-  name: string;
-  package: string;
-  x: number;
-  y: number;
-  selected?: boolean;
-}
-
-export interface GenericCoords {
-  x: number;
-  y: number;
-}
-
-interface PathCoords {
-  xFrom: number;
-  yFrom: number;
-  xTo: number;
-  yTo: number;
-}
-
-interface PathElements {
-  fromNode: string;
-  fromPort: string;
-  toNode: string;
-  toPort: string;
-}
-
-function calculatePath(coords: PathCoords) {
-  const path = d3.path();
-  path.moveTo(coords.xFrom, coords.yFrom);
-  path.bezierCurveTo(
-    (coords.xFrom + coords.xTo) / 2,
-    coords.yFrom,
-    (coords.xFrom + coords.xTo) / 2,
-    coords.yTo,
-    coords.xTo,
-    coords.yTo
-  );
-  return path.toString();
-}
-
-function extractPathCoords(elems: PathElements): PathCoords {
-  const fromParent = d3.select<SVGGElement, DataType>(
-    '.node[data-id=' + elems.fromNode + ']'
-  );
-  const fromPort = d3.select(
-    `circle[data-parent=${elems.fromNode}][data-name=${elems.fromPort}]`
-  );
-  const toParent = d3.select<SVGGElement, DataType>(
-    '.node[data-id=' + elems.toNode + ']'
-  );
-  const toPort = d3.select(
-    `circle[data-parent=${elems.toNode}][data-name=${elems.toPort}]`
-  );
-  return {
-    xFrom: fromParent.datum().x + +fromPort.attr('cx'),
-    yFrom: fromParent.datum().y + +fromPort.attr('cy'),
-    xTo: toParent.datum().x + +toPort.attr('cx'),
-    yTo: toParent.datum().y + +toPort.attr('cy'),
-  };
-}
-
-export function selectNode(
-  g: SVGGElement | HTMLElement,
-  d3g: d3.Selection<Element, unknown, null, undefined>,
-  addNode: boolean
-) {
-  const canvasStore = useCanvasStore();
-  if (!addNode) {
-    d3g.selectChildren<SVGGElement, DataType>('.node').each((d) => {
-      d.selected = false;
-    });
-    canvasStore.selectedNodes = [];
-  }
-  d3.select(g).raise();
-  d3.select<Element, DataType>(g).datum().selected = true;
-  canvasStore.selectedNodes.push({
-    name: g.dataset['id'],
-    package: g.dataset['package'],
-  });
-}
-
-function toggleNode(g: SVGGElement, d: DataType) {
-  const canvasStore = useCanvasStore();
-  if (d.selected) {
-    canvasStore.selectedNodes = canvasStore.selectedNodes.filter(
-      (n) => n.name != g.dataset['id']
-    );
-  } else {
-    d3.select(g).classed('hovered', false);
-    d3.select(g).raise();
-    canvasStore.selectedNodes.push({
-      name: g.dataset['id'],
-      package: g.dataset['package'],
-    });
-  }
-  d.selected = !d.selected;
-}
-
-export function clearSelection(
-  d3g: d3.Selection<Element, unknown, null, undefined>
-) {
-  d3g.selectChildren<SVGGElement, DataType>('.node').each((d) => {
-    d.selected = false;
-  });
-  const canvasStore = useCanvasStore();
-  canvasStore.selectedNodes = [];
-}
-
-function portContainsPoint(c: SVGCircleElement, e: Event) {
-  return (
-    Math.pow(+c.getAttribute('cx') - d3.pointer(e, c)[0], 2) +
-      Math.pow(+c.getAttribute('cy') - d3.pointer(e, c)[1], 2) <=
-    portRadius * portRadius
-  );
-}
-
-function removeConnectedEdges(c: SVGCircleElement) {
-  const fromOrTo = c.dataset['io'] == 'input' ? 'to' : 'from';
-  d3.selectAll<SVGPathElement, unknown>(
-    `path[data-${fromOrTo}-parent=${c.dataset['parent']}][data-${fromOrTo}-port=${c.dataset['name']}]`
-  ).remove();
-}
-
-function checkPorts(d3g: d3.Selection<Element, unknown, null, undefined>) {
-  d3g.selectAll<SVGCircleElement, unknown>('circle').each(function (this) {
-    const fromOrTo = this.dataset['io'] == 'input' ? 'to' : 'from';
-    const hasEdges = !d3
-      .select<SVGPathElement, unknown>(
-        `path[data-${fromOrTo}-parent=${this.dataset['parent']}][data-${fromOrTo}-port=${this.dataset['name']}]`
-      )
-      .empty();
-    d3.select(this).classed('connected', hasEdges);
-  });
-}
-
-const portRadius = 12;
-const rectRadius = 10;
-const fontSize = '20px';
-const titleFontSize = '32px';
-export const selectionOffset = 5;
+import { D3_CONSTS, DataType, PathElements } from './types';
+import {
+  calculatePath,
+  calculateTextLength,
+  checkPorts,
+  extractPathCoords,
+  extractTranslateCoords,
+  getNextNodeId,
+  portContainsPoint,
+  removeConnectedEdges,
+} from './utils';
 
 export function createEdge(
   d3g: d3.Selection<Element, unknown, null, undefined>,
@@ -184,7 +53,7 @@ export function createNode(
   return selection;
 }
 
-export function handleGroupDrag(
+function handleGroupDrag(
   this: SVGGElement,
   e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, unknown>
 ) {
@@ -209,36 +78,67 @@ export function handleGroupDrag(
   }, 10)();
 }
 
-function calculateTextLength(
+export function selectNode(
+  g: SVGGElement | HTMLElement,
   d3g: d3.Selection<Element, unknown, null, undefined>,
-  text: string,
-  fontSize: string
+  addNode: boolean
 ) {
-  const node = d3g.append('text').attr('font-size', fontSize).text(text).node();
-  const length = node.getComputedTextLength();
-  node.remove();
-  return length;
-}
-
-export function extractTranslateCoords(transform: string): GenericCoords {
-  const regex = /translate\((?<x>.+?)[, ]+(?<y>.+?)\)/gim;
-  const res = regex.exec(transform);
-  return { x: +res[1], y: +res[2] };
-}
-
-export function getNextNodeId(
-  d3g: d3.Selection<Element, unknown, null, undefined>,
-  nodeClass: string
-) {
-  let nodeId = '';
-  for (let i = 1; true; i++) {
-    nodeId = `${nodeClass}${i}`;
-    if (d3g.select('.node[data-id=' + nodeId + ']').empty()) {
-      break;
-    }
+  const canvasStore = useCanvasStore();
+  if (!addNode) {
+    d3g.selectChildren<SVGGElement, DataType>('.node').each((d) => {
+      d.selected = false;
+    });
+    canvasStore.selectedNodes = [];
   }
+  d3.select(g).raise();
+  d3.select<Element, DataType>(g).datum().selected = true;
+  canvasStore.selectedNodes.push({
+    name: g.dataset['id'],
+    package: g.dataset['package'],
+  });
+}
 
-  return nodeId;
+export function toggleNode(g: SVGGElement, d: DataType) {
+  const canvasStore = useCanvasStore();
+  if (d.selected) {
+    canvasStore.selectedNodes = canvasStore.selectedNodes.filter(
+      (n) => n.name != g.dataset['id']
+    );
+  } else {
+    d3.select(g).classed('hovered', false);
+    d3.select(g).raise();
+    canvasStore.selectedNodes.push({
+      name: g.dataset['id'],
+      package: g.dataset['package'],
+    });
+  }
+  d.selected = !d.selected;
+}
+
+export function clearSelection(
+  d3g: d3.Selection<Element, unknown, null, undefined>
+) {
+  d3g.selectChildren<SVGGElement, DataType>('.node').each((d) => {
+    d.selected = false;
+  });
+  const canvasStore = useCanvasStore();
+  canvasStore.selectedNodes = [];
+}
+
+export function deleteGroup(
+  d3g: d3.Selection<Element, unknown, null, undefined>,
+  d3sel: d3.Selection<SVGGElement, unknown, null, undefined>
+) {
+  const name = d3sel.attr('data-id');
+  d3g
+    .selectAll(
+      'path[data-from-parent=' + name + '],path[data-to-parent=' + name + ']'
+    )
+    .remove();
+  const configStore = useConfigStore();
+  configStore.removeNodeConfig(name);
+  d3sel.remove();
+  checkPorts(d3g);
 }
 
 export function copyGroups(
@@ -296,22 +196,6 @@ export function copyGroups(
   });
 }
 
-export function deleteGroup(
-  d3g: d3.Selection<Element, unknown, null, undefined>,
-  d3sel: d3.Selection<SVGGElement, unknown, null, undefined>
-) {
-  const name = d3sel.attr('data-id');
-  d3g
-    .selectAll(
-      'path[data-from-parent=' + name + '],path[data-to-parent=' + name + ']'
-    )
-    .remove();
-  const configStore = useConfigStore();
-  configStore.removeNodeConfig(name);
-  d3sel.remove();
-  checkPorts(d3g);
-}
-
 function createGroup(
   d3g: d3.Selection<Element, unknown, null, undefined>,
   d3sel: d3.Selection<SVGGElement, unknown, null, undefined>,
@@ -324,6 +208,10 @@ function createGroup(
     .attr('data-id', data.name)
     .attr('data-package', data.package)
     .attr('transform', 'translate(' + data.x + ',' + data.y + ')')
+    .on('move', function (this, e: d3.CustomEventParameters) {
+      d3g.select('.commands').attr('visibility', 'hidden');
+      handleGroupDrag.call(this, e.detail);
+    })
     .call(
       d3
         .drag<SVGGElement, DataType>()
@@ -338,8 +226,11 @@ function createGroup(
             this,
             e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, DataType>
           ) {
-            d3g.select('.commands').attr('visibility', 'hidden');
-            handleGroupDrag.call(this, e);
+            d3.select(this).dispatch('move', {
+              bubbles: false,
+              cancelable: false,
+              detail: e,
+            });
           }
         )
         .on(
@@ -353,14 +244,14 @@ function createGroup(
             d3sel
               .attr(
                 'transform',
-                `translate(${e.subject.x + bbox.x - selectionOffset},${
-                  e.subject.y + bbox.y - selectionOffset
-                })`
+                `translate(${
+                  e.subject.x + bbox.x - D3_CONSTS.SELECTION_OFFSET
+                },${e.subject.y + bbox.y - D3_CONSTS.SELECTION_OFFSET})`
               )
               .attr('display', null)
               .select('.sel-rect')
-              .attr('width', bbox.width + selectionOffset * 2)
-              .attr('height', bbox.height + selectionOffset * 2);
+              .attr('width', bbox.width + D3_CONSTS.SELECTION_OFFSET * 2)
+              .attr('height', bbox.height + D3_CONSTS.SELECTION_OFFSET * 2);
             const coords = extractTranslateCoords(d3sel.attr('transform'));
             d3g
               .select<SVGGElement>('.commands')
@@ -370,7 +261,7 @@ function createGroup(
                   coords.x +
                   d3sel.node().getBBox().width / 2 -
                   this.getBBox().width / 2
-                },${coords.y - this.getBBox().height - selectionOffset})`;
+                },${coords.y - this.getBBox().height - D3_CONSTS.SELECTION_OFFSET})`;
               });
           }
         ) as never
@@ -413,14 +304,22 @@ function createBackgroundRect(
   return selection
     .insert('rect')
     .attr('width', function (this, data) {
-      const titleSize = calculateTextLength(d3g, data.name, titleFontSize);
+      const titleSize = calculateTextLength(
+        d3g,
+        data.name,
+        D3_CONSTS.TITLE_FONT_SIZE
+      );
       const maxInputSize =
         d3.max(
-          [...inputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
+          [...inputs.keys()].map((d) =>
+            calculateTextLength(d3g, d, D3_CONSTS.FONT_SIZE)
+          )
         ) || 0;
       const maxOutputSize =
         d3.max(
-          [...outputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
+          [...outputs.keys()].map((d) =>
+            calculateTextLength(d3g, d, D3_CONSTS.FONT_SIZE)
+          )
         ) || 0;
       const totalSize = maxInputSize + maxOutputSize + 36;
       const separatorSize = maxInputSize == 0 || maxOutputSize == 0 ? 0 : 50;
@@ -435,8 +334,8 @@ function createBackgroundRect(
     .attr('y', function (this) {
       return -this.getAttribute('height') / 2;
     })
-    .attr('rx', rectRadius)
-    .attr('ry', rectRadius)
+    .attr('rx', D3_CONSTS.RECT_RADIUS)
+    .attr('ry', D3_CONSTS.RECT_RADIUS)
     .attr('fill', '#f5f5f5')
     .attr('stroke', 'black')
     .attr('stroke-width', 2);
@@ -454,8 +353,8 @@ function createTitleRect(
       return -this.getAttribute('width') / 2;
     })
     .attr('y', backgroundRect.attr('y'))
-    .attr('rx', rectRadius)
-    .attr('ry', rectRadius)
+    .attr('rx', D3_CONSTS.RECT_RADIUS)
+    .attr('ry', D3_CONSTS.RECT_RADIUS)
     .attr('fill', '#ff8038')
     .attr('stroke', 'black')
     .attr('stroke-width', 2);
@@ -474,7 +373,7 @@ function createTitle(
     .attr('text-anchor', 'middle')
     .attr('dominant-baseline', 'central')
     .attr('fill', 'black')
-    .attr('font-size', titleFontSize);
+    .attr('font-size', D3_CONSTS.TITLE_FONT_SIZE);
 }
 
 function createPorts(
@@ -511,7 +410,7 @@ function createPorts(
         18 +
         (i < inputs.size ? i + 1 : i + 1 - inputs.size) * 36
     )
-    .attr('r', portRadius)
+    .attr('r', D3_CONSTS.PORT_RADIUS)
     .attr('fill', 'gray')
     .attr('stroke', 'black')
     .attr('stroke-width', 2)
@@ -603,7 +502,7 @@ function createTexts(
     .attr('text-anchor', (_, i) => (i < inputs.size ? 'start' : 'end'))
     .attr('dominant-baseline', 'central')
     .attr('fill', 'black')
-    .attr('font-size', fontSize)
+    .attr('font-size', D3_CONSTS.FONT_SIZE)
     .attr('x', (_, i) => {
       const x = +backgroundRect.attr('width') / 2;
       return i < inputs.size ? -x + 18 : x - 18;
@@ -629,11 +528,15 @@ function createSeparator(
   }
   const start = -backgroundRect.attr('width') / 2 + 18;
   const maxInputSize = d3.max(
-    [...inputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
+    [...inputs.keys()].map((d) =>
+      calculateTextLength(d3g, d, D3_CONSTS.FONT_SIZE)
+    )
   );
   const end = +backgroundRect.attr('width') / 2 - 18;
   const maxOutputSize = d3.max(
-    [...outputs.keys()].map((d) => calculateTextLength(d3g, d, fontSize))
+    [...outputs.keys()].map((d) =>
+      calculateTextLength(d3g, d, D3_CONSTS.FONT_SIZE)
+    )
   );
   const x = (start + maxInputSize + end - maxOutputSize) / 2;
   selection
@@ -644,4 +547,57 @@ function createSeparator(
     .attr('y1', +backgroundRect.attr('y') + 36)
     .attr('x2', x)
     .attr('y2', +backgroundRect.attr('y') + +backgroundRect.attr('height'));
+}
+
+export function createCommands(
+  d3com: d3.Selection<SVGGElement, unknown, null, undefined>
+) {
+  const data = [
+    [
+      'copy',
+      'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z',
+    ],
+    [
+      'edit',
+      'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+    ],
+    [
+      'delete',
+      'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
+    ],
+  ];
+
+  const commands = d3com
+    .selectAll('svg')
+    .data(data)
+    .enter()
+    .append('svg')
+    .classed('command', true)
+    .attr('height', D3_CONSTS.COMMAND_SIZE)
+    .attr('width', D3_CONSTS.COMMAND_SIZE)
+    .attr('viewBox', '0 0 24 24')
+    .attr(
+      'x',
+      (_, i) => i * (D3_CONSTS.COMMAND_SIZE + D3_CONSTS.COMMAND_OFFSET)
+    )
+    .attr('y', 0)
+    .each(function (this, d) {
+      d3.select(this).classed(d[0], true);
+    });
+
+  commands.insert('path').attr('d', 'M0 0h24v24H0z').attr('fill-opacity', 0);
+  commands.append('path').attr('d', (d) => d[1]);
+
+  d3com
+    .insert('rect')
+    .classed('sel-rect', true)
+    .attr('rx', 10)
+    .attr('ry', 10)
+    .attr(
+      'width',
+      D3_CONSTS.COMMAND_SIZE * data.length +
+        D3_CONSTS.COMMAND_OFFSET * (data.length - 1)
+    )
+    .attr('height', D3_CONSTS.COMMAND_SIZE)
+    .lower();
 }

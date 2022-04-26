@@ -9,48 +9,7 @@
         <g class="selection">
           <rect class="sel-rect" rx="10" ry="10"></rect>
         </g>
-        <g class="commands">
-          <rect class="sel-rect" rx="10" ry="10" width="156" height="48"></rect>
-          <svg
-            class="command copy"
-            height="48px"
-            width="48px"
-            viewBox="0 0 24 24"
-            x="0"
-            y="0"
-          >
-            <path d="M0 0h24v24H0z" fill-opacity="0" />
-            <path
-              d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
-            />
-          </svg>
-          <svg
-            class="command edit"
-            height="48px"
-            width="48px"
-            viewBox="0 0 24 24"
-            x="54"
-            y="0"
-          >
-            <path d="M0 0h24v24H0z" fill-opacity="0" />
-            <path
-              d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-            />
-          </svg>
-          <svg
-            class="command delete"
-            height="48px"
-            width="48px"
-            viewBox="0 0 24 24"
-            x="108"
-            y="0"
-          >
-            <path d="M0 0h24v24H0z" fill-opacity="0" />
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
-        </g>
+        <g class="commands"></g>
       </g>
     </svg>
   </div>
@@ -62,16 +21,11 @@ import * as d3 from 'd3';
 import {
   clearSelection,
   copyGroups,
+  createCommands,
   createNode,
-  getNextNodeId,
-  DataType,
   deleteGroup,
-  extractTranslateCoords,
-  GenericCoords,
-  handleGroupDrag,
-  selectionOffset,
   selectNode,
-} from 'components/d3models';
+} from 'src/components/d3/models';
 import CustomNodeDialog from 'components/customNode/CustomNodeDialog.vue';
 import { useConfigStore } from 'src/stores/configStore';
 import {
@@ -79,10 +33,12 @@ import {
   CustomNodeStructure,
   NodeInfo,
   SimpleNodeParameter,
-} from './models';
+} from '../models';
 import { useCustomStore } from 'src/stores/customStore';
 import { useQuasar, event } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
+import { D3_CONSTS, DataType, GenericCoords } from './types';
+import { extractTranslateCoords, getNextNodeId } from './utils';
 
 export default defineComponent({
   name: 'D3Canvas',
@@ -107,6 +63,7 @@ export default defineComponent({
       d3sel = d3g.selectChild<SVGGElement>('.selection');
       d3com = d3g.selectChild('.commands');
       d3com.attr('visibility', 'hidden');
+      createCommands(d3com);
       d3com.selectAll<SVGGElement, unknown>('.command.copy').on('click', () => {
         $q.dialog({
           message: 'Are you sure you want to copy the node(s)?',
@@ -316,17 +273,19 @@ export default defineComponent({
             .filter((d) => d.selected);
           d3sel
             .select('.sel-rect')
-            .attr('width', right - left + selectionOffset * 2)
-            .attr('height', bottom - top + selectionOffset * 2);
+            .attr('width', right - left + D3_CONSTS.SELECTION_OFFSET * 2)
+            .attr('height', bottom - top + D3_CONSTS.SELECTION_OFFSET * 2);
           d3com.attr('visibility', null).attr('transform', function (this) {
             return `translate(${
               (left + right) / 2 - this.getBBox().width / 2
-            },${top - this.getBBox().height - selectionOffset * 2})`;
+            },${top - this.getBBox().height - D3_CONSTS.SELECTION_OFFSET * 2})`;
           });
           d3sel
             .attr(
               'transform',
-              `translate(${left - selectionOffset},${top - selectionOffset})`
+              `translate(${left - D3_CONSTS.SELECTION_OFFSET},${
+                top - D3_CONSTS.SELECTION_OFFSET
+              })`
             )
             .attr('visibility', null)
             .call(
@@ -354,8 +313,10 @@ export default defineComponent({
                       `translate(${coords.x + e.dx},${coords.y + e.dy})`
                     );
                     selectedNodes.each((_, i, a) => {
-                      d3.select(a[i]).call(() => {
-                        handleGroupDrag.call(a[i], e);
+                      d3.select(a[i]).dispatch('move', {
+                        bubbles: false,
+                        cancelable: false,
+                        detail: e,
                       });
                     });
                   }
@@ -371,7 +332,7 @@ export default defineComponent({
                         coords.x +
                         d3sel.node().getBBox().width / 2 -
                         this.getBBox().width / 2
-                      },${coords.y - this.getBBox().height - selectionOffset})`;
+                      },${coords.y - this.getBBox().height - D3_CONSTS.SELECTION_OFFSET})`;
                     });
                 }) as never
             );
@@ -519,29 +480,29 @@ export default defineComponent({
   border: 0;
 }
 
-.sel-rect {
+:deep(.sel-rect) {
   fill: #1976d2;
   fill-opacity: 0.25;
   stroke: #1976d2;
   stroke-width: 3px;
 }
 
-.command:hover {
+:deep(.command):hover {
   fill-opacity: 0.25;
 }
 
-svg :deep(.hovered) {
+:deep(.hovered) {
   border-radius: 10px;
   outline: 3px solid rgba(25, 103, 210, 0.5);
   outline-offset: 3px;
   outline-style: dashed;
 }
 
-svg :deep(.compatible) {
+:deep(.compatible) {
   fill: #e7ff53;
 }
 
-svg :deep(.connected) {
+:deep(.connected) {
   fill: #5dff77;
 }
 </style>

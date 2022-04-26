@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import D3Canvas from '../components/D3Canvas.vue';
+import D3Canvas from '../components/d3/D3Canvas.vue';
 
 export default {
   components: { D3Canvas },
