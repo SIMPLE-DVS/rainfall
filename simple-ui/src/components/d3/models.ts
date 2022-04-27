@@ -8,6 +8,7 @@ import {
   calculateTextLength,
   checkPorts,
   extractPathCoords,
+  extractPathElems,
   extractTranslateCoords,
   getNextNodeId,
   portContainsPoint,
@@ -125,22 +126,6 @@ export function clearSelection(
   canvasStore.selectedNodes = [];
 }
 
-export function deleteGroup(
-  d3g: d3.Selection<Element, unknown, null, undefined>,
-  d3sel: d3.Selection<SVGGElement, unknown, null, undefined>
-) {
-  const name = d3sel.attr('data-id');
-  d3g
-    .selectAll(
-      'path[data-from-parent=' + name + '],path[data-to-parent=' + name + ']'
-    )
-    .remove();
-  const configStore = useConfigStore();
-  configStore.removeNodeConfig(name);
-  d3sel.remove();
-  checkPorts(d3g);
-}
-
 export function copyGroups(
   d3g: d3.Selection<Element, unknown, null, undefined>,
   d3sel: d3.Selection<SVGGElement, unknown, null, undefined>,
@@ -194,6 +179,64 @@ export function copyGroups(
   canvasStore.selectedNodes = newNodes.map((n) => {
     return { name: n.dataset['id'], package: n.dataset['package'] };
   });
+}
+
+export function renameGroup(
+  d3g: d3.Selection<Element, unknown, null, undefined>,
+  d3sel: d3.Selection<SVGGElement, unknown, null, undefined>,
+  g: d3.Selection<SVGGElement, unknown, null, undefined>,
+  newName: string
+) {
+  const oldName = g.attr('data-id');
+  const oldPackage = g.attr('data-package');
+  const coords = extractTranslateCoords(g.attr('transform'));
+  const paths = d3g
+    .selectAll<SVGPathElement, unknown>(
+      'path[data-from-parent=' +
+        oldName +
+        '],path[data-to-parent=' +
+        oldName +
+        ']'
+    )
+    .nodes();
+  const pathsElems = paths.map((p) => extractPathElems(p));
+  pathsElems.forEach((p) => {
+    if (p.fromNode == oldName) {
+      p.fromNode = newName;
+    }
+    if (p.toNode == oldName) {
+      p.toNode = newName;
+    }
+  });
+  const renamedNode = createNode(d3g, d3sel, {
+    name: newName,
+    package: oldPackage,
+    x: coords.x,
+    y: coords.y,
+    selected: false,
+  });
+  const configStore = useConfigStore();
+  configStore.cloneNodeConfig({ name: oldName, package: oldPackage }, newName);
+  deleteGroup(d3g, d3g.select('.node[data-id=' + oldName + ']'));
+  pathsElems.forEach((p) => createEdge(d3g, p));
+  checkPorts(d3g);
+  selectNode(renamedNode.node(), d3g, false);
+}
+
+export function deleteGroup(
+  d3g: d3.Selection<Element, unknown, null, undefined>,
+  g: d3.Selection<SVGGElement, unknown, null, undefined>
+) {
+  const name = g.attr('data-id');
+  d3g
+    .selectAll(
+      'path[data-from-parent=' + name + '],path[data-to-parent=' + name + ']'
+    )
+    .remove();
+  const configStore = useConfigStore();
+  configStore.removeNodeConfig(name);
+  g.remove();
+  checkPorts(d3g);
 }
 
 function createGroup(
@@ -591,8 +634,8 @@ export function createCommands(
   d3com
     .insert('rect')
     .classed('sel-rect', true)
-    .attr('rx', 10)
-    .attr('ry', 10)
+    .attr('rx', D3_CONSTS.RECT_RADIUS)
+    .attr('ry', D3_CONSTS.RECT_RADIUS)
     .attr(
       'width',
       D3_CONSTS.COMMAND_SIZE * data.length +

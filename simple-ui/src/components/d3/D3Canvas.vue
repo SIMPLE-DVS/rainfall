@@ -24,6 +24,7 @@ import {
   createCommands,
   createNode,
   deleteGroup,
+  renameGroup,
   selectNode,
 } from 'src/components/d3/models';
 import CustomNodeDialog from 'components/customNode/CustomNodeDialog.vue';
@@ -38,7 +39,7 @@ import { useCustomStore } from 'src/stores/customStore';
 import { useQuasar, event } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { D3_CONSTS, DataType, GenericCoords } from './types';
-import { extractTranslateCoords, getNextNodeId } from './utils';
+import { extractTranslateCoords, getNextNodeId, isNameValid } from './utils';
 
 export default defineComponent({
   name: 'D3Canvas',
@@ -79,7 +80,39 @@ export default defineComponent({
         });
       });
       d3com.selectAll<SVGGElement, unknown>('.command.edit').on('click', () => {
-        console.log('EDIT');
+        const nodes = canvasStore.selectedNodes;
+        if (nodes.length != 1) {
+          $q.notify({
+            message: 'Select only one node to rename it!',
+            type: 'negative',
+          });
+          return;
+        }
+        const oldName = canvasStore.selectedNodes[0].name;
+        $q.dialog({
+          title: 'Modify Node Name',
+          message: 'What is the new name of the node?',
+          prompt: {
+            model: oldName,
+            isValid: (name) => {
+              name = name.trim();
+              return (
+                isNameValid(name) && d3.select(`.node[data-id=${name}]`).empty()
+              );
+            },
+            type: 'text',
+            outlined: true,
+          },
+          cancel: true,
+          persistent: false,
+        }).onOk((newName) => {
+          renameGroup(
+            d3g,
+            d3sel,
+            d3g.select('.node[data-id=' + oldName + ']'),
+            newName
+          );
+        });
       });
       d3com
         .selectAll<SVGGElement, unknown>('.command.delete')
@@ -374,30 +407,55 @@ export default defineComponent({
     const drop = (e: DragEvent) => {
       e.preventDefault();
       const clazz = e.dataTransfer.getData('text');
-      dropNode(e.offsetX, e.offsetY, clazz);
-    };
-
-    const dropNode = (x: number, y: number, clazz: string) => {
-      clearSelection(d3g);
       if (clazz === 'rain.nodes.custom.custom.CustomNode') {
         openCustomNodeDialog();
       } else {
         if (!configStore.nodeStructures.has(clazz)) {
+          $q.notify({
+            message: 'No node exists with class: ' + clazz,
+            type: 'negative',
+          });
           return;
         }
-        const nodeStructure = configStore.getNodeStructureByNodePackage(clazz);
-        const id = getNextNodeId(d3g, nodeStructure.clazz);
-        const transform = d3.zoomTransform(d3elem);
-        const addedNode = createNode(d3g, d3sel, {
-          name: id,
-          package: clazz,
-          x: transform.invertX(x),
-          y: transform.invertY(y),
-          selected: false,
+        $q.dialog({
+          title: 'Node Name',
+          message: 'What is the name of the node?',
+          prompt: {
+            model: getNextNodeId(
+              d3g,
+              configStore.getNodeStructureByNodePackage(clazz).clazz
+            ),
+            isValid: (name) => {
+              name = name.trim();
+              return (
+                isNameValid(name) && d3.select(`.node[data-id=${name}]`).empty()
+              );
+            },
+            type: 'text',
+            outlined: true,
+          },
+          cancel: true,
+          persistent: false,
+        }).onOk((name) => {
+          dropNode(e.offsetX, e.offsetY, clazz, name);
         });
-        configStore.setNodeConfig(clazz, id);
-        selectNode(addedNode.node(), d3g, false);
       }
+    };
+
+    const dropNode = (x: number, y: number, clazz: string, id?: string) => {
+      clearSelection(d3g);
+      const nodeStructure = configStore.getNodeStructureByNodePackage(clazz);
+      const identifier = id ? id : getNextNodeId(d3g, nodeStructure.clazz);
+      const transform = d3.zoomTransform(d3elem);
+      const addedNode = createNode(d3g, d3sel, {
+        name: identifier,
+        package: clazz,
+        x: transform.invertX(x),
+        y: transform.invertY(y),
+        selected: false,
+      });
+      configStore.setNodeConfig(clazz, identifier);
+      selectNode(addedNode.node(), d3g, false);
     };
 
     const addCustomCanvasNode = (customNodeInfo: CustomNodeInfo) => {

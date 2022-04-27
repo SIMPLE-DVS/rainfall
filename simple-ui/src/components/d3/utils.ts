@@ -7,6 +7,15 @@ import {
   PathElements,
 } from './types';
 
+export function isNameValid(name: string) {
+  try {
+    d3.select(`.node[data-id=${name}]`);
+  } catch (_) {
+    return false;
+  }
+  return true;
+}
+
 export function calculatePath(coords: PathCoords) {
   const path = d3.path();
   path.moveTo(coords.xFrom, coords.yFrom);
@@ -21,18 +30,27 @@ export function calculatePath(coords: PathCoords) {
   return path.toString();
 }
 
+export function extractPathElems(path: SVGPathElement): PathElements {
+  return {
+    fromNode: path.dataset['fromParent'],
+    fromPort: path.dataset['fromPort'],
+    toNode: path.dataset['toParent'],
+    toPort: path.dataset['toPort'],
+  };
+}
+
 export function extractPathCoords(elems: PathElements): PathCoords {
   const fromParent = d3.select<SVGGElement, DataType>(
     '.node[data-id=' + elems.fromNode + ']'
   );
   const fromPort = d3.select(
-    `circle[data-parent=${elems.fromNode}][data-name=${elems.fromPort}]`
+    `circle[data-io=output][data-parent=${elems.fromNode}][data-name=${elems.fromPort}]`
   );
   const toParent = d3.select<SVGGElement, DataType>(
     '.node[data-id=' + elems.toNode + ']'
   );
   const toPort = d3.select(
-    `circle[data-parent=${elems.toNode}][data-name=${elems.toPort}]`
+    `circle[data-io=input][data-parent=${elems.toNode}][data-name=${elems.toPort}]`
   );
   return {
     xFrom: fromParent.datum().x + +fromPort.attr('cx'),
