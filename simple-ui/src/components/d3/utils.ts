@@ -16,6 +16,10 @@ export function isNameValid(name: string) {
   return true;
 }
 
+export function getEdgeName(elems: PathElements) {
+  return `${elems.fromNode}-{out}-${elems.fromPort}|${elems.toNode}-{in}-${elems.toPort}`;
+}
+
 export function calculatePath(coords: PathCoords) {
   const path = d3.path();
   path.moveTo(coords.xFrom, coords.yFrom);
@@ -66,13 +70,6 @@ export function portContainsPoint(c: SVGCircleElement, e: Event) {
       Math.pow(+c.getAttribute('cy') - d3.pointer(e, c)[1], 2) <=
     D3_CONSTS.PORT_RADIUS * D3_CONSTS.PORT_RADIUS
   );
-}
-
-export function removeConnectedEdges(c: SVGCircleElement) {
-  const fromOrTo = c.dataset['io'] == 'input' ? 'to' : 'from';
-  d3.selectAll<SVGPathElement, unknown>(
-    `path[data-${fromOrTo}-parent=${c.dataset['parent']}][data-${fromOrTo}-port=${c.dataset['name']}]`
-  ).remove();
 }
 
 export function checkPorts(

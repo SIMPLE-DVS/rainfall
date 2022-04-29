@@ -42,13 +42,13 @@ import { ref, Ref } from 'vue';
 import { useCanvasStore } from 'stores/canvasStore';
 import { useConfigStore } from 'stores/configStore';
 import { api } from '../boot/axios';
-import { FabricEdge } from 'components/fabricModels';
 import { exportFile, QFile } from 'quasar';
 import {
   AnyParameterConfig,
   CustomNodeStructure,
   SimpleNodeStructure,
 } from 'src/components/models';
+import { DataType, PathElements } from 'src/components/d3/types';
 
 export default {
   name: 'PageImportExport',
@@ -66,7 +66,7 @@ export default {
 
       config['nodes'] = [...canvasStore.canvasNodes.keys()].map(
         (nodeName: string) => {
-          const nodePackage = canvasStore.canvasNodes.get(nodeName).nodePackage;
+          const nodePackage = canvasStore.canvasNodes.get(nodeName).package;
           const nodeConfig: { [index: string]: unknown } = {
             node_id: nodeName,
             node: nodePackage.includes('rain.nodes.custom.custom.CustomNode')
@@ -96,20 +96,14 @@ export default {
             ).code;
           }
 
-          nodeConfig['then'] = canvasStore.canvasNodes
-            .get(nodeName)
-            .outputPorts.filter((op) => op.edges.length > 0)
-            .reduce((acc, val) => acc.concat(val.edges), [] as FabricEdge[])
-            .map((edge) => {
-              const edgeConfig: { [index: string]: unknown } = {
-                send_to: edge.to.group.name,
+          nodeConfig['then'] = [...canvasStore.canvasEdges.values()]
+            .filter((e) => e.fromNode == nodeName)
+            .map((e) => {
+              const then: { [index: string]: string } = {
+                send_to: e.toNode,
               };
-
-              const fromParamName = edge.from.paramName;
-              const toParamName = edge.to.paramName;
-              edgeConfig[fromParamName] = toParamName;
-
-              return edgeConfig;
+              then[e.fromPort] = e.toPort;
+              return then;
             });
 
           return nodeConfig;
@@ -117,7 +111,7 @@ export default {
       );
 
       config['dependencies'] = [...canvasStore.canvasNodes.keys()]
-        .map((nodeName) => canvasStore.canvasNodes.get(nodeName).nodePackage)
+        .map((nodeName) => canvasStore.canvasNodes.get(nodeName).package)
         .map((nodePackage) =>
           configStore.nodeStructures
             .get(nodePackage)
@@ -132,6 +126,8 @@ export default {
         );
 
       config['ui'] = getUI();
+
+      config['repository'] = 'repo';
 
       console.log(JSON.stringify(config));
 
@@ -156,12 +152,32 @@ export default {
 
     const loadUI = () => {
       const canvasStore = useCanvasStore();
+      const configStore = useConfigStore();
 
       const fileValue = file.value;
       const reader = new FileReader();
       if (fileValue.name.includes('.json')) {
         reader.onload = (res) => {
           canvasStore.uiFile = JSON.parse(res.target.result as string);
+          configStore.nodeStructures = new Map<string, SimpleNodeStructure>(
+            canvasStore.uiFile['structures'] as []
+          );
+          configStore.nodeConfigs = new Map<
+            string,
+            { [index: string]: unknown }
+          >(canvasStore.uiFile['configs'] as []);
+          configStore.nodeAnyConfigs = new Map<string, AnyParameterConfig>(
+            canvasStore.uiFile['anyConfigs'] as []
+          );
+          canvasStore.canvasNodes = new Map<string, DataType>(
+            canvasStore.uiFile['nodes'] as []
+          );
+          canvasStore.canvasEdges = new Map<string, PathElements>(
+            canvasStore.uiFile['edges'] as []
+          );
+          canvasStore.canvasTransform = canvasStore.uiFile[
+            'transform'
+          ] as string;
         };
         reader.onerror = (err) => {
           console.log('ERROR DURING LOAD');
@@ -175,40 +191,14 @@ export default {
       const canvasStore = useCanvasStore();
       const configStore = useConfigStore();
 
-      const nodes = [...canvasStore.canvasNodes.values()].map((v) =>
-        v.toJSONObject()
-      );
-
-      const customNodes = [] as [];
-
-      const edges: string[] = [...canvasStore.canvasEdges.keys()];
-
-      const structures: { [index: string]: SimpleNodeStructure } = {};
-      configStore.nodeStructures.forEach((v, k) => {
-        structures[k] = v;
-      });
-
-      const configs: { [index: string]: unknown } = {};
-      configStore.nodeConfigs.forEach((v, k) => {
-        configs[k] = v;
-      });
-
-      const anyConfigs: { [index: string]: AnyParameterConfig } = {};
-      configStore.nodeAnyConfigs.forEach((v, k) => {
-        anyConfigs[k] = v;
-      });
-
-      const uiState = {
-        nodes: nodes,
-        customNodes: customNodes,
-        edges: edges,
-        canvasTransform: canvasStore.canvasTransform,
-        structures: structures,
-        configs: configs,
-        anyConfigs: anyConfigs,
+      return {
+        nodes: [...canvasStore.canvasNodes.entries()],
+        edges: [...canvasStore.canvasEdges.entries()],
+        transform: canvasStore.canvasTransform,
+        structures: [...configStore.nodeStructures.entries()],
+        configs: [...configStore.nodeConfigs.entries()],
+        anyConfigs: [...configStore.nodeAnyConfigs.entries()],
       };
-
-      return uiState;
     };
 
     const saveUI = () => {

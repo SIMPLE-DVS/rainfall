@@ -17,6 +17,13 @@ export const useConfigStore = defineStore('config', {
       state.nodeStructures.get(id),
   },
   actions: {
+    clearNodeStructures() {
+      this.$state.nodeStructures = new Map<string, SimpleNodeStructure>();
+    },
+    clearNodeConfigs() {
+      this.$state.nodeConfigs = new Map<string, { [index: string]: unknown }>();
+      this.$state.nodeAnyConfigs = new Map<string, AnyParameterConfig>();
+    },
     addNodeStructure(structure: SimpleNodeStructure) {
       this.$state.nodeStructures.set(structure.package, structure);
     },

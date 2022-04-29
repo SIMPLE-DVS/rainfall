@@ -3,7 +3,7 @@
     <q-header elevated bordered class="bg-primary text-white">
       <q-toolbar>
         <q-btn
-          v-if="tab == 'ui' || tab == 'd3'"
+          v-if="tab == 'ui'"
           dense
           flat
           round
@@ -26,7 +26,7 @@
         <locale-changer></locale-changer>
 
         <q-btn
-          v-if="(tab == 'ui' || tab == 'd3') && selectedNodes.length == 1"
+          v-if="tab == 'ui' && selectedNodes.length == 1"
           dense
           flat
           round
@@ -79,13 +79,6 @@
           indicator-color="secondary"
           active-bg-color="primary"
         >
-          <q-route-tab
-            name="d3"
-            default="true"
-            icon="architecture"
-            label="D3"
-            :to="{ name: 'd3' }"
-          />
           <q-route-tab
             name="ui"
             default="true"

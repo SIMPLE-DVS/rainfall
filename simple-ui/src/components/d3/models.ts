@@ -10,9 +10,9 @@ import {
   extractPathCoords,
   extractPathElems,
   extractTranslateCoords,
+  getEdgeName,
   getNextNodeId,
   portContainsPoint,
-  removeConnectedEdges,
 } from './utils';
 
 export function createEdge(
@@ -33,6 +33,8 @@ export function createEdge(
       return calculatePath(coords);
     })
     .lower();
+  const canvasStore = useCanvasStore();
+  canvasStore.canvasEdges.set(getEdgeName(elems), elems);
 }
 
 export function createNode(
@@ -51,6 +53,8 @@ export function createNode(
   createPorts(selection, backgroundRect, d3g, inputs, outputs);
   createTexts(selection, backgroundRect, inputs, outputs);
   createSeparator(selection, backgroundRect, d3g, inputs, outputs);
+  const canvasStore = useCanvasStore();
+  canvasStore.canvasNodes.set(data.name, data);
   return selection;
 }
 
@@ -223,19 +227,31 @@ export function renameGroup(
   selectNode(renamedNode.node(), d3g, false);
 }
 
+function deleteEdge(path: SVGPathElement) {
+  const pathElems = extractPathElems(path);
+  const canvasStore = useCanvasStore();
+  canvasStore.canvasEdges.delete(getEdgeName(pathElems));
+  path.remove();
+}
+
 export function deleteGroup(
   d3g: d3.Selection<Element, unknown, null, undefined>,
   g: d3.Selection<SVGGElement, unknown, null, undefined>
 ) {
   const name = g.attr('data-id');
   d3g
-    .selectAll(
+    .selectAll<SVGPathElement, unknown>(
       'path[data-from-parent=' + name + '],path[data-to-parent=' + name + ']'
     )
-    .remove();
+    .nodes()
+    .forEach((p) => {
+      deleteEdge(p);
+    });
   const configStore = useConfigStore();
   configStore.removeNodeConfig(name);
   g.remove();
+  const canvasStore = useCanvasStore();
+  canvasStore.canvasNodes.delete(name);
   checkPorts(d3g);
 }
 
@@ -321,7 +337,13 @@ function createGroup(
         .nodes()
         .find((c) => portContainsPoint(c, e));
       if (portDoubleClicked != null) {
-        removeConnectedEdges(portDoubleClicked);
+        const fromOrTo =
+          portDoubleClicked.dataset['io'] == 'input' ? 'to' : 'from';
+        d3.selectAll<SVGPathElement, unknown>(
+          `path[data-${fromOrTo}-parent=${portDoubleClicked.dataset['parent']}][data-${fromOrTo}-port=${portDoubleClicked.dataset['name']}]`
+        )
+          .nodes()
+          .forEach((p) => deleteEdge(p));
         checkPorts(d3g);
       } else {
         const canvasStore = useCanvasStore();
@@ -513,7 +535,11 @@ function createPorts(
               this.dataset['io'] == 'input' ? this : topMostPort;
             const outputPort =
               this.dataset['io'] == 'output' ? this : topMostPort;
-            removeConnectedEdges(inputPort);
+            d3.selectAll<SVGPathElement, unknown>(
+              `path[data-to-parent=${inputPort.dataset['parent']}][data-to-port=${inputPort.dataset['name']}]`
+            )
+              .nodes()
+              .forEach((p) => deleteEdge(p));
             createEdge(d3g, {
               fromNode: outputPort.dataset['parent'],
               fromPort: outputPort.dataset['name'],

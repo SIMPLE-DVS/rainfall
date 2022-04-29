@@ -22,6 +22,7 @@ import {
   clearSelection,
   copyGroups,
   createCommands,
+  createEdge,
   createNode,
   deleteGroup,
   renameGroup,
@@ -38,8 +39,13 @@ import {
 import { useCustomStore } from 'src/stores/customStore';
 import { useQuasar, event } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
-import { D3_CONSTS, DataType, GenericCoords } from './types';
-import { extractTranslateCoords, getNextNodeId, isNameValid } from './utils';
+import { D3_CONSTS, DataType, GenericCoords, PathElements } from './types';
+import {
+  checkPorts,
+  extractTranslateCoords,
+  getNextNodeId,
+  isNameValid,
+} from './utils';
 
 export default defineComponent({
   name: 'D3Canvas',
@@ -134,6 +140,7 @@ export default defineComponent({
       ) {
         if (this == d3elem) {
           d3g.attr('transform', e.transform.toString());
+          canvasStore.canvasTransform = e.transform.toString();
         }
       }
 
@@ -372,6 +379,8 @@ export default defineComponent({
         },
         { deep: true }
       );
+
+      initSVG();
     });
 
     const openCustomNodeDialog = (nodeInfo?: NodeInfo) => {
@@ -517,6 +526,37 @@ export default defineComponent({
         );
         configStore.addNodeStructure(nodeStructure);
       }
+    };
+
+    const initSVG = () => {
+      canvasStore.selectedNodes = [];
+      canvasStore.canvasNodes.forEach((n) => {
+        n.selected = false;
+      });
+      const tempNodes = new Map<string, DataType>([
+        ...canvasStore.canvasNodes.entries(),
+      ]);
+      const tempEdges = new Map<string, PathElements>([
+        ...canvasStore.canvasEdges.entries(),
+      ]);
+      d3svg.selectAll('.node').remove();
+      d3svg.selectAll('.path').remove();
+      const transform =
+        /translate\((?<x>.+?)[, ]+(?<y>.+?)\) scale\((?<k>.+?)\)/gim.exec(
+          canvasStore.canvasTransform
+        );
+      d3svg.call(
+        d3.zoom().transform,
+        new d3.ZoomTransform(+transform[3], +transform[1], +transform[2])
+      );
+      d3g.attr('transform', canvasStore.canvasTransform);
+      tempNodes.forEach((d) => {
+        createNode(d3g, d3sel, d);
+      });
+      tempEdges.forEach((p) => {
+        createEdge(d3g, p);
+      });
+      checkPorts(d3g);
     };
 
     return {

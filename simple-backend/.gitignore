@@ -103,5 +103,9 @@ ENV/
 
 # IDE settings
 .vscode/
+.idea/
 
 python_code
+
+output_repositories/
+simple_backend/nodes.json

@@ -112,5 +112,5 @@ class ConfigurationSchema(Schema):
     pipeline_uid = fields.String(required=True)
     nodes = fields.List(fields.Dict(), required=True)
     dependencies = fields.List(fields.String(), required=True)
-    ui = fields.List(fields.Dict(), required=True)
+    ui = fields.Dict(required=True)
     repository = fields.String(required=True)
