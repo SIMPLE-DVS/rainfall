@@ -7,9 +7,11 @@
     >
       <g class="graphics">
         <g class="selection">
-          <rect class="sel-rect" rx="10" ry="10"></rect>
+          <rect class="sel-rect"></rect>
         </g>
-        <g class="commands"></g>
+        <g class="commands">
+          <rect class="sel-rect"></rect>
+        </g>
       </g>
     </svg>
   </div>
@@ -68,6 +70,10 @@ export default defineComponent({
       d3svg = d3.select(d3elem);
       d3g = d3svg.selectChild('.graphics');
       d3sel = d3g.selectChild<SVGGElement>('.selection');
+      d3sel
+        .select('.sel-rect')
+        .attr('rx', D3_CONSTS.RECT_RADIUS)
+        .attr('ry', D3_CONSTS.RECT_RADIUS);
       d3com = d3g.selectChild('.commands');
       d3com.attr('visibility', 'hidden');
       createCommands(d3com);
@@ -539,8 +545,8 @@ export default defineComponent({
       const tempEdges = new Map<string, PathElements>([
         ...canvasStore.canvasEdges.entries(),
       ]);
-      d3svg.selectAll('.node').remove();
-      d3svg.selectAll('.path').remove();
+      d3g.selectAll('.node').remove();
+      d3g.selectAll('.edge').remove();
       const transform =
         /translate\((?<x>.+?)[, ]+(?<y>.+?)\) scale\((?<k>.+?)\)/gim.exec(
           canvasStore.canvasTransform

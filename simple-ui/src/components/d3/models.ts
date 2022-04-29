@@ -21,6 +21,7 @@ export function createEdge(
 ) {
   d3g
     .append('path')
+    .classed('edge', true)
     .attr('data-from-parent', elems.fromNode)
     .attr('data-from-port', elems.fromPort)
     .attr('data-to-parent', elems.toNode)
@@ -658,8 +659,7 @@ export function createCommands(
   commands.append('path').attr('d', (d) => d[1]);
 
   d3com
-    .insert('rect')
-    .classed('sel-rect', true)
+    .select('rect')
     .attr('rx', D3_CONSTS.RECT_RADIUS)
     .attr('ry', D3_CONSTS.RECT_RADIUS)
     .attr(
