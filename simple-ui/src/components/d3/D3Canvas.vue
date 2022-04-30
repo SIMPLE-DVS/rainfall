@@ -154,8 +154,9 @@ export default defineComponent({
         this: Element,
         e: d3.D3DragEvent<d3.DraggedElementBaseType, unknown, unknown>
       ) {
-        const x = e.sourceEvent.offsetX;
-        const y = e.sourceEvent.offsetY;
+        const pointer = d3.pointer(e, this);
+        const x = pointer[0];
+        const y = pointer[1];
         d3svg
           .insert('rect')
           .classed('right-sel-rect', true)
@@ -175,8 +176,9 @@ export default defineComponent({
         if (rightDrag == null) {
           return;
         }
-        const x = e.sourceEvent.offsetX;
-        const y = e.sourceEvent.offsetY;
+        const pointer = d3.pointer(e, this);
+        const x = pointer[0];
+        const y = pointer[1];
         const selectionRect = d3.select('.right-sel-rect');
         selectionRect
           .attr('x', rightDrag.x < x ? rightDrag.x : x)
@@ -193,8 +195,9 @@ export default defineComponent({
           return;
         }
         const transform = d3.zoomTransform(d3elem);
-        const x = e.sourceEvent.offsetX;
-        const y = e.sourceEvent.offsetY;
+        const pointer = d3.pointer(e, this);
+        const x = pointer[0];
+        const y = pointer[1];
         const left = transform.invertX(rightDrag.x < x ? rightDrag.x : x);
         const top = transform.invertY(rightDrag.y < y ? rightDrag.y : y);
         const right = transform.invertX(rightDrag.x < x ? x : rightDrag.x);
