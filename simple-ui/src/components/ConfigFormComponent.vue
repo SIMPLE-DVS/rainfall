@@ -21,7 +21,7 @@
           label="Edit"
           color="primary"
           icon="edit"
-          @click="editCustomNode(node)"
+          @click="editCustomNode(node.package)"
         ></q-btn>
       </div>
 
@@ -75,7 +75,6 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, Ref, watch } from 'vue';
 import { useConfigStore } from 'stores/configStore';
-import { useCustomStore } from 'stores/customStore';
 import { ComponentTypeRegexes, NodeInfo, SimpleNodeParameter } from './models';
 import StringConfigComponent from './nodeConfigComponents/StringConfigComponent.vue';
 import BoolConfigComponent from './nodeConfigComponents/BoolConfigComponent.vue';
@@ -85,6 +84,7 @@ import ListConfigComponent from './nodeConfigComponents/ListConfigComponent.vue'
 import SelectConfigComponent from './nodeConfigComponents/SelectConfigComponent.vue';
 import AnyConfigComponent from './nodeConfigComponents/AnyConfigComponent.vue';
 import TupleConfigComponent from './nodeConfigComponents/TupleConfigComponent.vue';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'ConfigFormComponent',
@@ -108,8 +108,8 @@ export default defineComponent({
   },
 
   setup(props) {
+    const router = useRouter();
     const configStore = useConfigStore();
-    const customStore = useCustomStore();
     const nodeDescription: Ref<string> = ref('');
     const nodeConfigStructure: Ref<{ [index: string]: unknown }> = ref({});
     const nodeConfigComponents: Ref<Map<string, string>> = ref();
@@ -144,8 +144,11 @@ export default defineComponent({
       return component;
     };
 
-    const editCustomNode = (node: NodeInfo) => {
-      customStore.nodeToEdit = node;
+    const editCustomNode = (nodePackage: string) => {
+      void router.push({
+        name: 'editor',
+        params: { nodePackage },
+      });
     };
 
     watch(

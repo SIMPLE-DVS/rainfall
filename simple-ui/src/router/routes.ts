@@ -15,6 +15,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/D3Page.vue'),
       },
       {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('pages/Editor.vue'),
+        props: true,
+      },
+      {
         path: 'import_export',
         name: 'import_export',
         component: () => import('pages/ImportExportSettings.vue'),

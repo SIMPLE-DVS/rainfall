@@ -48,7 +48,7 @@
     </q-item>
   </q-list>
 
-  <q-btn icon="add" @click="addRepo"></q-btn>
+  <q-btn icon="add" outline @click="addRepo"></q-btn>
 </template>
 
 <script lang="ts">

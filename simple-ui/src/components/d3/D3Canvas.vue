@@ -30,15 +30,8 @@ import {
   renameGroup,
   selectNode,
 } from 'src/components/d3/models';
-import CustomNodeDialog from 'components/customNode/CustomNodeDialog.vue';
 import { useConfigStore } from 'src/stores/configStore';
-import {
-  CustomNodeInfo,
-  CustomNodeStructure,
-  NodeInfo,
-  SimpleNodeParameter,
-} from '../models';
-import { useCustomStore } from 'src/stores/customStore';
+import { NodeInfo } from '../models';
 import { useQuasar, event } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { D3_CONSTS, DataType, GenericCoords, PathElements } from './types';
@@ -48,14 +41,15 @@ import {
   getNextNodeId,
   isNameValid,
 } from './utils';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'D3Canvas',
 
   setup() {
     const $q = useQuasar();
+    const router = useRouter();
     const configStore = useConfigStore();
-    const customStore = useCustomStore();
     const canvasStore = useCanvasStore();
 
     let d3elem: Element = null;
@@ -276,15 +270,6 @@ export default defineComponent({
         });
 
       watch(
-        () => customStore.nodeToEdit,
-        (newVal) => {
-          if (newVal != null) {
-            openCustomNodeDialog(newVal);
-          }
-        }
-      );
-
-      watch(
         () => canvasStore.selectedNodes,
         (newVal) => {
           d3sel.attr('visibility', 'hidden');
@@ -392,32 +377,6 @@ export default defineComponent({
       initSVG();
     });
 
-    const openCustomNodeDialog = (nodeInfo?: NodeInfo) => {
-      $q.dialog({
-        component: CustomNodeDialog,
-
-        componentProps: {
-          node: nodeInfo,
-        },
-      }).onOk((res: CustomNodeInfo) => {
-        addCustomCanvasNode(res);
-      });
-    };
-
-    const getNextCustomNodeStructureId = () => {
-      let nodeStructureId = '';
-      for (let i = 1; true; i++) {
-        nodeStructureId = `${'rain.nodes.custom.custom.CustomNode'}${i}`;
-        if (
-          configStore.getNodeStructureByNodePackage(nodeStructureId) == null
-        ) {
-          break;
-        }
-      }
-
-      return nodeStructureId;
-    };
-
     const allowDrop = (e: DragEvent) => {
       e.preventDefault();
     };
@@ -426,7 +385,7 @@ export default defineComponent({
       e.preventDefault();
       const clazz = e.dataTransfer.getData('text');
       if (clazz === 'rain.nodes.custom.custom.CustomNode') {
-        openCustomNodeDialog();
+        void router.push({ name: 'editor' });
       } else {
         if (!configStore.nodeStructures.has(clazz)) {
           $q.notify({
@@ -476,67 +435,6 @@ export default defineComponent({
       selectNode(addedNode.node(), d3g, false);
     };
 
-    const addCustomCanvasNode = (customNodeInfo: CustomNodeInfo) => {
-      // TODO: when editing, save oldStructure and confront it with the new one
-      // to decide what needs to be changed/removed (edges, parameters, etc...)
-      /*const oldStructure = configStore.getNodeStructureByNodePackage(
-        customNodeInfo.package
-      );*/
-      const nodeStructureId = customNodeInfo.editMode
-        ? customStore.nodeToEdit.package
-        : getNextCustomNodeStructureId();
-      const inputs = customNodeInfo.inputs.reduce(
-        (acc, value) => Object.assign(acc, { [value]: 'custom' }),
-        {}
-      );
-      const outputs = customNodeInfo.outputs.reduce(
-        (acc, value) => Object.assign(acc, { [value]: 'custom' }),
-        {}
-      );
-      const parameters = customNodeInfo.parameters.map((p) => {
-        return {
-          name: p,
-          type: 'Any',
-          is_mandatory: false,
-          description: 'Custom Parameter: ' + p,
-          default_value: null,
-        } as SimpleNodeParameter;
-      });
-      const nodeStructure: CustomNodeStructure = {
-        package: nodeStructureId,
-        clazz: customNodeInfo.clazz,
-        input: inputs,
-        output: outputs,
-        parameter: parameters,
-        methods: null as string[],
-        tags: {
-          library: 'Base',
-          type: 'Custom',
-        },
-        name: customNodeInfo.name,
-        description: 'A Custom Node.',
-        function_name: customNodeInfo.function,
-        code: customNodeInfo.code,
-      };
-
-      if (!customNodeInfo.editMode) {
-        configStore.addNodeStructure(nodeStructure);
-        dropNode(
-          (d3svg.node() as SVGSVGElement).width.baseVal.value / 2,
-          (d3svg.node() as SVGSVGElement).height.baseVal.value / 2,
-          nodeStructure.package
-        );
-      } else {
-        // TODO: manage editing existing nodes
-        console.log(
-          d3
-            .select('.node[data-package="' + customNodeInfo.package + '"]')
-            .size()
-        );
-        configStore.addNodeStructure(nodeStructure);
-      }
-    };
-
     const initSVG = () => {
       canvasStore.selectedNodes = [];
       canvasStore.canvasNodes.forEach((n) => {
@@ -550,14 +448,12 @@ export default defineComponent({
       ]);
       d3g.selectAll('.node').remove();
       d3g.selectAll('.edge').remove();
-      const transform =
-        /translate\((?<x>.+?)[, ]+(?<y>.+?)\) scale\((?<k>.+?)\)/gim.exec(
-          canvasStore.canvasTransform
-        );
-      d3svg.call(
-        d3.zoom().transform,
-        new d3.ZoomTransform(+transform[3], +transform[1], +transform[2])
+      const {
+        groups: { x, y, k },
+      } = /translate\((?<x>.+?)[, ]+(?<y>.+?)\) scale\((?<k>.+?)\)/gim.exec(
+        canvasStore.canvasTransform
       );
+      d3svg.call(d3.zoom().transform, new d3.ZoomTransform(+k, +x, +y));
       d3g.attr('transform', canvasStore.canvasTransform);
       tempNodes.forEach((d) => {
         createNode(d3g, d3sel, d);
@@ -571,7 +467,6 @@ export default defineComponent({
     return {
       allowDrop,
       drop,
-      addCustomCanvasNode,
     };
   },
 });

@@ -3,7 +3,7 @@
     <q-header elevated bordered class="bg-primary text-white">
       <q-toolbar>
         <q-btn
-          v-if="tab == 'ui'"
+          v-if="tab == 'ui' || tab == 'editor'"
           dense
           flat
           round
@@ -44,9 +44,8 @@
       behavior="desktop"
       side="left"
     >
-      <q-list>
-        <node-collection></node-collection>
-      </q-list>
+      <node-collection v-if="tab == 'ui'"></node-collection>
+      <custom-collection v-else-if="tab == 'editor'"></custom-collection>
     </q-drawer>
 
     <q-drawer
@@ -87,6 +86,12 @@
             :to="{ name: 'canvas' }"
           />
           <q-route-tab
+            name="editor"
+            icon="mode_edit"
+            label="Custom"
+            :to="{ name: 'editor' }"
+          />
+          <q-route-tab
             name="import_export"
             icon="import_export"
             label="Import/Export"
@@ -104,6 +109,7 @@
 import { defineComponent, ref, watch } from 'vue';
 import LocaleChanger from 'components/LocaleChanger.vue';
 import NodeCollection from 'components/NodeCollection.vue';
+import CustomCollection from 'components/custom/CustomCollection.vue';
 import ConfigFormComponent from 'components/ConfigFormComponent.vue';
 import { useCanvasStore } from 'stores/canvasStore';
 import { NodeInfo } from 'src/components/models';
@@ -114,6 +120,7 @@ export default defineComponent({
   components: {
     LocaleChanger,
     NodeCollection,
+    CustomCollection,
     ConfigFormComponent,
   },
 

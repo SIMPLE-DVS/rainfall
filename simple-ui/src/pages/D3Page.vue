@@ -8,8 +8,8 @@
 import D3Canvas from '../components/d3/D3Canvas.vue';
 
 export default {
-  components: { D3Canvas },
-
   name: 'PageD3',
+
+  components: { D3Canvas },
 };
 </script>

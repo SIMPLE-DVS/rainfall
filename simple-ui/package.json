@@ -17,9 +17,9 @@
     "@quasar/app-webpack": "^3.4.1",
     "@quasar/extras": "^1.0.0",
     "@types/d3": "7.1.0",
-    "@types/prismjs": "^1.26.0",
     "@typescript-eslint/eslint-plugin": "5.10.0",
     "@typescript-eslint/parser": "5.10.0",
+    "ace-builds": "^1.4.14",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "d3": "7.1.0",
@@ -27,12 +27,10 @@
     "eslint-plugin-vue": "8.5.0",
     "express": "^4.17.3",
     "pinia": "^2.0.11",
-    "prismjs": "^1.27.0",
     "quasar": "^2.6.0",
     "serve-static": "^1.14.2",
     "vue": "^3.0.0",
     "vue-i18n": "^9.0.0",
-    "vue-prism-editor": "^2.0.0-alpha.2",
     "vue-router": "^4.0.0"
   },
   "devDependencies": {

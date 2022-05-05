@@ -135,7 +135,13 @@ export default defineComponent({
       api
         .get<SimpleNodeStructure[]>('/nodes')
         .then((value) => {
+          const tempCustomNodes = [
+            ...configStore.nodeStructures.values(),
+          ].filter((n) =>
+            n.package.includes('rain.nodes.custom.custom.CustomNode')
+          );
           configStore.setNodeStructures(value.data);
+          tempCustomNodes.forEach((n) => configStore.addNodeStructure(n));
         })
         .catch((error) => {
           alert(error);

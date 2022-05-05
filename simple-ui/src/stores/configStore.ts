@@ -31,10 +31,10 @@ export const useConfigStore = defineStore('config', {
       this.$state.nodeStructures = new Map(
         structures.map((n) => {
           if (n.input == null) {
-            n.input = new Map<string, string>();
+            n.input = {};
           }
           if (n.output == null) {
-            n.output = new Map<string, string>();
+            n.output = {};
           }
           if (n.parameter == null) {
             n.parameter = [];
