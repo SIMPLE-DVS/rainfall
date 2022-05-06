@@ -90,3 +90,8 @@ export interface QTreeNode {
   };
   id: string;
 }
+
+export interface Repository {
+  name: string;
+  type: string;
+}

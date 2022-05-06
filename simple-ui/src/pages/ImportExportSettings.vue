@@ -33,6 +33,8 @@
 
     <div class="q-pa-md q-gutter-sm">
       <p>REPOSITORIES</p>
+
+      <repository-manager></repository-manager>
     </div>
   </q-page>
 </template>
@@ -41,23 +43,35 @@
 import { ref, Ref } from 'vue';
 import { useCanvasStore } from 'stores/canvasStore';
 import { useConfigStore } from 'stores/configStore';
+import { useRepoStore } from 'src/stores/repoStore';
 import { api } from '../boot/axios';
-import { exportFile, QFile } from 'quasar';
+import { exportFile, QFile, useQuasar } from 'quasar';
 import {
   AnyParameterConfig,
   CustomNodeStructure,
   SimpleNodeStructure,
 } from 'src/components/models';
 import { DataType, PathElements } from 'src/components/d3/types';
+import RepositoryManager from 'src/components/RepositoryManager.vue';
 
 export default {
   name: 'PageImportExport',
 
+  components: { RepositoryManager },
+
   setup() {
+    const $q = useQuasar();
     const filePicker: Ref<QFile> = ref(null);
     const file: Ref<File> = ref(null);
 
     const downloadZip = async () => {
+      const repoStore = useRepoStore();
+      if (repoStore.currentRepo == null) {
+        throw new Error(
+          'No default repository is selected! Mark a repository as default'
+        );
+      }
+
       const canvasStore = useCanvasStore();
       const configStore = useConfigStore();
 
@@ -127,26 +141,30 @@ export default {
 
       config['ui'] = getUI();
 
-      config['repository'] = 'repo';
+      config['repository'] = repoStore.currentRepo;
 
       console.log(JSON.stringify(config));
 
-      return await api.post('/config', config, { responseType: 'blob' });
+      return await api.post('/config', config);
     };
 
     const getZip = () => {
       downloadZip()
         .then((res) => {
-          const url = window.URL.createObjectURL(new Blob([res.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'prova.zip');
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          $q.notify({
+            message:
+              'Dataflow: ' +
+              res.data['id'] +
+              ' salvato con successo in ' +
+              res.data['uri'],
+            type: 'positive',
+          });
         })
-        .catch((error) => {
-          alert(error);
+        .catch((error: Error) => {
+          $q.notify({
+            message: error.message,
+            type: 'negative',
+          });
         });
     };
 
