@@ -1,10 +1,12 @@
 <template>
   <q-item-label header class="row justify-center">Custom Nodes</q-item-label>
-  <div class="row justify-center">
-    <q-btn outline label="New Custom Node" color="primary"></q-btn>
-  </div>
 
-  <q-list class="row justify-center" bordered separator>
+  <q-list
+    style="display: flex; flex-direction: column; align-items: center"
+    bordered
+    separator
+  >
+    <div v-if="customNodes.length == 0">No custom nodes defined so far...</div>
     <q-item
       v-for="node in customNodes"
       :key="node"

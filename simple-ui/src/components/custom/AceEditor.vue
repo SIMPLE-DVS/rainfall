@@ -17,11 +17,22 @@
         </div>
         <div class="col" style="font-size: 24px">Custom Node Editor</div>
         <div class="col">
-          <q-btn
-            label="Save Custom Node"
-            color="primary"
-            @click="saveCustomNode"
-          ></q-btn>
+          <div class="row">
+            <div class="col">
+              <q-btn
+                label="New Custom Node"
+                color="primary"
+                @click="newCustomNode"
+              ></q-btn>
+            </div>
+            <div class="col">
+              <q-btn
+                label="Save Custom Node"
+                color="primary"
+                @click="saveCustomNode"
+              ></q-btn>
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -133,6 +144,11 @@ export default defineComponent({
         nodePackage
       ) as CustomNodeStructure;
       editor.setValue(structure.code);
+    };
+
+    const newCustomNode = () => {
+      nodePackage = null;
+      editor.setValue('');
     };
 
     const saveCustomNode = () => {
@@ -256,6 +272,7 @@ export default defineComponent({
       splitterModel: ref(10),
       allowDrop,
       drop,
+      newCustomNode,
       saveCustomNode,
     };
   },

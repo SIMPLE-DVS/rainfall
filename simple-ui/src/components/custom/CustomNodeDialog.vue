@@ -7,8 +7,9 @@
         style="display: flex; flex-direction: column; align-items: center"
       >
         Custom Node
-        <q-card-section class="column items-center" style="flex-grow: 0">
+        <q-card-section class="column items-center">
           <q-input
+            style="width: 300px"
             dense
             outlined
             v-model="structure.clazz"
@@ -22,12 +23,8 @@
             ]"
           >
           </q-input>
-        </q-card-section>
-
-        <q-card-actions align="center" style="flex-grow: 0">
           <q-select
             style="width: 300px"
-            class="q-pr-md"
             dense
             outlined
             v-model="structure.function_name"
@@ -41,7 +38,7 @@
                 'Function already defined in another custom node',
             ]"
           />
-        </q-card-actions>
+        </q-card-section>
         <q-btn type="submit" color="primary" label="Create custom node"></q-btn>
       </q-form>
     </q-card>
