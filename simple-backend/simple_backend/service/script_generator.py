@@ -2,7 +2,7 @@ from jinja2 import Environment, BaseLoader
 from simple_backend.schemas.nodes import CustomNode
 
 
-template = """import {{ simple_repo_module }} as sr
+template = """import {{ rain_module }} as sr
 
 {% for node in custom_nodes %}
 {{ node.code }}
@@ -48,14 +48,14 @@ class ScriptGenerator:
     def __init__(self, nodes, edges):
         self._nodes = nodes
         self._edges = edges
-        self._simple_repo_module = "simple_repo"
+        self._rain_module = "rain"
         self.jinja_env = Environment(loader=BaseLoader())
         self.jinja_template = self.jinja_env.from_string(template)
 
     def generate_script(self):
         custom_nodes = list(filter(lambda node: isinstance(node, CustomNode), self._nodes))
         jinja_vars = {
-            "simple_repo_module": self._simple_repo_module,
+            "rain_module": self._rain_module,
             "nodes": generate_nodes_code([node for node in self._nodes if node not in custom_nodes]),
             "custom_nodes": custom_nodes,
             "edges": self._edges,
