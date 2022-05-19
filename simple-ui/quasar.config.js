@@ -51,6 +51,14 @@ module.exports = configure(function (ctx) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-build
     build: {
+      env: {
+        BACKEND_URL:
+          process.env.BACKEND_URL ||
+          (ctx.prod
+            ? 'https://backend-rainfall.herokuapp.com'
+            : 'http://localhost:5000'),
+      },
+
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
       // transpile: false,

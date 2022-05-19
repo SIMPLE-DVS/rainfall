@@ -14,10 +14,7 @@ declare module '@vue/runtime-core' {
 // "export default () => {}" function below (which runs individually
 // for each client)
 const api = axios.create({
-  baseURL:
-    process.env.NODE_ENV == 'production'
-      ? 'https://backend-rainfall.herokuapp.com'
-      : 'http://localhost:5000',
+  baseURL: process.env.BACKEND_URL,
 });
 
 export default boot(({ app }) => {

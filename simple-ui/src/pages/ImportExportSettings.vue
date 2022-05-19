@@ -32,7 +32,13 @@
     <q-separator spaced=""></q-separator>
 
     <div class="q-pa-md q-gutter-sm">
-      <p>REPOSITORIES</p>
+      <p>Execute</p>
+
+      <q-btn color="secondary" label="Execute" @click="execute()"></q-btn>
+    </div>
+
+    <div class="q-pa-md q-gutter-sm">
+      <p>Repositories</p>
 
       <repository-manager></repository-manager>
     </div>
@@ -53,6 +59,7 @@ import {
 } from 'src/components/models';
 import { DataType, PathElements } from 'src/components/d3/types';
 import RepositoryManager from 'src/components/RepositoryManager.vue';
+import { io } from 'socket.io-client';
 
 export default {
   name: 'PageImportExport',
@@ -64,7 +71,7 @@ export default {
     const filePicker: Ref<QFile> = ref(null);
     const file: Ref<File> = ref(null);
 
-    const downloadZip = async () => {
+    const getConfig = () => {
       const repoStore = useRepoStore();
       if (repoStore.currentRepo == null) {
         throw new Error(
@@ -143,13 +150,13 @@ export default {
 
       config['repository'] = repoStore.currentRepo;
 
-      console.log(JSON.stringify(config));
-
-      return await api.post('/config', config);
+      return config;
     };
 
-    const getZip = () => {
-      downloadZip()
+    const getZip = async () => {
+      const config = getConfig();
+      await api
+        .post('/config', config)
         .then((res) => {
           $q.notify({
             message:
@@ -235,12 +242,41 @@ export default {
       }
     };
 
+    const execute = async () => {
+      $q.dialog({
+        title: 'Path of execution',
+        message: 'What is the path in which the script will run?',
+        prompt: {
+          model: '',
+          isValid: (name) => {
+            return name.trim() != '';
+          },
+          type: 'text',
+          outlined: true,
+        },
+        cancel: true,
+      }).onOk((path) => {
+        const socket = io(api.defaults.baseURL, {
+          upgrade: false,
+          transports: ['websocket'],
+        });
+        socket.on('execution', function (event: string) {
+          console.log('Orario client: ' + new Date().toString());
+          console.log('Messaggio dal server: ' + event);
+        });
+        const config = getConfig();
+        config['path'] = path;
+        socket.emit('execution', config);
+      });
+    };
+
     return {
       filePicker,
       file,
       getZip,
       loadUI,
       saveUI,
+      execute,
     };
   },
 };

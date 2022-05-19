@@ -4,6 +4,7 @@ from typing import List
 
 import requests
 
+from simple_backend.config import here
 from simple_backend.errors import CustomNodeConfigurationError, FirebaseNodesRetrievalError, FileWriteError, \
     FileReadError
 from simple_backend.schemas.nodes import CustomNode
@@ -68,7 +69,7 @@ def retrieve_nodes_structure():
     if res.status_code != 200:
         raise FirebaseNodesRetrievalError(f"Firebase nodes request failed: {res.reason}")
     try:
-        with open("nodes.json", 'w') as f:
+        with open(here("../nodes.json"), 'w') as f:
             f.write(res.text)
     except OSError as e:
         raise FileWriteError(f"Error during nodes writing: {e.__str__()}")
@@ -79,7 +80,7 @@ def get_nodes_structure():
     Returns the available Rain nodes
     """
     try:
-        with open("nodes.json", 'r') as f:
+        with open(here("../nodes.json"), 'r') as f:
             nodes = json.load(f)
     except OSError as e:
         raise FileReadError(f"Error during nodes reading: {e.__str__()}")
@@ -91,7 +92,7 @@ def get_node(clazz):
     Returns the node with the specified clazz
     """
     try:
-        with open("nodes.json", 'r') as f:
+        with open(here("../nodes.json"), 'r') as f:
             nodes = json.load(f)
     except OSError as e:
         raise FileReadError(f"Error during nodes reading: {e.__str__()}")
@@ -131,7 +132,7 @@ def get_nodes_by_tag(tag: dict):
     if not tag:
         return nodes_by_tag
     try:
-        with open("nodes.json", 'r') as f:
+        with open(here("../nodes.json"), 'r') as f:
             nodes = json.load(f)["nodes"]
     except OSError as e:
         raise FileReadError(f"Error during nodes reading: {e.__str__()}")

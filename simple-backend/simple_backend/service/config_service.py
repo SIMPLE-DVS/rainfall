@@ -11,7 +11,7 @@ import yaml
 from simple_backend.errors import DagCycleError, FileReadError, FileWriteError
 from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend.service.dag_generator import DagCreator
-from simple_backend.config import BASE_OUTPUT_DIR
+from simple_backend.config import BASE_OUTPUT_DIR, here
 
 
 def check_dag(nodes):
@@ -42,9 +42,9 @@ def get_requirements(libs: List[str]) -> List[str]:
     environment of a given Dataflow
     """
     libs = [lib.lower() for lib in libs]
-    requirements = []
+    requirements = ["git+https://github.com/SIMPLE-DVS/rain@master#egg=rain"]
     try:
-        with open("nodes.json", 'r') as f:
+        with open(here("../nodes.json"), 'r') as f:
             dependencies = json.load(f)["dependencies"]
     except OSError as e:
         raise FileReadError(f"Error during nodes reading: {e.__str__()}")

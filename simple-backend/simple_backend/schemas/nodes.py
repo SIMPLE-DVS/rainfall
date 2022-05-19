@@ -114,3 +114,5 @@ class ConfigurationSchema(Schema):
     dependencies = fields.List(fields.String(), required=True)
     ui = fields.Dict(required=True)
     repository = fields.String(required=True)
+    # path is used only for execution
+    path = fields.String(required=False)
