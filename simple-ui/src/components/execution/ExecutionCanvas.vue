@@ -118,6 +118,7 @@ export default defineComponent({
   setup() {
     const canvasStore = useCanvasStore();
     const splitterModel = ref(66);
+    const svgSize = 128;
 
     let d3elem: Element = null;
     let d3svg: d3.Selection<Element, unknown, null, undefined> = null;
@@ -190,20 +191,40 @@ export default defineComponent({
         d3g.select('.running').attr('visibility', 'hidden');
         const nodeName = parts[2].split(':')[1];
         const node = canvasStore.canvasNodes.get(nodeName);
-        const markSize = 128;
         d3g
           .node()
           .append(
             new DOMParser().parseFromString(
               '<svg xmlns="http://www.w3.org/2000/svg" class="mark" height="' +
-                markSize +
+                svgSize +
                 'px" width="' +
-                markSize +
+                svgSize +
                 'px" viewBox="0 0 24 24" x="' +
-                (node.x - markSize / 2) +
+                (node.x - svgSize / 2) +
                 '" y="' +
-                (node.y - markSize / 2) +
-                '" fill="#1976d2"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>',
+                (node.y - svgSize / 2) +
+                '" fill="#00ff00" stroke-width="1" stroke="black"><path d="M0 0h24v24H0z" fill="none" stroke-width="0"/><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>',
+              'image/svg+xml'
+            ).documentElement
+          );
+      }
+      if (parts[1] == 'ERROR') {
+        d3g.select('.running').attr('visibility', 'hidden');
+        const nodeName = parts[2].split(':')[1];
+        const node = canvasStore.canvasNodes.get(nodeName);
+        d3g
+          .node()
+          .append(
+            new DOMParser().parseFromString(
+              '<svg xmlns="http://www.w3.org/2000/svg" class="error" height="' +
+                svgSize +
+                'px" width="' +
+                svgSize +
+                'px" viewBox="0 0 24 24" x="' +
+                (node.x - svgSize / 2) +
+                '" y="' +
+                (node.y - svgSize / 2) +
+                '" fill="yellow" stroke-width="1" stroke="black"><path d="M0 0h24v24H0z" fill="none" stroke-width="0"/><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
               'image/svg+xml'
             ).documentElement
           );
@@ -218,6 +239,8 @@ export default defineComponent({
     const initSVG = () => {
       d3g.selectAll('.node').remove();
       d3g.selectAll('.edge').remove();
+      d3g.selectAll('.mark').remove();
+      d3g.selectAll('.error').remove();
       const {
         groups: { x, y, k },
       } = /translate\((?<x>.+?)[, ]+(?<y>.+?)\) scale\((?<k>.+?)\)/gim.exec(
