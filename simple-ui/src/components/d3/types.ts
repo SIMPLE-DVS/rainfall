@@ -37,7 +37,7 @@ export interface PathElements {
   toPort: string;
 }
 
-export interface UIFile {
+export interface UIState {
   nodes: [string, DataType][];
   edges: [string, PathElements][];
   transform: string;

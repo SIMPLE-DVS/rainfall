@@ -14,11 +14,25 @@
         </g>
       </g>
     </svg>
+
+    <q-file
+      ref="filePicker"
+      style="display: none"
+      accept=".json"
+      v-model="file"
+      @update:model-value="loadFile()"
+    ></q-file>
+    <div class="row justify-center q-gutter-md q-pt-md">
+      <q-btn outline icon="file_upload" @click="filePicker.pickFiles()">
+        LOAD
+      </q-btn>
+      <q-btn outline icon="file_download" @click="saveUI()">SAVE</q-btn>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, watch } from 'vue';
+import { defineComponent, onMounted, Ref, ref, watch } from 'vue';
 import * as d3 from 'd3';
 import {
   clearSelection,
@@ -32,14 +46,16 @@ import {
 } from 'src/components/d3/models';
 import { useConfigStore } from 'src/stores/configStore';
 import { NodeInfo } from '../models';
-import { useQuasar, event } from 'quasar';
+import { useQuasar, event, QFile, exportFile } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { D3_CONSTS, DataType, GenericCoords, PathElements } from './types';
 import {
   checkPorts,
   extractTranslateCoords,
   getNextNodeId,
+  getUIState,
   isNameValid,
+  loadUIFromFile,
 } from './utils';
 import { useRouter } from 'vue-router';
 
@@ -51,6 +67,8 @@ export default defineComponent({
     const router = useRouter();
     const configStore = useConfigStore();
     const canvasStore = useCanvasStore();
+    const filePicker: Ref<QFile> = ref(null);
+    const file: Ref<File> = ref(null);
 
     let d3elem: Element = null;
     let d3svg: d3.Selection<Element, unknown, null, undefined> = null;
@@ -464,7 +482,49 @@ export default defineComponent({
       checkPorts(d3g);
     };
 
+    const loadFile = async () => {
+      if (await loadUIFromFile(file.value)) {
+        $q.notify({
+          message: 'UI file loaded successfully',
+          type: 'positive',
+        });
+        initSVG();
+      } else {
+        $q.notify({
+          message: 'Error while loading the UI file',
+          type: 'negative',
+        });
+      }
+      file.value = null;
+    };
+
+    const saveUI = () => {
+      const uiState = getUIState();
+
+      const status = exportFile('ui.json', JSON.stringify(uiState), {
+        mimeType: 'application/json',
+        encoding: 'utf-8',
+      });
+
+      if (status) {
+        $q.notify({
+          message: 'UI file exported successfully',
+          type: 'positive',
+        });
+      } else {
+        $q.notify({
+          message:
+            'Error while exporting UI file: ' + (status as Error).message,
+          type: 'negative',
+        });
+      }
+    };
+
     return {
+      filePicker,
+      file,
+      loadFile,
+      saveUI,
       allowDrop,
       drop,
     };

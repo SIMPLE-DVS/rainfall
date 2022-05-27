@@ -1,10 +1,13 @@
 import * as d3 from 'd3';
+import { useCanvasStore } from 'src/stores/canvasStore';
+import { useConfigStore } from 'src/stores/configStore';
 import {
   D3_CONSTS,
   DataType,
   GenericCoords,
   PathCoords,
   PathElements,
+  UIState,
 } from './types';
 
 export function isNameValid(name: string) {
@@ -116,4 +119,46 @@ export function getNextNodeId(
   }
 
   return nodeId;
+}
+
+export function getUIState() {
+  const canvasStore = useCanvasStore();
+  const configStore = useConfigStore();
+
+  return {
+    nodes: [...canvasStore.canvasNodes.entries()],
+    edges: [...canvasStore.canvasEdges.entries()],
+    transform: canvasStore.canvasTransform,
+    structures: [...configStore.nodeStructures.entries()],
+    configs: [...configStore.nodeConfigs.entries()],
+    anyConfigs: [...configStore.nodeAnyConfigs.entries()],
+  } as UIState;
+}
+
+function setUIState(uiState: UIState) {
+  const canvasStore = useCanvasStore();
+  const configStore = useConfigStore();
+  configStore.nodeStructures = new Map(uiState.structures);
+  configStore.nodeConfigs = new Map(uiState.configs);
+  configStore.nodeAnyConfigs = new Map(uiState.anyConfigs);
+  canvasStore.canvasNodes = new Map(uiState.nodes);
+  canvasStore.canvasEdges = new Map(uiState.edges);
+  canvasStore.canvasTransform = uiState.transform;
+}
+
+export function loadUIFromFile(file: File) {
+  return new Promise<boolean>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      try {
+        const uiState = JSON.parse(reader.result as string) as UIState;
+        setUIState(uiState);
+      } catch {
+        resolve(false);
+      }
+      resolve(true);
+    };
+    reader.readAsText(file, 'utf8');
+  });
 }

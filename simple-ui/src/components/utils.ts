@@ -1,22 +1,8 @@
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { useConfigStore } from 'src/stores/configStore';
 import { useRepoStore } from 'src/stores/repoStore';
-import { UIFile } from './d3/types';
+import { getUIState } from './d3/utils';
 import { CustomNodeStructure } from './models';
-
-export const getUI = () => {
-  const canvasStore = useCanvasStore();
-  const configStore = useConfigStore();
-
-  return {
-    nodes: [...canvasStore.canvasNodes.entries()],
-    edges: [...canvasStore.canvasEdges.entries()],
-    transform: canvasStore.canvasTransform,
-    structures: [...configStore.nodeStructures.entries()],
-    configs: [...configStore.nodeConfigs.entries()],
-    anyConfigs: [...configStore.nodeAnyConfigs.entries()],
-  } as UIFile;
-};
 
 export const getConfig = () => {
   const repoStore = useRepoStore();
@@ -88,7 +74,7 @@ export const getConfig = () => {
       [] as string[]
     );
 
-  config['ui'] = getUI();
+  config['ui'] = getUIState();
 
   config['repository'] = repoStore.currentRepo;
 
