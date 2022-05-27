@@ -1,3 +1,5 @@
+import { AnyParameterConfig, SimpleNodeStructure } from '../models';
+
 export const D3_CONSTS = {
   PORT_RADIUS: 12,
   RECT_RADIUS: 10,
@@ -33,4 +35,13 @@ export interface PathElements {
   fromPort: string;
   toNode: string;
   toPort: string;
+}
+
+export interface UIFile {
+  nodes: [string, DataType][];
+  edges: [string, PathElements][];
+  transform: string;
+  structures: [string, SimpleNodeStructure][];
+  configs: [string, { [index: string]: unknown }][];
+  anyConfigs: [string, AnyParameterConfig][];
 }

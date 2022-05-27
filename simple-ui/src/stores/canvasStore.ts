@@ -10,7 +10,6 @@ export const useCanvasStore = defineStore('canvas', {
     canvasTransform: 'translate(0,0) scale(1)',
     selectedNodes: [] as NodeInfo[],
     doubleClick: false,
-    uiFile: null as { [index: string]: unknown },
   }),
   actions: {
     removeCanvasNode(nodeId: string) {

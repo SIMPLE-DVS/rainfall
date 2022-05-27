@@ -21,6 +21,11 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        path: 'execution',
+        name: 'execution',
+        component: () => import('pages/ExecutionPage.vue'),
+      },
+      {
         path: 'import_export',
         name: 'import_export',
         component: () => import('pages/ImportExportSettings.vue'),

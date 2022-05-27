@@ -92,6 +92,12 @@
             :to="{ name: 'editor' }"
           />
           <q-route-tab
+            name="execution"
+            icon="directions_run"
+            label="Execution"
+            :to="{ name: 'execution' }"
+          />
+          <q-route-tab
             name="import_export"
             icon="import_export"
             label="Import/Export"

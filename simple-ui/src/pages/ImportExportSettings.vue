@@ -32,12 +32,6 @@
     <q-separator spaced=""></q-separator>
 
     <div class="q-pa-md q-gutter-sm">
-      <p>Execute</p>
-
-      <q-btn color="secondary" label="Execute" @click="execute()"></q-btn>
-    </div>
-
-    <div class="q-pa-md q-gutter-sm">
       <p>Repositories</p>
 
       <repository-manager></repository-manager>
@@ -49,17 +43,11 @@
 import { ref, Ref } from 'vue';
 import { useCanvasStore } from 'stores/canvasStore';
 import { useConfigStore } from 'stores/configStore';
-import { useRepoStore } from 'src/stores/repoStore';
 import { api } from '../boot/axios';
 import { exportFile, QFile, useQuasar } from 'quasar';
-import {
-  AnyParameterConfig,
-  CustomNodeStructure,
-  SimpleNodeStructure,
-} from 'src/components/models';
-import { DataType, PathElements } from 'src/components/d3/types';
+import { UIFile } from 'src/components/d3/types';
 import RepositoryManager from 'src/components/RepositoryManager.vue';
-import { io } from 'socket.io-client';
+import { getUI, getConfig } from 'src/components/utils';
 
 export default {
   name: 'PageImportExport',
@@ -70,88 +58,6 @@ export default {
     const $q = useQuasar();
     const filePicker: Ref<QFile> = ref(null);
     const file: Ref<File> = ref(null);
-
-    const getConfig = () => {
-      const repoStore = useRepoStore();
-      if (repoStore.currentRepo == null) {
-        throw new Error(
-          'No default repository is selected! Mark a repository as default'
-        );
-      }
-
-      const canvasStore = useCanvasStore();
-      const configStore = useConfigStore();
-
-      const config: { [index: string]: unknown } = {};
-      config['pipeline_uid'] = Math.floor(100000 * Math.random()).toString();
-
-      config['nodes'] = [...canvasStore.canvasNodes.keys()].map(
-        (nodeName: string) => {
-          const nodePackage = canvasStore.canvasNodes.get(nodeName).package;
-          const nodeConfig: { [index: string]: unknown } = {
-            node_id: nodeName,
-            node: nodePackage.includes('rain.nodes.custom.custom.CustomNode')
-              ? 'rain.nodes.custom.custom.CustomNode'
-              : nodePackage,
-            parameters: Object.entries(
-              configStore.nodeConfigs.get(nodeName)
-            ).reduce(
-              (acc, value) =>
-                value[1] != null
-                  ? Object.assign(acc, { [value[0]]: value[1] })
-                  : acc,
-              {}
-            ),
-          };
-
-          if (
-            (nodeConfig.node as string).includes(
-              'rain.nodes.custom.custom.CustomNode'
-            )
-          ) {
-            nodeConfig['function_name'] = (
-              configStore.nodeStructures.get(nodePackage) as CustomNodeStructure
-            ).function_name;
-            nodeConfig['code'] = (
-              configStore.nodeStructures.get(nodePackage) as CustomNodeStructure
-            ).code;
-          }
-
-          nodeConfig['then'] = [...canvasStore.canvasEdges.values()]
-            .filter((e) => e.fromNode == nodeName)
-            .map((e) => {
-              const then: { [index: string]: string } = {
-                send_to: e.toNode,
-              };
-              then[e.fromPort] = e.toPort;
-              return then;
-            });
-
-          return nodeConfig;
-        }
-      );
-
-      config['dependencies'] = [...canvasStore.canvasNodes.keys()]
-        .map((nodeName) => canvasStore.canvasNodes.get(nodeName).package)
-        .map((nodePackage) =>
-          configStore.nodeStructures
-            .get(nodePackage)
-            .tags['library'].toLowerCase()
-        )
-        .reduce(
-          (acc, value) =>
-            value != 'custom' && acc.indexOf(value) == -1
-              ? acc.concat(value)
-              : acc,
-          [] as string[]
-        );
-
-      config['ui'] = getUI();
-
-      config['repository'] = repoStore.currentRepo;
-
-      return config;
-    };
 
     const getZip = async () => {
       const config = getConfig();
@@ -183,26 +89,13 @@ export default {
       const reader = new FileReader();
       if (fileValue.name.includes('.json')) {
         reader.onload = (res) => {
-          canvasStore.uiFile = JSON.parse(res.target.result as string);
-          configStore.nodeStructures = new Map<string, SimpleNodeStructure>(
-            canvasStore.uiFile['structures'] as []
-          );
-          configStore.nodeConfigs = new Map<
-            string,
-            { [index: string]: unknown }
-          >(canvasStore.uiFile['configs'] as []);
-          configStore.nodeAnyConfigs = new Map<string, AnyParameterConfig>(
-            canvasStore.uiFile['anyConfigs'] as []
-          );
-          canvasStore.canvasNodes = new Map<string, DataType>(
-            canvasStore.uiFile['nodes'] as []
-          );
-          canvasStore.canvasEdges = new Map<string, PathElements>(
-            canvasStore.uiFile['edges'] as []
-          );
-          canvasStore.canvasTransform = canvasStore.uiFile[
-            'transform'
-          ] as string;
+          const uiFile = JSON.parse(res.target.result as string) as UIFile;
+          configStore.nodeStructures = new Map(uiFile.structures);
+          configStore.nodeConfigs = new Map(uiFile.configs);
+          configStore.nodeAnyConfigs = new Map(uiFile.anyConfigs);
+          canvasStore.canvasNodes = new Map(uiFile.nodes);
+          canvasStore.canvasEdges = new Map(uiFile.edges);
+          canvasStore.canvasTransform = uiFile.transform;
         };
         reader.onerror = (err) => {
           console.log('ERROR DURING LOAD');
@@ -210,20 +103,6 @@ export default {
         };
         reader.readAsText(fileValue, 'utf8');
       }
-    };
-
-    const getUI = () => {
-      const canvasStore = useCanvasStore();
-      const configStore = useConfigStore();
-
-      return {
-        nodes: [...canvasStore.canvasNodes.entries()],
-        edges: [...canvasStore.canvasEdges.entries()],
-        transform: canvasStore.canvasTransform,
-        structures: [...configStore.nodeStructures.entries()],
-        configs: [...configStore.nodeConfigs.entries()],
-        anyConfigs: [...configStore.nodeAnyConfigs.entries()],
-      };
     };
 
     const saveUI = () => {
@@ -242,41 +121,12 @@ export default {
       }
     };
 
-    const execute = async () => {
-      $q.dialog({
-        title: 'Path of execution',
-        message: 'What is the path in which the script will run?',
-        prompt: {
-          model: '',
-          isValid: (name) => {
-            return name.trim() != '';
-          },
-          type: 'text',
-          outlined: true,
-        },
-        cancel: true,
-      }).onOk((path) => {
-        const socket = io(api.defaults.baseURL, {
-          upgrade: false,
-          transports: ['websocket'],
-        });
-        socket.on('execution', function (event: string) {
-          console.log('Orario client: ' + new Date().toString());
-          console.log('Messaggio dal server: ' + event);
-        });
-        const config = getConfig();
-        config['path'] = path;
-        socket.emit('execution', config);
-      });
-    };
-
     return {
       filePicker,
       file,
       getZip,
       loadUI,
       saveUI,
-      execute,
     };
   },
 };
