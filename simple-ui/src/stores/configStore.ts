@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import {
-  AnyParameterConfig,
   ComponentTypeRegexes,
   NodeInfo,
   SimpleNodeStructure,
@@ -10,7 +9,7 @@ export const useConfigStore = defineStore('config', {
   state: () => ({
     nodeStructures: new Map<string, SimpleNodeStructure>(),
     nodeConfigs: new Map<string, { [index: string]: unknown }>(),
-    nodeAnyConfigs: new Map<string, AnyParameterConfig>(),
+    nodeAnyConfigs: new Map<string, string>(),
   }),
   getters: {
     getNodeStructureByNodePackage: (state) => (id: string) =>
@@ -22,7 +21,7 @@ export const useConfigStore = defineStore('config', {
     },
     clearNodeConfigs() {
       this.$state.nodeConfigs = new Map<string, { [index: string]: unknown }>();
-      this.$state.nodeAnyConfigs = new Map<string, AnyParameterConfig>();
+      this.$state.nodeAnyConfigs = new Map<string, string>();
     },
     addNodeStructure(structure: SimpleNodeStructure) {
       this.$state.nodeStructures.set(structure.package, structure);
@@ -63,10 +62,7 @@ export const useConfigStore = defineStore('config', {
             break;
           case ComponentTypeRegexes.get('Any').exec(p.type)?.input:
             nodeConfigContent[p.name] = null;
-            this.nodeAnyConfigs.set(id + '$' + p.name, {
-              type: 'str',
-              value: null,
-            });
+            this.nodeAnyConfigs.set(id + '$' + p.name, 'str');
             break;
           case ComponentTypeRegexes.get('Tuple').exec(p.type)?.input:
             nodeConfigContent[p.name] = null;
@@ -95,9 +91,10 @@ export const useConfigStore = defineStore('config', {
         );
         nodeStructure.parameter.forEach((p) => {
           if (/^any$/i.test(p.type)) {
-            this.nodeAnyConfigs.set(clone + '$' + p.name, {
-              ...this.nodeAnyConfigs.get(original.name + '$' + p.name),
-            });
+            this.nodeAnyConfigs.set(
+              clone + '$' + p.name,
+              this.nodeAnyConfigs.get(original.name + '$' + p.name)
+            );
           }
         });
       }

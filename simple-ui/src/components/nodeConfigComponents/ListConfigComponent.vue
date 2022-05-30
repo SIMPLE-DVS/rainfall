@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, PropType, ref, toRaw } from 'vue';
 import { ComponentTypeRegexes, SimpleNodeParameter } from '../models';
 
 export default defineComponent({
@@ -30,9 +30,11 @@ export default defineComponent({
 
   props: {
     modelValue: {
+      type: [Array, null],
       required: true,
     },
     param: {
+      type: Object as PropType<SimpleNodeParameter>,
       required: true,
     },
     nodeName: {
@@ -42,7 +44,7 @@ export default defineComponent({
   },
 
   setup(props) {
-    const paramType = (props.param as SimpleNodeParameter).type;
+    const paramType = toRaw(props.param.type);
     const listRegexResult = ComponentTypeRegexes.get('List')
       .exec(paramType)
       .slice(1);

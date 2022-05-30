@@ -1,4 +1,4 @@
-import { AnyParameterConfig, SimpleNodeStructure } from '../models';
+import { SimpleNodeStructure } from '../models';
 
 export const D3_CONSTS = {
   PORT_RADIUS: 12,
@@ -43,5 +43,5 @@ export interface UIState {
   transform: string;
   structures: [string, SimpleNodeStructure][];
   configs: [string, { [index: string]: unknown }][];
-  anyConfigs: [string, AnyParameterConfig][];
+  anyConfigs: [string, string][];
 }

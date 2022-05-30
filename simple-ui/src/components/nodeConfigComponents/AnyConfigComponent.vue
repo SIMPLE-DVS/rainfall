@@ -15,7 +15,7 @@
       @update:model-value="
         newParam.type = $event;
         value = null;
-        updateAnyConfig();
+        updateConfig();
         updateKey++;
       "
     ></q-select>
@@ -28,7 +28,7 @@
       :nodeName="nodeName"
       @update:model-value="
         $emit('update:modelValue', $event);
-        updateAnyConfig();
+        updateConfig();
         updateKey++;
       "
     ></component>
@@ -36,12 +36,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import {
-  AnyParameterConfig,
-  ManageableComponentTypes,
-  SimpleNodeParameter,
-} from '../models';
+import { defineComponent, PropType, ref } from 'vue';
+import { ManageableComponentTypes, SimpleNodeParameter } from '../models';
 import StringConfigComponent from './StringConfigComponent.vue';
 import BoolConfigComponent from './BoolConfigComponent.vue';
 import IntConfigComponent from './IntConfigComponent.vue';
@@ -65,7 +61,7 @@ export default defineComponent({
       required: true,
     },
     param: {
-      type: Object,
+      type: Object as PropType<SimpleNodeParameter>,
       required: true,
     },
     nodeName: {
@@ -76,20 +72,16 @@ export default defineComponent({
 
   setup(props) {
     const configStore = useConfigStore();
-
-    const previousConfig: AnyParameterConfig = configStore.nodeAnyConfigs.get(
-      `${props.nodeName}$${props.param.name as string}`
-    );
-
-    const type = ref(previousConfig.type);
-    const value = ref(previousConfig.value);
+    const parameterName = `${props.nodeName}$${props.param.name}`;
+    const type = ref(configStore.nodeAnyConfigs.get(parameterName));
+    const value = ref(props.modelValue);
     const updateKey = ref(0);
-    const newParam = { ...(props.param as SimpleNodeParameter) };
+    const newParam = { ...props.param };
     newParam.type = type.value;
 
-    const updateAnyConfig = () => {
-      previousConfig.type = type.value;
-      previousConfig.value = value.value;
+    const updateConfig = () => {
+      configStore.nodeAnyConfigs.set(parameterName, type.value);
+      configStore.nodeConfigs.get(props.nodeName)[props.param.name] = value;
     };
 
     return {
@@ -98,7 +90,7 @@ export default defineComponent({
       value,
       updateKey,
       newParam,
-      updateAnyConfig,
+      updateConfig,
     };
   },
 });

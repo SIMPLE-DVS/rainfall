@@ -48,7 +48,7 @@
         </q-item-section>
         <component
           class="q-py-xs q-pb-md"
-          :is="nodeConfigComponents.get(k)"
+          :is="nodeConfigComponents.get(k as string)"
           v-model="nodeConfigData[k]"
           :param="v"
           :nodeName="node.name"
@@ -111,7 +111,8 @@ export default defineComponent({
     const router = useRouter();
     const configStore = useConfigStore();
     const nodeDescription: Ref<string> = ref('');
-    const nodeConfigStructure: Ref<{ [index: string]: unknown }> = ref({});
+    const nodeConfigStructure: Ref<{ [index: string]: SimpleNodeParameter }> =
+      ref({});
     const nodeConfigComponents: Ref<Map<string, string>> = ref();
     const nodeConfigData: Ref<{ [index: string]: unknown }> = ref({});
 

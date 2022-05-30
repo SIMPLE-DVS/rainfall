@@ -32,11 +32,6 @@ export interface NodeInfo {
   package: string;
 }
 
-export interface AnyParameterConfig {
-  type: string;
-  value: unknown;
-}
-
 export interface SimpleNodeParameter {
   name: string;
   type: string;

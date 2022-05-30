@@ -25,16 +25,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, PropType, ref } from 'vue';
+import { SimpleNodeParameter } from '../models';
 
 export default defineComponent({
   name: 'IntConfigComponent',
 
   props: {
     modelValue: {
+      type: [Number, null],
       required: true,
     },
     param: {
+      type: Object as PropType<SimpleNodeParameter>,
       required: true,
     },
     nodeName: {

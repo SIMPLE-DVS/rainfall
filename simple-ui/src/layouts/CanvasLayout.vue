@@ -1,27 +1,20 @@
 <template>
   <q-layout view="hHh LpR fFf">
-    <q-header elevated bordered class="bg-primary text-white">
+    <q-header elevated bordered>
       <q-toolbar>
         <q-btn
           v-if="tab == 'ui' || tab == 'editor'"
-          dense
           flat
+          dense
           round
           icon="menu"
+          aria-label="Menu"
           @click="toggleLeftDrawer"
         />
 
         <q-toolbar-title> Flow UI </q-toolbar-title>
 
         <q-space></q-space>
-
-        <q-toggle
-          v-model="canvasStore.canvasGrid"
-          color="black"
-          icon="grid_on"
-          left-label
-          label="Enable/Disable Grid"
-        />
 
         <locale-changer></locale-changer>
 
@@ -68,7 +61,7 @@
       <router-view />
     </q-page-container>
 
-    <q-footer elevated bordered class="bg-grey-10 text-white">
+    <q-footer elevated bordered class="bg-grey-10">
       <q-toolbar>
         <q-space></q-space>
 
@@ -117,7 +110,7 @@ import LocaleChanger from 'components/LocaleChanger.vue';
 import NodeCollection from 'components/NodeCollection.vue';
 import CustomCollection from 'components/custom/CustomCollection.vue';
 import ConfigFormComponent from 'components/ConfigFormComponent.vue';
-import { useCanvasStore } from 'stores/canvasStore';
+import { useCanvasStore } from 'src/stores/canvasStore';
 import { NodeInfo } from 'src/components/models';
 
 export default defineComponent({
@@ -134,6 +127,8 @@ export default defineComponent({
     const canvasStore = useCanvasStore();
     const leftDrawerOpen = ref(false);
     const rightDrawerOpen = ref(false);
+    const tab = ref('ui');
+    const resetKey = ref(0);
     const selectedNodes = ref([] as NodeInfo[]);
 
     watch(
@@ -157,21 +152,22 @@ export default defineComponent({
       }
     );
 
+    const toggleLeftDrawer = () => {
+      leftDrawerOpen.value = !leftDrawerOpen.value;
+    };
+
+    const toggleRightDrawer = () => {
+      rightDrawerOpen.value = !rightDrawerOpen.value;
+    };
+
     return {
       leftDrawerOpen,
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value;
-      },
-
+      toggleLeftDrawer,
       rightDrawerOpen,
-      toggleRightDrawer() {
-        rightDrawerOpen.value = !rightDrawerOpen.value;
-      },
-
-      tab: ref('ui'),
+      toggleRightDrawer,
+      tab,
       selectedNodes,
-      resetKey: ref(0),
-      canvasStore,
+      resetKey,
     };
   },
 });

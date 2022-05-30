@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, PropType, ref, toRaw } from 'vue';
 import {
   ComponentTypeRegexes,
   ManageableComponentTypes,
@@ -49,10 +49,11 @@ export default defineComponent({
 
   props: {
     modelValue: {
+      type: [Array, null],
       required: true,
     },
     param: {
-      type: Object,
+      type: Object as PropType<SimpleNodeParameter>,
       required: true,
     },
     nodeName: {
@@ -62,7 +63,7 @@ export default defineComponent({
   },
 
   setup(props) {
-    const paramType = (props.param as SimpleNodeParameter).type;
+    const paramType = toRaw(props.param.type);
 
     const types = ComponentTypeRegexes.get('Tuple')
       .exec(paramType)[1]

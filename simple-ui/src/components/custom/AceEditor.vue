@@ -81,6 +81,7 @@ export default defineComponent({
     const $q = useQuasar();
     const configStore = useConfigStore();
     const canvasStore = useCanvasStore();
+    const splitterModel = ref(10);
     const editorRef = ref(null);
     let editor: Ace.Ace.Editor = null;
     let nodePackage: string = null;
@@ -192,10 +193,7 @@ export default defineComponent({
             });
             parametersToAdd.forEach((p) => {
               nodeConfig[p] = null;
-              configStore.nodeAnyConfigs.set(n + '$' + p, {
-                type: 'str',
-                value: null,
-              });
+              configStore.nodeAnyConfigs.set(n + '$' + p, 'str');
             });
           });
           structure.parameter = structure.parameter.filter(
@@ -269,7 +267,7 @@ export default defineComponent({
     return {
       editorRef,
       openSettingsMenu,
-      splitterModel: ref(10),
+      splitterModel,
       allowDrop,
       drop,
       newCustomNode,

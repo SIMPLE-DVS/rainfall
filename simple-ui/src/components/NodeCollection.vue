@@ -15,7 +15,7 @@
         { value: ViewMode.LIBRARY, slot: 'library' },
         { value: ViewMode.TYPE, slot: 'type' },
       ]"
-      @update:model-value="organizeNodesByViewMode($event)"
+      @update:model-value="organizeNodesByViewMode()"
     >
       <template v-slot:library>
         <div class="row items-center no-wrap">

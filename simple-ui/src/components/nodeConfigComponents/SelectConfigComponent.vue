@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, PropType, ref } from 'vue';
 import { SimpleNodeParameter } from '../models';
 
 export default defineComponent({
@@ -27,6 +27,7 @@ export default defineComponent({
       required: true,
     },
     param: {
+      type: Object as PropType<SimpleNodeParameter>,
       required: true,
     },
     nodeName: {
@@ -36,7 +37,7 @@ export default defineComponent({
   },
 
   setup(props) {
-    const options = (props.param as SimpleNodeParameter).type
+    const options = props.param.type
       .slice(1)
       .slice(0, -1)
       .replace(/, /g, ',')

@@ -1,11 +1,10 @@
 import { boot } from 'quasar/wrappers';
 import { io, Socket } from 'socket.io-client';
-import { api } from './axios';
 
-let socket: Socket = null;
+let socket: Socket;
 
 export default boot(({}) => {
-  socket = io(api.defaults.baseURL, {
+  socket = io(process.env.BACKEND_URL, {
     upgrade: false,
     transports: ['websocket'],
   });
