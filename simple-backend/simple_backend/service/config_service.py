@@ -42,7 +42,7 @@ def get_requirements(libs: List[str]) -> List[str]:
     environment of a given Dataflow
     """
     libs = [lib.lower() for lib in libs]
-    requirements = ["git+https://github.com/SIMPLE-DVS/rain@master#egg=rain"]
+    requirements = ["git+ssh://git@github.com/SIMPLE-DVS/rain@master#egg=rain"]
     try:
         with open(here("../nodes.json"), 'r') as f:
             dependencies = json.load(f)["dependencies"]

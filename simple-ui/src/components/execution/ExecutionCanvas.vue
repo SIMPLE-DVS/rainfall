@@ -167,6 +167,7 @@ export default defineComponent({
       const parts = line.split('|');
       if (parts[0].startsWith('Request received')) {
         d3g.selectAll('.mark').remove();
+        d3g.selectAll('.error').remove();
       }
       if (parts.length != 4) {
         return;
