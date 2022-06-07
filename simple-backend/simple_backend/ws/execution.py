@@ -1,3 +1,5 @@
+from flask import request
+from flask_socketio import join_room, close_room, send
 from simple_backend.app_creator import socketio
 from marshmallow import ValidationError as Mve
 from pydantic import ValidationError as Pve
@@ -11,9 +13,23 @@ from simple_backend.service import config_service, node_service
 from simple_backend.service.config_service import get_requirements
 
 
+@socketio.on('connect')
+def handle_join():
+    room = request.sid
+    join_room(room)
+    send(f'User {room} has joined the room', room=room)
+
+
+@socketio.on('disconnect')
+def handle_disconnection():
+    room = request.sid
+    close_room(room)
+
+
 @socketio.on('execution')
 def handle_execution(message):
-    socketio.emit('execution', 'Request received')
+    room = request.sid
+    send('Request received', room=room)
     socketio.sleep(0.001)
     try:
         configuration = ConfigurationSchema().load(message)
@@ -38,13 +54,13 @@ def handle_execution(message):
     with open(os.path.join(path, "requirements.txt"), "w+") as req:
         req.write(" \n".join(dependencies))
 
-    socketio.emit('execution', 'Files written')
+    send('Files written', room=room)
     socketio.sleep(0.001)
 
     venv_loc = os.path.join(path, "venv")
     cli_run([venv_loc])
 
-    socketio.emit('execution', 'Created virtual environment')
+    send('Created virtual environment', room=room)
     socketio.sleep(0.001)
 
     if str(os.name).lower() == "nt":
@@ -59,12 +75,12 @@ def handle_execution(message):
     os.chdir(path)
     os.system(pip_loc + " install -r requirements.txt")
 
-    socketio.emit('execution', 'Requirements installed')
+    send('Requirements installed', room=room)
     socketio.sleep(0.001)
 
     cmd = [os.path.join(venv_loc, venv_scripts_loc, "python"), "script.py"]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=path, universal_newlines=True, bufsize=1)
-    socketio.emit('execution', 'Started process')
+    send('Started process', room=room)
     socketio.sleep(0.001)
     lines = []
     while True:
@@ -73,7 +89,7 @@ def handle_execution(message):
             break
         if output:
             output = re.sub(u'\u001b\[.*?[@-~]', '', output)
-            socketio.emit('execution', output)
+            send(output, room=room)
             socketio.sleep(0.001)
             line = output.strip().split("|")
             lines.append(line)

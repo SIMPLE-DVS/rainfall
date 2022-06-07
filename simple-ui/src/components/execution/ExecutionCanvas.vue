@@ -256,8 +256,8 @@ export default defineComponent({
         createExecutionEdge(d3g, e);
       });
 
-      socket.off('execution', executionListener);
-      socket.on('execution', executionListener);
+      socket.off('message', executionListener);
+      socket.on('message', executionListener);
     };
 
     return {

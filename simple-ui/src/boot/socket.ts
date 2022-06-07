@@ -7,6 +7,7 @@ export default boot(({}) => {
   socket = io(process.env.BACKEND_URL, {
     upgrade: false,
     transports: ['websocket'],
+    timeout: 600000,
   });
 });
 

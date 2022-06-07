@@ -54,8 +54,8 @@ export default defineComponent({
         cancel: true,
       }).onOk((path) => {
         logText.value = '';
-        socket.off('execution', executionListener);
-        socket.on('execution', executionListener);
+        socket.off('message', executionListener);
+        socket.on('message', executionListener);
         const config = getConfig();
         config['path'] = path;
         socket.emit('execution', config);

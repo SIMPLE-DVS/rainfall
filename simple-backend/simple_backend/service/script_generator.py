@@ -1,47 +1,34 @@
 from jinja2 import Environment, BaseLoader
-from simple_backend.schemas.nodes import CustomNode
 
 
 template = """import {{ rain_module }} as sr
 
-{% for node in custom_nodes %}
-{{ node.code }}
+{% for code in nodes|selectattr('code','defined')|map(attribute='code')|unique|list %}
+{{ code }}
 {% endfor %}
 
 df = sr.DataFlow("dataflow1")
 
 {% for node in nodes %}
-{{ node["name"] }} = sr.{{ node["class"] }}(
-    node_id="{{ node["name"] }}",
-{%- for parameter in node["parameters"] %}
-    {{ parameter }},
+{{ node.node_id }} = sr.{{ node.class_name }}(
+    node_id="{{ node.node_id }}",
+{%- if node.function_name is defined %}
+    use_function={{ node.function_name }},
+{%- endif %}
+{%- for par in node.parameters %}
+    {{ par }}={{ '\"' + node.parameters[par] + '\"' if node.parameters[par] is string else node.parameters[par] }},
 {%- endfor %}
 )
-{% endfor %}
-{%- for node in custom_nodes %}
-{{ node.node_id }} = sr.{{ node.class_name }}(node_id="{{ node.node_id }}", use_function={{ node.function_name }})
 {% endfor %}
 
 df.add_edges([
 {%- for edge in edges %}
-    {{ edge.source }} @ '{{edge.source_var}}' > {{ edge.destination }} @ '{{ edge.destination_var }}',
+    {{ edge.source }} @ '{{ edge.source_var }}' > {{ edge.destination }} @ '{{ edge.destination_var }}',
 {%- endfor %}
 ])
 
 df.execute()
 """
-
-
-def generate_parameters(params):
-    for param_name, param_value in params.items():
-        value_string = f"'{param_value}'" if type(param_value) == str else f"{param_value}"
-        yield f"{param_name}={value_string}"
-
-
-def generate_nodes_code(nodes):
-    for node in nodes:
-        node_class = node.node.split(".")[-1]
-        yield {"name": node.node_id, "class": node_class, "parameters": generate_parameters(node.parameters)}
 
 
 class ScriptGenerator:
@@ -53,11 +40,9 @@ class ScriptGenerator:
         self.jinja_template = self.jinja_env.from_string(template)
 
     def generate_script(self):
-        custom_nodes = list(filter(lambda node: isinstance(node, CustomNode), self._nodes))
         jinja_vars = {
             "rain_module": self._rain_module,
-            "nodes": generate_nodes_code([node for node in self._nodes if node not in custom_nodes]),
-            "custom_nodes": custom_nodes,
+            "nodes": self._nodes,
             "edges": self._edges,
         }
 

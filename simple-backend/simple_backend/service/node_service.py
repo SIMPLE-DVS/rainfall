@@ -49,11 +49,16 @@ def check_custom_node_code(custom_nodes: List[CustomNode]):
     Method that checks the correctness of the Custom Nodes
     """
     functions = []
+    nodes = []
     for node in custom_nodes:
         if node.function_name not in functions:
             functions.append(node.function_name)
+            nodes.append(node.code)
         else:
-            raise CustomNodeConfigurationError(f"Duplicated function name in node {node.node_id}!")
+            # TODO consider two custom nodes different by node.class_name or node.node
+            # as of now they are all CustomNode and rain.nodes.custom.custom.CustomNode
+            if node.code not in nodes:
+                raise CustomNodeConfigurationError(f"Duplicated function name in node {node.node_id}!")
         # TODO check imports
         # get code, split \n, add to a list those string that contains "import",
         # check if other imports are already in the list, if yes remove the import from the code,
