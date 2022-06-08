@@ -50,11 +50,7 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       env: {
-        BACKEND_URL:
-          process.env.BACKEND_URL ||
-          (ctx.prod
-            ? 'https://backend-rainfall.herokuapp.com'
-            : 'http://localhost:5000'),
+        BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:5000',
       },
 
       target: {

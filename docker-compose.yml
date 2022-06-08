@@ -19,7 +19,7 @@ services:
       context: simple-ui
       dockerfile: Dockerfile
       args:
-        - BACKEND_URL=http://localhost:5000
+        - BACKEND_URL=${BACKEND_URL}
     # Change to expose!
     ports:
       - "7000:7000"
