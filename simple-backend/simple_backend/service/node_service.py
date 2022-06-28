@@ -17,38 +17,65 @@ except:
     sys.exit(1)
 
 
+def determine_value_type(v: any):
+    t = type(v).__name__
+    if type(v) == list:
+        if len(v) == 0:
+            t = 'list[str]'
+        else:
+            t = 'list['+type(v[0]).__name__+']'
+    return t
+
+
+def get_node_param_value_and_type(clazz: str, param: str, value: str):
+    v = ast.literal_eval(value)
+    if clazz == 'CustomNode':
+        return v, determine_value_type(v)
+    n = [x for x in rain_structure["nodes"] if x["clazz"] == clazz][0]
+    ps = n["parameter"]
+    p = [x for x in ps if x["name"] == param][0]
+    t = None
+    if p["type"].lower() == 'any':
+        t = determine_value_type(v)
+    return v, t
+
+
+def parse_custom_node_code(code: str, function_name: str):
+    parsed = ast.parse(code)
+    funcs = parsed.body
+    main_func = [x for x in funcs if hasattr(x, 'name') and x.name == function_name][0]
+    funcs.remove(main_func)
+    main_func.body.insert(0, funcs)
+    return main_func
+
+
 def find_custom_node_params(code, main_func: str):
     """
     Method that retrieves all the parameters of a custom nodes
     """
-    r1 = r"{}\((.+)\):".format(main_func)
-    try:
-        m1 = re.findall(r1, code, re.MULTILINE)[0]
-    except Exception:
-        raise CustomNodeConfigurationError(f"There is no '{main_func}' function!")
-    r2 = r"((?:, *)?(?P<g>[a-zA-Z_\d-]+)(?:: *[a-zA-Z\"]+)?(?: *= *[a-zA-Z\"]+)?)"
-    m2 = [m.group("g") for m in re.finditer(r2, m1, re.MULTILINE)]
-    if len(m2) < 2:
+    params = [x.arg for x in code.args.args]
+    if len(params) < 2:
         raise CustomNodeConfigurationError(
             f"The signature of the function {main_func} should be: {main_func}(input, output, ...kwargs)")
 
+    body = ast.unparse(code.body)
+
     inputs = get_variables_matches(
-        code, r"{}(?:\[|\.get\()\"([a-zA-Z_\d-]+)\"".format(m2[0])
+        body, r"{}(?:\[|\.get\()(\"|\')(?P<param>[a-zA-Z_\d-]+)(\"|\')\]".format(params[0])
     )
 
     outputs = get_variables_matches(
-        code, r"{}\[\"([a-zA-Z_\d-]+)\"\]".format(m2[1])
+        body, r"{}\[(\"|\')(?P<param>[a-zA-Z_\d-]+)(\"|\')\]".format(params[1])
     )
 
-    return inputs, outputs, m2[2:]
+    return inputs, outputs, params[2:]
 
 
 def get_variables_matches(code, regex):
     """
     Returns the matches given a string and a regex
     """
-    matches = re.findall(regex, code, re.MULTILINE)
-    return matches
+    return [x.group("param") for x in re.finditer(regex, code, re.MULTILINE)]
 
 
 def check_custom_node_code(custom_nodes: List[CustomNode]):

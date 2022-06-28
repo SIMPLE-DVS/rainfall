@@ -16,17 +16,33 @@
     </svg>
 
     <q-file
+      ref="scriptPicker"
+      style="display: none"
+      accept=".py"
+      v-model="script"
+      @update:model-value="loadFile(true)"
+    ></q-file>
+    <q-file
       ref="filePicker"
       style="display: none"
       accept=".json"
       v-model="file"
-      @update:model-value="loadFile()"
+      @update:model-value="loadFile(false)"
     ></q-file>
     <div class="row justify-center q-gutter-md q-pt-md">
-      <q-btn outline icon="file_upload" @click="filePicker.pickFiles()">
-        LOAD
-      </q-btn>
-      <q-btn outline icon="file_download" @click="saveUI()">SAVE</q-btn>
+      <q-btn
+        outline
+        icon="file_upload"
+        label="LOAD FROM SCRIPT"
+        @click="scriptPicker.pickFiles()"
+      />
+      <q-btn
+        outline
+        icon="file_upload"
+        label="LOAD"
+        @click="filePicker.pickFiles()"
+      />
+      <q-btn outline icon="file_download" label="SAVE" @click="saveUI()" />
     </div>
   </div>
 </template>
@@ -55,6 +71,7 @@ import {
   getNextNodeId,
   getUIState,
   isNameValid,
+  loadUIFromScript,
   loadUIFromFile,
 } from './utils';
 import { useRouter } from 'vue-router';
@@ -67,6 +84,8 @@ export default defineComponent({
     const router = useRouter();
     const configStore = useConfigStore();
     const canvasStore = useCanvasStore();
+    const scriptPicker: Ref<QFile> = ref(null);
+    const script: Ref<File> = ref(null);
     const filePicker: Ref<QFile> = ref(null);
     const file: Ref<File> = ref(null);
 
@@ -482,8 +501,14 @@ export default defineComponent({
       checkPorts(d3g);
     };
 
-    const loadFile = async () => {
-      if (await loadUIFromFile(file.value)) {
+    const loadFile = async (isScript: boolean) => {
+      if (isScript && (await loadUIFromScript(script.value))) {
+        $q.notify({
+          message: 'Script file loaded successfully',
+          type: 'positive',
+        });
+        initSVG();
+      } else if (!isScript && (await loadUIFromFile(file.value))) {
         $q.notify({
           message: 'UI file loaded successfully',
           type: 'positive',
@@ -495,6 +520,7 @@ export default defineComponent({
           type: 'negative',
         });
       }
+      script.value = null;
       file.value = null;
     };
 
@@ -521,6 +547,8 @@ export default defineComponent({
     };
 
     return {
+      scriptPicker,
+      script,
       filePicker,
       file,
       loadFile,

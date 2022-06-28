@@ -45,3 +45,30 @@ export interface UIState {
   configs: [string, { [index: string]: unknown }][];
   anyConfigs: [string, string][];
 }
+
+export interface ReversedScript {
+  nodes: {
+    node: string;
+    clazz: string;
+    pos: number[];
+    params: {
+      key: string;
+      value: string;
+      type?: string;
+    }[];
+  }[];
+  custom: {
+    function_name: string;
+    clazz: string;
+    code: string;
+    inputs: string[];
+    outputs: string[];
+    params: string[];
+  }[];
+  edges: {
+    from_node: string;
+    from_var: string;
+    to_node: string;
+    to_var: string;
+  }[];
+}

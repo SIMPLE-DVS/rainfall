@@ -11,7 +11,7 @@
 const { configure } = require('quasar/wrappers');
 const path = require('path');
 
-module.exports = configure(function (ctx) {
+module.exports = configure(function () {
   return {
     eslint: {
       // fix: true,

@@ -1,10 +1,10 @@
 from flask import request
 from flask_restful import Resource
 from marshmallow import ValidationError
-
 from simple_backend.errors import BadRequestError, HttpQueryError
 from simple_backend.schemas.nodes import NodeQuery
 from simple_backend.service import node_service
+from simple_backend.service.node_service import parse_custom_node_code
 
 
 class NodesApi(Resource):
@@ -58,7 +58,8 @@ class CustomNodeApi(Resource):
     def post(self):
         function_name = request.get_json().get("function_name")
         code = request.get_json().get("code")
-        inputs, outputs, params = node_service.find_custom_node_params(code, function_name)
+        parsed_code = parse_custom_node_code(code, function_name)
+        inputs, outputs, params = node_service.find_custom_node_params(parsed_code, function_name)
 
         return {
                    "inputs": inputs,

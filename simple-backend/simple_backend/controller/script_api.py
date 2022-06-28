@@ -1,0 +1,88 @@
+import ast
+from flask import request
+from flask_restful import Resource
+import networkx as nx
+import re
+from simple_backend.service.node_service import get_node_param_value_and_type, find_custom_node_params
+
+
+class ScriptApi(Resource):
+    """
+    Api used to manage the conversion from a Python script to the UI state
+    """
+
+    def post(self):
+        code = request.json["script"]
+        parsed = ast.parse(code)
+        if 'import rain as' in code:
+            library_pattern = re.compile(r'import rain as (?P<library>.*)')
+            library = library_pattern.search(code).group('library').strip()
+        else:
+            library = 'rain'
+
+        nodes_classes_pattern = re.compile(r'(?P<node>.+?) *?= *?' + re.escape(library) + r'\.(?P<clazz>.+?)\([^\"]')
+        nodes_classes = nodes_classes_pattern.findall(code)
+
+        params = {}
+        for n, c in nodes_classes:
+            node_params = re.compile(
+                re.escape(n) + r' *?= *?' + re.escape(library) + r'\.' + re.escape(c) + r'\((?P<params>.+?)\)',
+                re.DOTALL)
+            params_code = node_params.search(code).group("params")
+            param_lines = params_code.strip().splitlines()
+            params[n] = {}
+            for param_line in param_lines:
+                (name, value) = re.compile(r'(?P<name>.+?) *?= *(?P<value>.*?),?$').search(param_line.strip()).groups()
+                params[n][name] = value
+
+        edges_pattern = re.compile(r'add_edges\(\[(?P<edges>.+?)\]\)', re.DOTALL).search(code).group("edges")
+        edge_lines = edges_pattern.strip().splitlines()
+        edges = []
+        for edge_line in edge_lines:
+            (from_node, from_var, to_node, to_var) = re.compile(
+                r'(?P<from_node>.+?) *?@ *?\'(?P<from_var>.+?)\' *?> *(?P<to_node>.*?) *?@ *?\'(?P<to_var>.+?)\',?$')\
+                .search(edge_line.strip()).groups()
+            edges.append((from_node, from_var, to_node, to_var))
+
+        g = nx.DiGraph()
+        g.add_nodes_from([n[0] for n in nodes_classes])
+        g.add_edges_from([(e[0], e[2]) for e in edges])
+        scale = 500
+        pos = nx.spring_layout(g, scale=scale)
+        pos = {n: [pos[n][0]+scale, pos[n][1]+scale] for n in pos}
+
+        actual_params = {}
+        for nc in nodes_classes:
+            actual_params[nc[0]] = []
+            for k, v in params[nc[0]].items():
+                if k == 'node_id' or (nc[1] == 'CustomNode' and k == 'use_function'):
+                    continue
+                actual_param = {"key": k}
+                (val, t) = get_node_param_value_and_type(nc[1], k, v)
+                actual_param["value"] = val
+                if t:
+                    actual_param["type"] = t
+                actual_params[nc[0]].append(actual_param)
+
+        real_custom_classes = {}
+        custom_node_structures = {}
+        for nc in nodes_classes:
+            if nc[1] != 'CustomNode':
+                continue
+            function_name = params[nc[0]]["use_function"]
+            clazz = ''.join(x.capitalize() or '_' for x in function_name.split('_'))
+            real_custom_classes[nc[0]] = clazz
+            if clazz in custom_node_structures:
+                continue
+            custom_function = [x for x in parsed.body if hasattr(x, 'name') and x.name == function_name][0]
+            (inputs, outputs, ps) = find_custom_node_params(custom_function, function_name)
+            custom_node_structures[clazz] = {"function_name": function_name, "clazz": clazz,
+                                             "code": ast.unparse(custom_function), "inputs": inputs, "outputs": outputs,
+                                             "params": ps}
+
+        return {
+            "nodes": [{"node": nc[0], "clazz": nc[1] if nc[1] != 'CustomNode' else real_custom_classes[nc[0]],
+                       "pos": pos[nc[0]], "params": actual_params[nc[0]]} for nc in nodes_classes],
+            "custom": list(custom_node_structures.values()),
+            "edges": [{"from_node": e[0], "from_var": e[1], "to_node": e[2], "to_var": e[3]} for e in edges]
+        }

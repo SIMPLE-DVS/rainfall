@@ -1,12 +1,15 @@
 import * as d3 from 'd3';
+import { api } from 'src/boot/axios';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { useConfigStore } from 'src/stores/configStore';
+import { CustomNodeStructure, SimpleNodeParameter } from '../models';
 import {
   D3_CONSTS,
   DataType,
   GenericCoords,
   PathCoords,
   PathElements,
+  ReversedScript,
   UIState,
 } from './types';
 
@@ -158,6 +161,106 @@ export function loadUIFromFile(file: File) {
         resolve(false);
       }
       resolve(true);
+    };
+    reader.readAsText(file, 'utf8');
+  });
+}
+
+export function loadUIFromScript(file: File) {
+  return new Promise<boolean>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      try {
+        const script = reader.result as string;
+        api
+          .post<ReversedScript>('/reverse', { script: script })
+          .then((res) => {
+            const reversedScript = res.data;
+            const canvasStore = useCanvasStore();
+            const configStore = useConfigStore();
+            canvasStore.clearCanvasEdges();
+            canvasStore.clearCanvasNodes();
+            configStore.clearNodeConfigs();
+            configStore.nodeStructures = new Map(
+              [...configStore.nodeStructures.entries()].filter((structure) => {
+                return (
+                  structure[0] == 'rain.nodes.custom.custom.CustomNode' ||
+                  !structure[0].includes('rain.nodes.custom.custom.CustomNode')
+                );
+              })
+            );
+
+            reversedScript.custom.forEach((c, i) => {
+              const customStructure: CustomNodeStructure = {
+                package: 'rain.nodes.custom.custom.CustomNode' + (i + 1),
+                clazz: c.clazz,
+                input: c.inputs.reduce(
+                  (acc, value) => Object.assign(acc, { [value]: 'custom' }),
+                  {}
+                ),
+                output: c.outputs.reduce(
+                  (acc, value) => Object.assign(acc, { [value]: 'custom' }),
+                  {}
+                ),
+                parameter: c.params.map((p) => {
+                  return {
+                    name: p,
+                    type: 'Any',
+                    is_mandatory: false,
+                    description: 'Custom Parameter: ' + p,
+                    default_value: null,
+                  } as SimpleNodeParameter;
+                }),
+                methods: null,
+                tags: {
+                  library: 'Base',
+                  type: 'Custom',
+                },
+                description: 'A Custom Node.',
+                function_name: c.function_name,
+                code: c.code,
+              };
+              configStore.addNodeStructure(customStructure);
+            });
+
+            canvasStore.canvasTransform = 'translate(0,0) scale(1)';
+            canvasStore.selectedNodes = [];
+            reversedScript.nodes.forEach((n) => {
+              const nodePackage = configStore.getPackageFromClazz(n.clazz);
+              canvasStore.canvasNodes.set(n.node, {
+                name: n.node,
+                package: nodePackage,
+                x: n.pos[0],
+                y: n.pos[1],
+                selected: false,
+              });
+              configStore.setNodeConfig(nodePackage, n.node);
+              n.params.forEach((p) => {
+                if (configStore.nodeAnyConfigs.has(`${n.node}$${p.key}`)) {
+                  configStore.nodeAnyConfigs.set(`${n.node}$${p.key}`, p.type);
+                }
+                configStore.nodeConfigs.get(n.node)[p.key] = p.value;
+              });
+            });
+
+            reversedScript.edges.forEach((e) => {
+              const pathElems: PathElements = {
+                fromNode: e.from_node,
+                fromPort: e.from_var,
+                toNode: e.to_node,
+                toPort: e.to_var,
+              };
+              canvasStore.canvasEdges.set(getEdgeName(pathElems), pathElems);
+            });
+            resolve(true);
+          })
+          .catch(() => {
+            resolve(false);
+          });
+      } catch {
+        resolve(false);
+      }
     };
     reader.readAsText(file, 'utf8');
   });

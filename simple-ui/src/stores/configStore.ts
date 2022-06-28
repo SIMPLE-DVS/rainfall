@@ -14,6 +14,10 @@ export const useConfigStore = defineStore('config', {
   getters: {
     getNodeStructureByNodePackage: (state) => (id: string) =>
       state.nodeStructures.get(id),
+    getPackageFromClazz: (state) => (clazz: string) =>
+      [...state.nodeStructures.values()].find(
+        (structure) => structure.clazz == clazz
+      ).package,
   },
   actions: {
     clearNodeStructures() {

@@ -1,5 +1,6 @@
+import ast
 from jinja2 import Environment, BaseLoader
-
+from simple_backend.service.node_service import parse_custom_node_code
 
 template = """import {{ rain_module }} as sr
 
@@ -40,12 +41,14 @@ class ScriptGenerator:
         self.jinja_template = self.jinja_env.from_string(template)
 
     def generate_script(self):
+        custom_nodes = [n for n in self._nodes if n.node == 'rain.nodes.custom.custom.CustomNode']
+        for c in custom_nodes:
+            c.code = ast.unparse(parse_custom_node_code(c.code, c.function_name))
+
         jinja_vars = {
             "rain_module": self._rain_module,
             "nodes": self._nodes,
             "edges": self._edges,
         }
 
-        temp_stream = self.jinja_template.render(jinja_vars)
-        # print(temp_stream)
-        return temp_stream
+        return self.jinja_template.render(jinja_vars)
