@@ -2,7 +2,6 @@ from flask import Flask
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from simple_backend.controller.routes import initialize_routes
-from simple_backend.service.node_service import retrieve_nodes_structure
 from simple_backend.controller.swagger import initialize_swagger
 from simple_backend.errors import register_errors
 
@@ -11,7 +10,6 @@ socketio = SocketIO(async_mode='eventlet', cors_allowed_origins=origins, logger=
 
 
 def create_app():
-    retrieve_nodes_structure()
     app = Flask(__name__)
     CORS(app, origins=origins)
     initialize_routes(app)

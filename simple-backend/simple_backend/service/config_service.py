@@ -2,16 +2,15 @@ import time
 import io
 import json
 import zipfile
+import yaml
 from datetime import datetime
 from pathlib import Path
 from typing import List
-
-import yaml
-
-from simple_backend.errors import DagCycleError, FileReadError, FileWriteError
+from simple_backend.errors import DagCycleError, FileWriteError
+from simple_backend.service.node_service import rain_structure
 from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend.service.dag_generator import DagCreator
-from simple_backend.config import BASE_OUTPUT_DIR, here
+from simple_backend.config import BASE_OUTPUT_DIR
 
 
 def check_dag(nodes):
@@ -43,13 +42,8 @@ def get_requirements(libs: List[str]) -> List[str]:
     """
     libs = [lib.lower() for lib in libs]
     requirements = ["git+ssh://git@github.com/SIMPLE-DVS/rain@master#egg=rain"]
-    try:
-        with open(here("../nodes.json"), 'r') as f:
-            dependencies = json.load(f)["dependencies"]
-    except OSError as e:
-        raise FileReadError(f"Error during nodes reading: {e.__str__()}")
 
-    for dep in dependencies:
+    for dep in rain_structure["dependencies"]:
         if any(lib in dep for lib in libs):
             requirements.append(dep)
     return requirements

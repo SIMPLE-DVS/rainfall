@@ -1,16 +1,23 @@
-import json
+import ast
 import re
+import sys
 from typing import List
-
 import requests
-
-from simple_backend.config import here
-from simple_backend.errors import CustomNodeConfigurationError, FirebaseNodesRetrievalError, FileWriteError, \
-    FileReadError
+from simple_backend.errors import CustomNodeConfigurationError, FirebaseNodesRetrievalError
 from simple_backend.schemas.nodes import CustomNode
 
 
-def find_custom_node_params(code: str, main_func: str):
+try:
+    nodes_request = requests.get(url="https://firebasestorage.googleapis.com/v0/b/rainfall-firebase.appspot.com/o/rain_structure.json?alt=media")
+    if nodes_request.status_code != 200:
+        raise FirebaseNodesRetrievalError(f"Firebase nodes request failed: {nodes_request.reason}")
+    rain_structure = nodes_request.json()
+except:
+    print('Download of rain_structure.json failed!')
+    sys.exit(1)
+
+
+def find_custom_node_params(code, main_func: str):
     """
     Method that retrieves all the parameters of a custom nodes
     """
@@ -65,43 +72,18 @@ def check_custom_node_code(custom_nodes: List[CustomNode]):
         # join the code string list
 
 
-def retrieve_nodes_structure():
-    """
-    Method to retrieve and store the available Rain nodes from firebase storage
-    """
-    res = requests.get(url="https://firebasestorage.googleapis.com/v0/b/rainfall-firebase.appspot.com/o"
-                           "/rain_structure.json?alt=media")
-    if res.status_code != 200:
-        raise FirebaseNodesRetrievalError(f"Firebase nodes request failed: {res.reason}")
-    try:
-        with open(here("../nodes.json"), 'w') as f:
-            f.write(res.text)
-    except OSError as e:
-        raise FileWriteError(f"Error during nodes writing: {e.__str__()}")
-
-
 def get_nodes_structure():
     """
     Returns the available Rain nodes
     """
-    try:
-        with open(here("../nodes.json"), 'r') as f:
-            nodes = json.load(f)
-    except OSError as e:
-        raise FileReadError(f"Error during nodes reading: {e.__str__()}")
-    return nodes["nodes"]
+    return rain_structure["nodes"]
 
 
 def get_node(clazz):
     """
     Returns the node with the specified clazz
     """
-    try:
-        with open(here("../nodes.json"), 'r') as f:
-            nodes = json.load(f)
-    except OSError as e:
-        raise FileReadError(f"Error during nodes reading: {e.__str__()}")
-    for node in nodes["nodes"]:
+    for node in rain_structure["nodes"]:
         if node["clazz"] == clazz:
             return node
     return None
@@ -136,16 +118,10 @@ def get_nodes_by_tag(tag: dict):
     nodes_by_tag = []
     if not tag:
         return nodes_by_tag
-    try:
-        with open(here("../nodes.json"), 'r') as f:
-            nodes = json.load(f)["nodes"]
-    except OSError as e:
-        raise FileReadError(f"Error during nodes reading: {e.__str__()}")
-
     if len(tag) == 2:
-        nodes_by_tag = get_nodes_by_lib_and_tag(tag["library"], tag["type"], nodes)
+        nodes_by_tag = get_nodes_by_lib_and_tag(tag["library"], tag["type"], rain_structure["nodes"])
         return nodes_by_tag
     else:
         key = list(tag.keys())[0]
-        nodes_by_tag = get_nodes_by_specific_tag(key, tag[key], nodes)
+        nodes_by_tag = get_nodes_by_specific_tag(key, tag[key], rain_structure["nodes"])
         return nodes_by_tag

@@ -109,4 +109,3 @@ python_code
 
 output_repositories/*
 !output_repositories/.gitkeep
-simple_backend/nodes.json
