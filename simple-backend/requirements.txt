@@ -15,4 +15,4 @@ flask-swagger-ui==3.36.0
 Werkzeug~=2.0.3
 virtualenv~=20.14.1
 Flask-SocketIO~=5.1.2
-eventlet==0.33.1
+eventlet==0.30.2
