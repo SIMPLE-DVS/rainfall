@@ -30,7 +30,6 @@ jobs:
           heroku_app_name: ${{secrets.HEROKU_BACKEND_APP_NAME}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           appdir: simple-backend
-          buildpack: heroku/python
       - name: Deploy frontend to Heroku
         uses: akhileshns/heroku-deploy@v3.12.12
         if: steps.changes.outputs.frontend == 'true'
@@ -39,4 +38,3 @@ jobs:
           heroku_app_name: ${{secrets.HEROKU_FRONTEND_APP_NAME}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           appdir: simple-ui
-          buildpack: heroku/nodejs
