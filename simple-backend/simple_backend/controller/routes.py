@@ -1,32 +1,39 @@
-from flask_restful import Api
-from simple_backend.controller.configuration_api import ConfigurationsApi
-from simple_backend.controller.script_api import ScriptApi
-from simple_backend.controller.node_api import NodesApi, CustomNodeApi, NodeApi, NodesByTagApi
-from simple_backend.controller.repository_api import Dataflows, Dataflow, Repositories, Repository
-from simple_backend.controller.docs_api import DocsApi
+from fastapi import APIRouter
+from simple_backend.controller import node_api, config_api, script_api, repository_api, dataflow_api
+from simple_backend.ws import execution_ws
 
 
-def initialize_routes(app):
+def initialize_api_routes():
     """
     Initialize all the routes/names that can be used to access endpoints
     """
-    api = Api(app)
+    router = APIRouter(prefix='/api/v1')
 
-    # Node management resources
-    api.add_resource(NodesApi, '/nodes')
-    api.add_resource(NodeApi, '/nodes/<clazz>')
-    api.add_resource(NodesByTagApi, '/nodes/tag')
-    api.add_resource(CustomNodeApi, '/custom/check')
-    api.add_resource(ConfigurationsApi, '/config')
-    api.add_resource(ScriptApi, '/reverse')
+    # Node API
+    router.include_router(node_api.router, prefix='/nodes', tags=['nodes'])
 
-    # Repository management resources
-    api.add_resource(Repositories, "/repositories")
-    api.add_resource(Repository, "/repositories/<repository>")
+    # Config API
+    router.include_router(config_api.router, prefix='/config', tags=['config'])
 
-    # Dataflow management resources
-    api.add_resource(Dataflows, "/repositories/<repository>/dataflows")
-    api.add_resource(Dataflow, "/repositories/<repository>/dataflows/<id>")
+    # Script API
+    router.include_router(script_api.router, prefix='/script', tags=['script'])
 
-    # Documentation resource
-    api.add_resource(DocsApi, '/docs')
+    # Repository API
+    router.include_router(repository_api.router, prefix='/repositories', tags=['repository'])
+
+    # Dataflow API
+    router.include_router(dataflow_api.router, prefix="/repositories/{repository}/dataflows", tags=['dataflow'])
+
+    return router
+
+
+def initialize_ws_routes():
+    """
+    Initialize all the routes/names that can be used with WebSockets
+    """
+    router = APIRouter(prefix='/ws')
+
+    # Execution WebSocket
+    router.include_router(execution_ws.router, prefix="/execution", tags=['execution'])
+
+    return router

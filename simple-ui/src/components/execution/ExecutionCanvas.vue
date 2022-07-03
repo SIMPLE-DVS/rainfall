@@ -1,124 +1,106 @@
 <template>
-  <q-splitter class="absolute-full" v-model="splitterModel">
-    <template v-slot:before>
-      <div class="full-space">
-        <svg class="d3-svg full-space">
-          <g class="graphics">
-            <svg
-              class="running"
-              xmlns:svg="http://www.w3.org/2000/svg"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
-              version="1.0"
-              width="128px"
-              height="128px"
-              viewBox="0 0 128 128"
-              xml:space="preserve"
-              visibility="hidden"
-            >
-              <rect x="0" y="0" width="100%" height="100%" opacity="0" />
-              <g>
-                <path
-                  d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
-                  fill="#1976d2"
-                  stroke-width="3"
-                  stroke="#000000"
-                />
-                <path
-                  d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
-                  fill="#c0c0c0"
-                  transform="rotate(45 64 64)"
-                  stroke-width="3"
-                  stroke="#000000"
-                />
-                <path
-                  d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
-                  fill="#c0c0c0"
-                  transform="rotate(90 64 64)"
-                  stroke-width="3"
-                  stroke="#000000"
-                />
-                <path
-                  d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
-                  fill="#c0c0c0"
-                  transform="rotate(135 64 64)"
-                  stroke-width="3"
-                  stroke="#000000"
-                />
-                <path
-                  d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
-                  fill="#c0c0c0"
-                  transform="rotate(180 64 64)"
-                  stroke-width="3"
-                  stroke="#000000"
-                />
-                <path
-                  d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
-                  fill="#c0c0c0"
-                  transform="rotate(225 64 64)"
-                  stroke-width="3"
-                  stroke="#000000"
-                />
-                <path
-                  d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
-                  fill="#c0c0c0"
-                  transform="rotate(270 64 64)"
-                  stroke-width="3"
-                  stroke="#000000"
-                />
-                <path
-                  d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
-                  fill="#c0c0c0"
-                  transform="rotate(315 64 64)"
-                  stroke-width="3"
-                  stroke="#000000"
-                />
-                <animateTransform
-                  attributeName="transform"
-                  type="rotate"
-                  values="0 64 64;45 64 64;90 64 64;135 64 64;180 64 64;225 64 64;270 64 64;315 64 64"
-                  calcMode="discrete"
-                  dur="720ms"
-                  repeatCount="indefinite"
-                ></animateTransform>
-              </g>
-            </svg>
+  <div class="full-space">
+    <svg class="d3-svg full-space">
+      <g class="graphics">
+        <svg
+          class="running"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          version="1.0"
+          width="128px"
+          height="128px"
+          viewBox="0 0 128 128"
+          xml:space="preserve"
+          visibility="hidden"
+        >
+          <rect x="0" y="0" width="100%" height="100%" opacity="0" />
+          <g>
+            <path
+              d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
+              fill="#1976d2"
+              stroke-width="3"
+              stroke="#000000"
+            />
+            <path
+              d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
+              fill="#c0c0c0"
+              transform="rotate(45 64 64)"
+              stroke-width="3"
+              stroke="#000000"
+            />
+            <path
+              d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
+              fill="#c0c0c0"
+              transform="rotate(90 64 64)"
+              stroke-width="3"
+              stroke="#000000"
+            />
+            <path
+              d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
+              fill="#c0c0c0"
+              transform="rotate(135 64 64)"
+              stroke-width="3"
+              stroke="#000000"
+            />
+            <path
+              d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
+              fill="#c0c0c0"
+              transform="rotate(180 64 64)"
+              stroke-width="3"
+              stroke="#000000"
+            />
+            <path
+              d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
+              fill="#c0c0c0"
+              transform="rotate(225 64 64)"
+              stroke-width="3"
+              stroke="#000000"
+            />
+            <path
+              d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
+              fill="#c0c0c0"
+              transform="rotate(270 64 64)"
+              stroke-width="3"
+              stroke="#000000"
+            />
+            <path
+              d="M38.52 33.37L21.36 16.2A63.6 63.6 0 0 1 59.5.16v24.3a39.5 39.5 0 0 0-20.98 8.92z"
+              fill="#c0c0c0"
+              transform="rotate(315 64 64)"
+              stroke-width="3"
+              stroke="#000000"
+            />
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              values="0 64 64;45 64 64;90 64 64;135 64 64;180 64 64;225 64 64;270 64 64;315 64 64"
+              calcMode="discrete"
+              dur="720ms"
+              repeatCount="indefinite"
+            ></animateTransform>
           </g>
         </svg>
-      </div>
-    </template>
-    <template v-slot:separator>
-      <q-avatar
-        color="primary"
-        text-color="white"
-        size="40px"
-        icon="drag_indicator"
-      />
-    </template>
-    <template v-slot:after>
-      <execution-panel> </execution-panel>
-    </template>
-  </q-splitter>
+      </g>
+    </svg>
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, watch } from 'vue';
 import * as d3 from 'd3';
 import { event } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
-import ExecutionPanel from './ExecutionPanel.vue';
 import { createExecutionEdge, createExecutionNode } from './models';
-import { socket } from 'src/boot/socket';
+import { useLogStore } from 'src/stores/logStore';
 
 export default defineComponent({
   name: 'ExecutionCanvas',
 
-  components: { ExecutionPanel },
-
   setup() {
     const canvasStore = useCanvasStore();
-    const splitterModel = ref(66);
     const svgSize = 128;
+    const logStore = useLogStore();
 
     let d3elem: Element = null;
     let d3svg: d3.Selection<Element, unknown, null, undefined> = null;
@@ -232,8 +214,8 @@ export default defineComponent({
       }
     };
 
-    const executionListener = (event: string) => {
-      const line = event + (event.endsWith('\n') ? '' : '\n');
+    const executionListener = (data: string) => {
+      const line = data + (data.endsWith('\n') ? '' : '\n');
       handleNewLogLine(line);
     };
 
@@ -256,12 +238,12 @@ export default defineComponent({
         createExecutionEdge(d3g, e);
       });
 
-      socket.off('message', executionListener);
-      socket.on('message', executionListener);
-    };
-
-    return {
-      splitterModel,
+      watch(
+        () => logStore.executionLogLine,
+        (newVal) => {
+          executionListener(newVal);
+        }
+      );
     };
   },
 });

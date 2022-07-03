@@ -10,6 +10,6 @@ COPY simple_backend simple_backend
 COPY docs docs
 RUN mkdir -p output_repositories/.archive
 
-CMD gunicorn --bind 0.0.0.0:5000 --pythonpath simple_backend app:app -k eventlet -w 4 --threads 4 -t 600 --worker-connections 1000
+CMD gunicorn --bind 0.0.0.0:5000 -w 4 -k uvicorn.workers.UvicornWorker gunicorn --pythonpath simple_backend app:create_app
 
 EXPOSE 5000

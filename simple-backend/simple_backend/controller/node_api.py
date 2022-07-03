@@ -1,5 +1,4 @@
-from flask import request
-from flask_restful import Resource
+from fastapi import APIRouter, Request
 from marshmallow import ValidationError
 from simple_backend.errors import BadRequestError, HttpQueryError
 from simple_backend.schemas.nodes import NodeQuery
@@ -7,62 +6,61 @@ from simple_backend.service import node_service
 from simple_backend.service.node_service import parse_custom_node_code
 
 
-class NodesApi(Resource):
+router = APIRouter()
+
+
+@router.get('')
+async def get_nodes():
     """
-    Api used to retrieve the all the available nodes
+    Api used to get all the available nodes
     """
-
-    def get(self):
-        nodes = node_service.get_nodes_structure()
-        if nodes:
-            return nodes, 200
-        else:
-            raise BadRequestError("No available nodes")
+    nodes = node_service.get_nodes_structure()
+    if nodes:
+        return nodes
+    else:
+        raise BadRequestError("No available nodes")
 
 
-class NodeApi(Resource):
-    """
-    Api used to manage a single node
-    """
-
-    def get(self, clazz):
-        node = node_service.get_node(clazz)
-        if node:
-            return node, 200
-        else:
-            raise BadRequestError(f"Node {clazz} not found")
-
-
-class NodesByTagApi(Resource):
+@router.get('/tag')
+async def get_nodes_by_tag(request: Request):
     """
     Api used to retrieve nodes by tag
     """
-
-    def get(self):
-        try:
-            tag = NodeQuery().load(request.args)
-        except ValidationError:
-            raise HttpQueryError("Query non valid, use 'library' and/or 'type' keys")
-        nodes = node_service.get_nodes_by_tag(tag)
-        if nodes:
-            return nodes, 200
-        else:
-            raise BadRequestError("Nodes not found")
+    try:
+        tag = NodeQuery().load(await request.json())
+    except ValidationError:
+        raise HttpQueryError("Query non valid, use 'library' and/or 'type' keys")
+    nodes = node_service.get_nodes_by_tag(tag)
+    if nodes:
+        return nodes
+    else:
+        raise BadRequestError("Nodes not found")
 
 
-class CustomNodeApi(Resource):
+@router.post('/custom')
+async def check_custom_node(request: Request):
     """
     Api used to manage a custom node
     """
+    function_name = (await request.json()).get("function_name")
+    code = (await request.json()).get("code")
+    parsed_code = parse_custom_node_code(code, function_name)
+    inputs, outputs, params = node_service.find_custom_node_params(parsed_code, function_name)
 
-    def post(self):
-        function_name = request.get_json().get("function_name")
-        code = request.get_json().get("code")
-        parsed_code = parse_custom_node_code(code, function_name)
-        inputs, outputs, params = node_service.find_custom_node_params(parsed_code, function_name)
+    return {
+               "inputs": inputs,
+               "outputs": outputs,
+               "parameters": params
+           }
 
-        return {
-                   "inputs": inputs,
-                   "outputs": outputs,
-                   "parameters": params
-               }, 200
+
+@router.get('/{clazz}')
+async def get_node(clazz):
+    """
+    Api used to get a single node
+    """
+    node = node_service.get_node(clazz)
+    if node:
+        return node
+    else:
+        raise BadRequestError(f"Node {clazz} not found")

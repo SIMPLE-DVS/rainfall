@@ -1,13 +1,17 @@
-from werkzeug.exceptions import HTTPException
+from fastapi import  Request
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException
+import sys
+import inspect
 
 
 class RainfallHTTPException(HTTPException):
     def __init__(self, msg: str, code: int):
         self.msg = msg
-        self.code = code
+        self.status_code = code
 
     def handle_error(self):
-        return {"message": self.msg}, self.code
+        return JSONResponse({"message": self.msg}, self.status_code)
 
 
 class SchemaValidationError(RainfallHTTPException):
@@ -51,11 +55,10 @@ class HttpQueryError(RainfallHTTPException):
 
 
 def register_errors(app):
-    app.register_error_handler(SchemaValidationError, SchemaValidationError.handle_error)
-    app.register_error_handler(DagCycleError, DagCycleError.handle_error)
-    app.register_error_handler(CustomNodeConfigurationError, CustomNodeConfigurationError.handle_error)
-    app.register_error_handler(FirebaseNodesRetrievalError, FirebaseNodesRetrievalError.handle_error)
-    app.register_error_handler(FileReadError, FileReadError.handle_error)
-    app.register_error_handler(FileWriteError, FileWriteError.handle_error)
-    app.register_error_handler(BadRequestError, BadRequestError.handle_error)
-    app.register_error_handler(HttpQueryError, HttpQueryError.handle_error)
+    exceptions = [obj for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass)
+                  if obj.__module__ is __name__ and name != 'RainfallHTTPException']
+
+    for ex in exceptions:
+        @app.exception_handler(ex)
+        async def ex_handler(_: Request, exc: ex):
+            return exc.handle_error()

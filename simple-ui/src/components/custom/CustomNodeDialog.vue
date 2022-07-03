@@ -116,7 +116,7 @@ export default defineComponent({
 
     const onOKClick = async () => {
       await api
-        .post('/custom/check', {
+        .post('/nodes/custom', {
           function_name: structure.function_name,
           code: structure.code,
         })

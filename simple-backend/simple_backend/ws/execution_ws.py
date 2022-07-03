@@ -1,6 +1,4 @@
-from flask import request
-from flask_socketio import join_room, close_room, send
-from simple_backend.app_creator import socketio
+from fastapi import APIRouter, WebSocket
 from marshmallow import ValidationError as Mve
 from pydantic import ValidationError as Pve
 import re
@@ -13,30 +11,22 @@ from simple_backend.service import config_service, node_service
 from simple_backend.service.config_service import get_requirements
 
 
-@socketio.on('connect')
-def handle_join():
-    room = request.sid
-    join_room(room)
-    send(f'User {room} has joined the room', room=room)
+router = APIRouter()
 
 
-@socketio.on('disconnect')
-def handle_disconnection():
-    room = request.sid
-    close_room(room)
-
-
-@socketio.on('execution')
-def handle_execution(message):
-    room = request.sid
-    send('Request received', room=room)
-    socketio.sleep(0.001)
+@router.websocket("")
+async def handle_execution(ws: WebSocket):
+    await ws.accept()
     try:
+        message = await ws.receive_json()
+        await ws.send_text('Request received')
         configuration = ConfigurationSchema().load(message)
         nodes = ConfigurationNode().load(configuration.get("nodes"))
         path = configuration.get("path")
     except (Mve, Pve) as e:
         raise SchemaValidationError(f"The configuration has a wrong structure: {e.__str__()}")
+
+    await ws.send_text('Request accepted')
 
     dag = config_service.check_dag(nodes)
 
@@ -54,14 +44,12 @@ def handle_execution(message):
     with open(os.path.join(path, "requirements.txt"), "w+") as req:
         req.write(" \n".join(dependencies))
 
-    send('Files written', room=room)
-    socketio.sleep(0.001)
+    await ws.send_text('Files written')
 
     venv_loc = os.path.join(path, "venv")
     cli_run([venv_loc])
 
-    send('Created virtual environment', room=room)
-    socketio.sleep(0.001)
+    await ws.send_text('Created virtual environment')
 
     if str(os.name).lower() == "nt":
         venv_scripts_loc = "Scripts"
@@ -75,13 +63,11 @@ def handle_execution(message):
     os.chdir(path)
     os.system(pip_loc + " install -r requirements.txt")
 
-    send('Requirements installed', room=room)
-    socketio.sleep(0.001)
+    await ws.send_text('Requirements installed')
 
     cmd = [os.path.join(venv_loc, venv_scripts_loc, "python"), "script.py"]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=path, universal_newlines=True, bufsize=1)
-    send('Started process', room=room)
-    socketio.sleep(0.001)
+    await ws.send_text('Started process')
     lines = []
     while True:
         output = process.stdout.readline()
@@ -89,8 +75,7 @@ def handle_execution(message):
             break
         if output:
             output = re.sub(u'\u001b\[.*?[@-~]', '', output)
-            send(output, room=room)
-            socketio.sleep(0.001)
+            await ws.send_text(output)
             line = output.strip().split("|")
             lines.append(line)
             print(line)

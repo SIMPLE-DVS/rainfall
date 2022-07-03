@@ -174,7 +174,7 @@ export function loadUIFromScript(file: File) {
       try {
         const script = reader.result as string;
         api
-          .post<ReversedScript>('/reverse', { script: script })
+          .post<ReversedScript>('/script', { script: script })
           .then((res) => {
             const reversedScript = res.data;
             const canvasStore = useCanvasStore();

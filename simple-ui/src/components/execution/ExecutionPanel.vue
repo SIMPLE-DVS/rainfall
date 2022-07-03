@@ -22,10 +22,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onUnmounted, ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { getConfig } from '../utils';
-import { socket } from 'src/boot/socket';
+import { destroyWebSocket, getConfig, getWebSocketURL } from '../utils';
+import { useLogStore } from 'src/stores/logStore';
 
 export default defineComponent({
   name: 'ExecutionPanel',
@@ -33,9 +33,13 @@ export default defineComponent({
   setup() {
     const $q = useQuasar();
     const logText = ref('');
+    const logStore = useLogStore();
+    let socket: WebSocket = null;
 
-    const executionListener = (event: string) => {
-      const line = event + (event.endsWith('\n') ? '' : '\n');
+    const executionListener = (ev: MessageEvent<string>) => {
+      const data = ev.data;
+      logStore.executionLogLine = data;
+      const line = data + (data.endsWith('\n') ? '' : '\n');
       logText.value += line;
     };
 
@@ -53,14 +57,20 @@ export default defineComponent({
         },
         cancel: true,
       }).onOk((path) => {
-        logText.value = '';
-        socket.off('message', executionListener);
-        socket.on('message', executionListener);
-        const config = getConfig();
-        config['path'] = path;
-        socket.emit('execution', config);
+        socket = new WebSocket(getWebSocketURL() + '/execution');
+        socket.onopen = () => {
+          socket.onmessage = executionListener;
+          logText.value = '';
+          const config = getConfig();
+          config['path'] = path;
+          socket.send(JSON.stringify(config));
+        };
       });
     };
+
+    onUnmounted(() => {
+      destroyWebSocket(socket);
+    });
 
     return {
       logText,

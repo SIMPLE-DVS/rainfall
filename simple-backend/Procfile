@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath simple_backend app:app -k eventlet -w 4 --threads 4 -t 600 --worker-connections 1000
+web: gunicorn --bind 0.0.0.0:5000 -w 4 -k uvicorn.workers.UvicornWorker gunicorn --pythonpath simple_backend app:create_app
