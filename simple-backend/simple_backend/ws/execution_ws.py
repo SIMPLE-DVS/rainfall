@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, WebSocket
 from marshmallow import ValidationError as Mve
 from pydantic import ValidationError as Pve
@@ -20,6 +21,7 @@ async def handle_execution(ws: WebSocket):
     try:
         message = await ws.receive_json()
         await ws.send_text('Request received')
+        await asyncio.sleep(0.001)
         configuration = ConfigurationSchema().load(message)
         nodes = ConfigurationNode().load(configuration.get("nodes"))
         path = configuration.get("path")
@@ -27,6 +29,7 @@ async def handle_execution(ws: WebSocket):
         raise SchemaValidationError(f"The configuration has a wrong structure: {e.__str__()}")
 
     await ws.send_text('Request accepted')
+    await asyncio.sleep(0.001)
 
     dag = config_service.check_dag(nodes)
 
@@ -45,11 +48,13 @@ async def handle_execution(ws: WebSocket):
         req.write(" \n".join(dependencies))
 
     await ws.send_text('Files written')
+    await asyncio.sleep(0.001)
 
     venv_loc = os.path.join(path, "venv")
     cli_run([venv_loc])
 
     await ws.send_text('Created virtual environment')
+    await asyncio.sleep(0.001)
 
     if str(os.name).lower() == "nt":
         venv_scripts_loc = "Scripts"
@@ -58,16 +63,19 @@ async def handle_execution(ws: WebSocket):
     else:
         raise BadRequestError("unsupported OS")
 
+    await ws.send_text('Installing requirements')
+    await asyncio.sleep(0.001)
     pip_loc = os.path.join(venv_loc, venv_scripts_loc, 'pip')
-
     os.chdir(path)
     os.system(pip_loc + " install -r requirements.txt")
 
     await ws.send_text('Requirements installed')
+    await asyncio.sleep(0.001)
 
     cmd = [os.path.join(venv_loc, venv_scripts_loc, "python"), "script.py"]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=path, universal_newlines=True, bufsize=1)
     await ws.send_text('Started process')
+    await asyncio.sleep(0.001)
     lines = []
     while True:
         output = process.stdout.readline()
@@ -76,6 +84,7 @@ async def handle_execution(ws: WebSocket):
         if output:
             output = re.sub(u'\u001b\[.*?[@-~]', '', output)
             await ws.send_text(output)
+            await asyncio.sleep(0.001)
             line = output.strip().split("|")
             lines.append(line)
             print(line)

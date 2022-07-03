@@ -11,7 +11,7 @@
 const { configure } = require('quasar/wrappers');
 const path = require('path');
 
-module.exports = configure(function () {
+module.exports = configure(function (ctx) {
   return {
     eslint: {
       // fix: true,
@@ -50,7 +50,7 @@ module.exports = configure(function () {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       env: {
-        BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:5000',
+        BACKEND_URL: ctx.prod ? '' : 'http://localhost:5000',
       },
 
       target: {

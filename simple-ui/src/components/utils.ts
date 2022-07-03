@@ -82,8 +82,12 @@ export const getConfig = () => {
 };
 
 export const getWebSocketURL = () => {
-  const url = new URL(process.env.BACKEND_URL);
-  const protocol = url.protocol == 'https' ? 'wss://' : 'ws://';
+  const url = new URL(
+    process.env.BACKEND_URL == ''
+      ? window.location.origin
+      : process.env.BACKEND_URL
+  );
+  const protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
   return protocol + url.host + '/ws';
 };
 
