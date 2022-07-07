@@ -114,7 +114,7 @@ import { useCanvasStore } from 'src/stores/canvasStore';
 import { NodeInfo } from 'src/components/models';
 
 export default defineComponent({
-  name: 'CanvasLayout',
+  name: 'MainLayout',
 
   components: {
     LocaleChanger,
