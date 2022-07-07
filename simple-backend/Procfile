@@ -1,1 +1,0 @@
-web: gunicorn --bind 0.0.0.0:$PORT -t 0 -w 4 -k uvicorn.workers.UvicornWorker --pythonpath simple_backend app:create_app
