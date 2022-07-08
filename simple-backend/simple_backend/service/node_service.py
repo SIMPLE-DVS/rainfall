@@ -61,7 +61,7 @@ def find_custom_node_params(code, main_func: str):
     body = ast.unparse(code.body)
 
     inputs = get_variables_matches(
-        body, r"{}(?:\[|\.get\()(\"|\')(?P<param>[a-zA-Z_\d-]+)(\"|\')\]".format(params[0])
+        body, r"{}(\[|\.get\()(\"|\')(?P<param>[a-zA-Z_\d-]+)(\"|\')(\]|\))".format(params[0])
     )
 
     outputs = get_variables_matches(
