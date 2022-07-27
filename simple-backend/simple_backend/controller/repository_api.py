@@ -1,21 +1,19 @@
-from fastapi import APIRouter, Request
-from marshmallow import ValidationError
-from simple_backend.errors import BadRequestError, HttpQueryError
-from simple_backend.schemas.repository_schemas import RepoDeleteQuery
+from fastapi import APIRouter, Response
+from simple_backend.errors import BadRequestError
+from simple_backend.schemas.repository_schemas import RepositoryGet, RepositoryPost
 from simple_backend.service import repository_service as rs
 
 
 router = APIRouter()
 
 
-@router.get('')
+@router.get('', response_model=list[str])
 async def get_repositories():
     """ Gets all the repositories within the output directory. """
-    repositories = rs.get_repositories_names()
-    return {"repositories": repositories}
+    return rs.get_repositories_names()
 
 
-@router.get('/{repository}')
+@router.get('/{repository}', responses={200: {"model": RepositoryGet}, 404: {"schema": BadRequestError}})
 async def get_repository(repository: str):
     """ Gets the content of the repository. """
     try:
@@ -23,14 +21,10 @@ async def get_repository(repository: str):
     except FileNotFoundError as e:
         raise BadRequestError(e.__str__())
 
-    return {
-        "repository": repository,
-        "path": str(rs.BASE_OUTPUT_DIR / repository),
-        "content": content
-    }
+    return RepositoryGet(repository=repository, path=str(rs.BASE_OUTPUT_DIR / repository), content=content)
 
 
-@router.post('/{repository}')
+@router.post('/{repository}', responses={200: {"model": RepositoryPost}, 404: {"schema": BadRequestError}})
 async def post_repository(repository: str):
     """ Creates a new repository within the output directory. """
     try:
@@ -38,25 +32,16 @@ async def post_repository(repository: str):
     except FileExistsError:
         raise BadRequestError(f"Repository '{repository}' already exists in {str(rs.BASE_OUTPUT_DIR)}")
 
-    return {
-        "repository": repository,
-        "path": str(rs.BASE_OUTPUT_DIR / repository),
-        "uri": f"/repositories/{repository}",
-    }
+    return RepositoryPost(repository=repository, path=str(rs.BASE_OUTPUT_DIR / repository),
+                          uri=f"/repositories/{repository}")
 
 
-@router.delete('/{repository}')
-async def delete_repository(repository: str, request: Request):
+@router.delete('/{repository}', status_code=204, response_class=Response)
+async def delete_repository(repository: str, shallow: bool):
     """ Delete a repository from the output directory. """
-    try:
-        is_shallow = RepoDeleteQuery().load(await request.json())
-    except ValidationError:
-        raise HttpQueryError("Query not valid, use 'shallow==true/false'")
-    is_shallow = True if "shallow" in is_shallow else False
-
-    if is_shallow:
+    if shallow:
         rs.shallow_delete_repository(repository)
     else:
         rs.delete_repository(repository)
 
-    return {}, 204
+    return Response(content=None, status_code=204)

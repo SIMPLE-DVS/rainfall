@@ -124,7 +124,7 @@ export default defineComponent({
           const data = res.data as {
             inputs: string[];
             outputs: string[];
-            parameters: string[];
+            params: string[];
           };
 
           structure.clazz = structure.clazz.replace(/\s/g, '');
@@ -136,7 +136,7 @@ export default defineComponent({
             (acc, value) => Object.assign(acc, { [value]: 'custom' }),
             {}
           );
-          structure.parameter = data.parameters.map((p) => {
+          structure.parameter = data.params.map((p) => {
             return {
               name: p,
               type: 'Any',

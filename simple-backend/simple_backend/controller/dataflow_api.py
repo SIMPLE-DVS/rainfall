@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Request, HTTPException
-from marshmallow import ValidationError
-from simple_backend.errors import HttpQueryError, SchemaValidationError
-from simple_backend.schemas.repository_schemas import RepoDeleteQuery, GetDataflowSchema
+from fastapi import APIRouter, HTTPException, Response
+from starlette.status import HTTP_204_NO_CONTENT
+from simple_backend.model.repository_model import Dataflow
 from simple_backend.service import repository_service as rs
 
 
@@ -26,29 +25,18 @@ async def delete_dataflows(repository: str):
     raise HTTPException(status_code=404)
 
 
-@router.get('/{id}')
+@router.get('/{id}', response_model=Dataflow)
 async def get(repository: str, id: str):
     """ Gets the specified Dataflow from the repository. """
-    dataflow = rs.get_dataflow_from_repository(repository, id)
-    try:
-        serialized_dataflow = GetDataflowSchema().dump(dataflow)
-    except ValidationError as e:
-        raise SchemaValidationError(f"The requested artifact has a wrong structure: {e.__str__()}")
-    return serialized_dataflow
+    return rs.get_dataflow_from_repository(repository, id)
 
 
-@router.delete('/{id}')
-async def delete(repository: str, id: str, request: Request):
+@router.delete('/{id}', status_code=204, response_class=Response)
+async def delete(repository: str, id: str, shallow: bool) -> None:
     """ Deletes a Dataflow in the repository. """
-    try:
-        is_shallow = RepoDeleteQuery().load(await request.json())
-    except ValidationError:
-        raise HttpQueryError("Query not valid, use 'shallow==true/false'")
-    is_shallow = True if "shallow" in is_shallow else False
-
-    if is_shallow:
+    if shallow:
         rs.shallow_delete_dataflow(repository, id)
     else:
         rs.delete_dataflow(repository, id)
 
-    return {}, 204
+    return Response(status_code=HTTP_204_NO_CONTENT)

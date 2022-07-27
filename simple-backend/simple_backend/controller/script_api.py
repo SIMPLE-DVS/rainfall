@@ -2,13 +2,14 @@ import ast
 import networkx as nx
 import re
 from fastapi import APIRouter, Request
+from simple_backend.schemas.script import ReversedScript
 from simple_backend.service.node_service import get_node_param_value_and_type, find_custom_node_params
 
 
 router = APIRouter()
 
 
-@router.post('')
+@router.post('', response_model=ReversedScript)
 async def post_script(request: Request):
     """
     Api used to manage the conversion from a Python script to the UI state
@@ -76,14 +77,14 @@ async def post_script(request: Request):
         if clazz in custom_node_structures:
             continue
         custom_function = [x for x in parsed.body if hasattr(x, 'name') and x.name == function_name][0]
-        (inputs, outputs, ps) = find_custom_node_params(custom_function, function_name)
+        ioparams = find_custom_node_params(custom_function, function_name)
         custom_node_structures[clazz] = {"function_name": function_name, "clazz": clazz,
-                                         "code": ast.unparse(custom_function), "inputs": inputs, "outputs": outputs,
-                                         "params": ps}
+                                         "code": ast.unparse(custom_function), "inputs": ioparams.inputs,
+                                         "outputs": ioparams.outputs, "params": ioparams.params}
 
-    return {
-        "nodes": [{"node": nc[0], "clazz": nc[1] if nc[1] != 'CustomNode' else real_custom_classes[nc[0]],
-                   "pos": pos[nc[0]], "params": actual_params[nc[0]]} for nc in nodes_classes],
-        "custom": list(custom_node_structures.values()),
-        "edges": [{"from_node": e[0], "from_var": e[1], "to_node": e[2], "to_var": e[3]} for e in edges]
-    }
+    return ReversedScript(
+        nodes=[{"node": nc[0], "clazz": nc[1] if nc[1] != 'CustomNode' else real_custom_classes[nc[0]],
+                "pos": pos[nc[0]], "params": actual_params[nc[0]]} for nc in nodes_classes],
+        custom=list(custom_node_structures.values()),
+        edges=[{"from_node": e[0], "from_var": e[1], "to_node": e[2], "to_var": e[3]} for e in edges]
+    )

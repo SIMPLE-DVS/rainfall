@@ -54,8 +54,9 @@ export const getConfig = () => {
         .filter((e) => e.fromNode == nodeName)
         .map((e) => {
           return {
-            send_to: e.toNode,
-            [e.fromPort]: e.toPort,
+            to_node: e.toNode,
+            from_port: e.fromPort,
+            to_port: e.toPort,
           };
         });
 

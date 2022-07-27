@@ -66,12 +66,9 @@ export default defineComponent({
     const repoStore = useRepoStore();
 
     onMounted(async () => {
-      const repos = await api.get('/repositories');
+      const repos = await api.get<string[]>('/repositories');
       repoStore.repos = new Map<string, Repository>(
-        (repos.data as { ['repositories']: string[] }).repositories.map((r) => [
-          r,
-          { name: r, type: 'local' },
-        ])
+        repos.data.map((r) => [r, { name: r, type: 'local' }])
       );
       if (repoStore.repos.size > 0) {
         repoStore.currentRepo = [...repoStore.repos.values()][0].name;
@@ -112,7 +109,11 @@ export default defineComponent({
         cancel: true,
       }).onOk(() => {
         api
-          .delete('/repositories/' + repoName)
+          .delete('/repositories/' + repoName, {
+            params: {
+              shallow: false,
+            },
+          })
           .then(() => {
             repoStore.repos.delete(repoName);
             if (repoStore.repos.size == 1) {

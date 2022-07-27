@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List
 from simple_backend.errors import DagCycleError, FileWriteError
+from simple_backend.schemas.nodes import UI
 from simple_backend.service.node_service import rain_structure
 from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend.service.dag_generator import DagCreator
@@ -55,7 +56,7 @@ def get_repository_path(repository: str) -> Path:
     return repository_path
 
 
-def generate_artifacts(repository: str, script: str, dependencies: List[str], config: dict) -> Path:
+def generate_artifacts(repository: str, script: str, dependencies: List[str], config: UI) -> Path:
     """
     Method that stores the artifacts (script, requirements, GUI configuration, other metadata)
     """
@@ -69,7 +70,7 @@ def generate_artifacts(repository: str, script: str, dependencies: List[str], co
             zip_file.writestr("metadata.yml", yaml.dump(
                 {"created_at": datetime.fromtimestamp(timestamp / 1000), "generated_by": "MarcoScarp94",
                  "company": "Sigma Spa"}, default_flow_style=False))
-            zip_file.writestr("ui.json", json.dumps(config))
+            zip_file.writestr("ui.json", config.json())
         zip_buffer.seek(0)
 
         repo_path = get_repository_path(repository)

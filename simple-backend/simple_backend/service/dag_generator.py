@@ -14,16 +14,13 @@ class Edge:
     destination_var: str
 
 
-def get_edges(node_list):
+def get_edges(node_list: list[Node]):
     edges = {}
     for node in node_list:
         if node.then is not None and node.then:
             for nxt in node.then:
-                receiver = nxt.get("send_to")
-                for sender_var, receiver_var in nxt.items():
-                    if sender_var != "send_to":
-                        edges[(node.node_id, receiver, sender_var, receiver_var)] = Edge(node.node_id, receiver,
-                                                                                         sender_var, receiver_var)
+                edges[(node.node_id, nxt.to_node, nxt.from_port, nxt.to_port)] = Edge(node.node_id, nxt.to_node,
+                                                                                      nxt.from_port, nxt.to_port)
     return edges
 
 

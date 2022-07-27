@@ -1,26 +1,28 @@
-from fastapi import APIRouter, Request
-from marshmallow import ValidationError as Mve
-from pydantic import ValidationError as Pve
-from simple_backend.errors import SchemaValidationError
-from simple_backend.schemas.nodes import ConfigurationNode, CustomNode, ConfigurationSchema
+from fastapi import APIRouter
+from pydantic import BaseModel
+from simple_backend.schemas.nodes import CustomNode, ConfigurationSchema
 from simple_backend.service import config_service, node_service
 
 
 router = APIRouter()
 
 
-@router.post('')
-async def post_config(request: Request):
-    """
-    Api used to manage all the Configurations stored into the database
-    """
-    try:
-        configuration = ConfigurationSchema().load(await request.json())
-        nodes = ConfigurationNode().load(configuration.get("nodes"))
-    except (Mve, Pve) as e:
-        raise SchemaValidationError(f"The configuration has a wrong structure: {e.__str__()}")
+class ConfigResponse(BaseModel):
+    id: str
+    path: str
+    url: str
 
-    dag = config_service.check_dag(nodes)
+
+@router.post('', response_model=ConfigResponse)
+async def post_config(config: ConfigurationSchema):
+    """
+    Api used to create a zip file containing all the artifacts:
+        - Python script
+        - List of dependencies
+        - UI configuration
+        - metadata
+    """
+    dag = config_service.check_dag(config.nodes)
 
     ordered_nodes = dag.get_ordered_nodes()
     ordered_edges = dag.get_ordered_edges()
@@ -30,11 +32,7 @@ async def post_config(request: Request):
 
     script = config_service.generate_script(ordered_nodes, ordered_edges)
 
-    zip_file = config_service.generate_artifacts(configuration.get("repository"), script,
-                                                 configuration.get("dependencies"), configuration.get("ui"))
+    zip_file = config_service.generate_artifacts(config.repository, script, config.dependencies, config.ui)
 
-    return {
-        "id": zip_file.stem,
-        "path": str(zip_file),
-        "uri": f"/repositories/{configuration.get('repository')}/dataflows/{zip_file.stem}"
-    }
+    return ConfigResponse(id=zip_file.stem, path=str(zip_file),
+                          url=f"/repositories/{config.repository}/dataflows/{zip_file.stem}")

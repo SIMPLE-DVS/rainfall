@@ -14,11 +14,6 @@ class RainfallHTTPException(HTTPException):
         return JSONResponse({"message": self.msg}, self.status_code)
 
 
-class SchemaValidationError(RainfallHTTPException):
-    def __init__(self, msg):
-        super(SchemaValidationError, self).__init__(msg, 400)
-
-
 class DagCycleError(RainfallHTTPException):
     def __init__(self, msg, code):
         super(DagCycleError, self).__init__(msg, code)
@@ -55,10 +50,17 @@ class HttpQueryError(RainfallHTTPException):
 
 
 def register_errors(app):
-    exceptions = [obj for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass)
-                  if obj.__module__ is __name__ and name != 'RainfallHTTPException']
+    builtin_exceptions = []
 
-    for ex in exceptions:
+    for ex in builtin_exceptions:
+        @app.exception_handler(ex)
+        async def ex_handler(_: Request, exc: ex):
+            return RainfallHTTPException(exc.__str__(), 400).handle_error()
+
+    custom_exceptions = [obj for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass)
+                         if obj.__module__ is __name__ and name != 'RainfallHTTPException']
+
+    for ex in custom_exceptions:
         @app.exception_handler(ex)
         async def ex_handler(_: Request, exc: ex):
             return exc.handle_error()

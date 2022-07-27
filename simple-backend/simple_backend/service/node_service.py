@@ -1,11 +1,10 @@
 import ast
 import re
 import sys
-from typing import List
+from typing import List, Optional
 import requests
 from simple_backend.errors import CustomNodeConfigurationError, FirebaseNodesRetrievalError
-from simple_backend.schemas.nodes import CustomNode
-
+from simple_backend.schemas.nodes import CustomNode, NodeStructure, CustomNodeIOParams
 
 try:
     nodes_request = requests.get(url="https://firebasestorage.googleapis.com/v0/b/rainfall-firebase.appspot.com/o/rain_structure.json?alt=media")
@@ -49,7 +48,7 @@ def parse_custom_node_code(code: str, function_name: str):
     return main_func
 
 
-def find_custom_node_params(code, main_func: str):
+def find_custom_node_params(code, main_func: str) -> CustomNodeIOParams:
     """
     Method that retrieves all the parameters of a custom nodes
     """
@@ -68,7 +67,7 @@ def find_custom_node_params(code, main_func: str):
         body, r"{}\[(\"|\')(?P<param>[a-zA-Z_\d-]+)(\"|\')\]".format(params[1])
     )
 
-    return inputs, outputs, params[2:]
+    return CustomNodeIOParams(inputs=inputs, outputs=outputs, params=params[2:])
 
 
 def get_variables_matches(code, regex):
@@ -99,14 +98,14 @@ def check_custom_node_code(custom_nodes: List[CustomNode]):
         # join the code string list
 
 
-def get_nodes_structure():
+def get_nodes_structure() -> list[NodeStructure]:
     """
     Returns the available Rain nodes
     """
     return rain_structure["nodes"]
 
 
-def get_node(clazz):
+def get_node(clazz) -> Optional[NodeStructure]:
     """
     Returns the node with the specified clazz
     """
@@ -114,41 +113,3 @@ def get_node(clazz):
         if node["clazz"] == clazz:
             return node
     return None
-
-
-def get_nodes_by_specific_tag(tag, lib_or_type, nodes):
-    """
-    Returns the nodes with the specified library or type
-    """
-    nodes_by_tag = []
-    for node in nodes:
-        if node["tags"][tag] == lib_or_type:
-            nodes_by_tag.append(node)
-    return nodes_by_tag
-
-
-def get_nodes_by_lib_and_tag(tag_lib, tag_type, nodes):
-    """
-    Returns the nodes with the specified library and type
-    """
-    nodes_by_tag = []
-    for node in nodes:
-        if node["tags"]["library"] == tag_lib and node["tags"]["type"] == tag_type:
-            nodes_by_tag.append(node)
-    return nodes_by_tag
-
-
-def get_nodes_by_tag(tag: dict):
-    """
-    Returns the nodes with the specified tag
-    """
-    nodes_by_tag = []
-    if not tag:
-        return nodes_by_tag
-    if len(tag) == 2:
-        nodes_by_tag = get_nodes_by_lib_and_tag(tag["library"], tag["type"], rain_structure["nodes"])
-        return nodes_by_tag
-    else:
-        key = list(tag.keys())[0]
-        nodes_by_tag = get_nodes_by_specific_tag(key, tag[key], rain_structure["nodes"])
-        return nodes_by_tag

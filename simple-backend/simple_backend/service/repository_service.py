@@ -70,6 +70,7 @@ def extract_metadata_info(dataflow: zipfile.ZipFile) -> DataflowMetadata:
 
 
 def extract_ui_info(dataflow: zipfile.ZipFile) -> Optional[DataflowUI]:
+    # TODO: read content of ui.json (?)
     return DataflowUI() if "ui.json" in dataflow.namelist() else None
 
 
@@ -89,7 +90,7 @@ def get_dataflow_from_repository(repository: str, id: str) -> Dataflow:
         metadata = extract_metadata_info(dataflow)
         ui = extract_ui_info(dataflow)
 
-    return Dataflow(id, dataflow_path, script, ui=ui)
+    return Dataflow(id, dataflow_path, script, metadata, ui)
 
 
 def shallow_delete_dataflow(repository: str, id: str) -> None:

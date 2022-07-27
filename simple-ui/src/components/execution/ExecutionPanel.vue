@@ -41,6 +41,7 @@ export default defineComponent({
       logStore.executionLogLine = data;
       const line = data + (data.endsWith('\n') ? '' : '\n');
       logText.value += line;
+      // TODO: manage ws exception message or check connection close code
     };
 
     const execute = async () => {
