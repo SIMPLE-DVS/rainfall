@@ -13,6 +13,12 @@ async def get_repositories():
     return rs.get_repositories_names()
 
 
+@router.get('/archived', response_model=list[str])
+async def get_archived_repositories():
+    """ Gets all the archived repositories within the output directory. """
+    return rs.get_archived_repositories_names()
+
+
 @router.get('/{repository}', responses={200: {"model": RepositoryGet}, 404: {"schema": BadRequestError}})
 async def get_repository(repository: str):
     """ Gets the content of the repository. """
@@ -25,7 +31,7 @@ async def get_repository(repository: str):
 
 
 @router.post('/{repository}', responses={200: {"model": RepositoryPost}, 404: {"schema": BadRequestError}})
-async def post_repository(repository: str):
+async def create_repository(repository: str):
     """ Creates a new repository within the output directory. """
     try:
         rs.create_repository(repository)
@@ -39,9 +45,26 @@ async def post_repository(repository: str):
 @router.delete('/{repository}', status_code=204, response_class=Response)
 async def delete_repository(repository: str, shallow: bool):
     """ Delete a repository from the output directory. """
-    if shallow:
-        rs.shallow_delete_repository(repository)
-    else:
-        rs.delete_repository(repository)
+    rs.delete_repository(repository, False, shallow)
 
     return Response(content=None, status_code=204)
+
+
+@router.delete('/archived/{repository}', status_code=204, response_class=Response)
+async def delete_archived_repository(repository: str):
+    """ Delete an archived repository from the output directory. """
+    rs.delete_repository(repository, True, False)
+
+    return Response(content=None, status_code=204)
+
+
+@router.post('/archived/{repository}', responses={200: {"model": RepositoryPost}, 404: {"schema": BadRequestError}})
+async def unarchive_repository(repository: str):
+    """ Unarchive an archived repository. """
+    try:
+        rs.unarchive_repository(repository)
+    except FileExistsError:
+        raise BadRequestError(f"Repository '{repository}' already exists in {str(rs.BASE_OUTPUT_DIR)}")
+
+    return RepositoryPost(repository=repository, path=str(rs.BASE_OUTPUT_DIR / repository),
+                          uri=f"/repositories/{repository}")

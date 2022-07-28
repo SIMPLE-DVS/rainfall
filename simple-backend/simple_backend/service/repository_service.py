@@ -15,6 +15,11 @@ def get_repositories_names() -> List[str]:
     return [name.stem for name in BASE_OUTPUT_DIR.iterdir() if name.is_dir() and not name == ARCHIVE_DIR]
 
 
+def get_archived_repositories_names() -> List[str]:
+    """ Returns the immediate subdirectories names of the archived output dir. """
+    return [name.stem for name in ARCHIVE_DIR.iterdir() if name.is_dir()]
+
+
 def get_repository_content(repository: str) -> List[str]:
     """ Returns the content (only zip file names) of the given repository. """
     return [name.stem for name in (BASE_OUTPUT_DIR / repository).iterdir() if name.is_file() and name.suffix == ".zip"]
@@ -24,22 +29,25 @@ def create_repository(repository: str) -> None:
     (BASE_OUTPUT_DIR / repository).mkdir()
 
 
-def shallow_delete_repository(repository: str) -> None:
-    repo_path = BASE_OUTPUT_DIR / repository
+def delete_repository(repository: str, archived: bool, shallow: bool) -> None:
+    repo_path = (ARCHIVE_DIR if archived else BASE_OUTPUT_DIR) / repository
 
     if not repo_path.is_dir():
         raise BadRequestError(f"Repository '{repository}' does not exists!")
 
-    shutil.move(str(repo_path), ARCHIVE_DIR)
+    if shallow:
+        shutil.move(str(repo_path), ARCHIVE_DIR)
+    else:
+        shutil.rmtree(repo_path)
 
 
-def delete_repository(repository: str) -> None:
-    repo_path = BASE_OUTPUT_DIR / repository
+def unarchive_repository(repository: str) -> None:
+    repo_path = ARCHIVE_DIR / repository
 
     if not repo_path.is_dir():
         raise BadRequestError(f"Repository '{repository}' does not exists!")
 
-    shutil.rmtree(repo_path)
+    shutil.move(str(repo_path), BASE_OUTPUT_DIR)
 
 
 def extract_script_info(dataflow: zipfile.ZipFile) -> Optional[DataflowScript]:

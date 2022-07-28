@@ -4,7 +4,7 @@
 
     <q-item v-for="[name, value] in repoStore.repos" :key="name">
       <q-item-section avatar top>
-        <q-icon name="computer" color="black" size="34px" />
+        <q-icon name="folder" color="black" size="34px" />
       </q-item-section>
 
       <q-item-section top>
@@ -30,8 +30,17 @@
             flat
             dense
             round
+            icon="archive"
+            @click="deleteRepo(name, true)"
+          />
+          <q-btn
+            class="gt-xs"
+            size="12px"
+            flat
+            dense
+            round
             icon="delete"
-            @click="deleteRepo(name)"
+            @click="deleteRepo(name, false)"
           />
           <q-btn
             v-if="repoStore.currentRepo != name"
@@ -49,6 +58,48 @@
   </q-list>
 
   <q-btn icon="add" outline @click="addRepo"></q-btn>
+
+  <q-list bordered>
+    <q-item-label header>Archived Repositories</q-item-label>
+
+    <q-item v-for="[name, value] in repoStore.archivedRepos" :key="name">
+      <q-item-section avatar top>
+        <q-icon name="archive" color="black" size="34px" />
+      </q-item-section>
+
+      <q-item-section top>
+        <q-item-label lines="1">
+          <span class="text-weight-medium">{{ name }}</span>
+        </q-item-label>
+        <q-item-label caption lines="1">
+          {{ value.type }} repository
+        </q-item-label>
+      </q-item-section>
+
+      <q-item-section top side>
+        <div class="text-grey-8 q-gutter-xs">
+          <q-btn
+            class="gt-xs"
+            size="12px"
+            flat
+            dense
+            round
+            icon="unarchive"
+            @click="unarchiveRepo(name)"
+          />
+          <q-btn
+            class="gt-xs"
+            size="12px"
+            flat
+            dense
+            round
+            icon="delete"
+            @click="deleteArchivedRepo(name)"
+          />
+        </div>
+      </q-item-section>
+    </q-item>
+  </q-list>
 </template>
 
 <script lang="ts">
@@ -66,9 +117,15 @@ export default defineComponent({
     const repoStore = useRepoStore();
 
     onMounted(async () => {
-      const repos = await api.get<string[]>('/repositories');
+      const allRepos = await Promise.all([
+        api.get<string[]>('/repositories'),
+        api.get<string[]>('/repositories/archived'),
+      ]);
       repoStore.repos = new Map<string, Repository>(
-        repos.data.map((r) => [r, { name: r, type: 'local' }])
+        allRepos[0].data.map((r) => [r, { name: r, type: 'local' }])
+      );
+      repoStore.archivedRepos = new Map<string, Repository>(
+        allRepos[1].data.map((r) => [r, { name: r, type: 'local' }])
       );
       if (repoStore.repos.size > 0) {
         repoStore.currentRepo = [...repoStore.repos.values()][0].name;
@@ -101,17 +158,21 @@ export default defineComponent({
       });
     };
 
-    const deleteRepo = (repoName: string) => {
+    const deleteRepo = (repoName: string, shallow: boolean) => {
       $q.dialog({
-        title: 'Delete a repository',
+        title: (shallow ? 'Archive' : 'Delete') + ' a repository',
         message:
-          'Are you sure you want to delete the repository: ' + repoName + '?',
+          'Are you sure you want to ' +
+          (shallow ? 'archive' : 'delete') +
+          ' the repository: ' +
+          repoName +
+          '?',
         cancel: true,
       }).onOk(() => {
         api
           .delete('/repositories/' + repoName, {
             params: {
-              shallow: false,
+              shallow: shallow,
             },
           })
           .then(() => {
@@ -121,6 +182,52 @@ export default defineComponent({
             }
             if (repoStore.repos.size == 0) {
               repoStore.currentRepo = null;
+            }
+            if (shallow) {
+              repoStore.archivedRepos.set(repoName, {
+                name: repoName,
+                type: 'local',
+              });
+            }
+          })
+          .catch((error) => $q.notify({ message: error, type: 'negative' }));
+      });
+    };
+
+    const deleteArchivedRepo = (repoName: string) => {
+      $q.dialog({
+        title: 'Delete an archived repository',
+        message:
+          'Are you sure you want to delete the archived repository: ' +
+          repoName +
+          '?',
+        cancel: true,
+      }).onOk(() => {
+        api
+          .delete('/repositories/archived/' + repoName)
+          .then(() => {
+            repoStore.archivedRepos.delete(repoName);
+          })
+          .catch((error) => $q.notify({ message: error, type: 'negative' }));
+      });
+    };
+
+    const unarchiveRepo = (repoName: string) => {
+      $q.dialog({
+        title: 'Unarchive an archived repository',
+        message:
+          'Are you sure you want to unarchive the archived repository: ' +
+          repoName +
+          '?',
+        cancel: true,
+      }).onOk(() => {
+        api
+          .post('/repositories/archived/' + repoName)
+          .then(() => {
+            repoStore.archivedRepos.delete(repoName);
+            repoStore.repos.set(repoName, { name: repoName, type: 'local' });
+            if (repoStore.repos.size == 1) {
+              repoStore.currentRepo = [...repoStore.repos.values()][0].name;
             }
           })
           .catch((error) => $q.notify({ message: error, type: 'negative' }));
@@ -144,6 +251,8 @@ export default defineComponent({
       repoStore,
       addRepo,
       deleteRepo,
+      deleteArchivedRepo,
+      unarchiveRepo,
       markAsDefault,
     };
   },
