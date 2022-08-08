@@ -1,0 +1,4 @@
+def print_dataset(i, o):
+    df = i["dataset"]
+    print(df)
+    o["dataset"] = df

@@ -1,0 +1,2574 @@
+{
+    "pipeline_uid": "6058",
+    "nodes": [
+        {
+            "node_id": "DatasetCreator1",
+            "node": "rain.nodes.custom.custom.CustomNode",
+            "parameters": {
+                "nums": 100,
+                "p1": "ciao"
+            },
+            "function_name": "create_dataset",
+            "code": "def create_dataset(i, o, nums, p1, p2=True, p3='bb', p4=100):\n    import pandas as pd\n\n    def char_range(c1, c2):\n        for c in range(ord(c1), ord(c2) + 1):\n            yield chr(c)\n    arr_number = [i for i in range(nums)]\n    arr_letter = [c for c in char_range('A', 'Z')]\n    index = pd.MultiIndex.from_product([arr_number, arr_letter], names=['nums', 'letters'])\n    df = pd.DataFrame(index=index).reset_index()\n    o['dataset'] = df",
+            "then": [
+                {
+                    "to_node": "TrainTestDatasetSplit1",
+                    "from_port": "dataset",
+                    "to_port": "dataset"
+                },
+                {
+                    "to_node": "DataFrameLengthCalculator3",
+                    "from_port": "dataset",
+                    "to_port": "dataset"
+                }
+            ]
+        },
+        {
+            "node_id": "TrainTestDatasetSplit1",
+            "node": "rain.nodes.sklearn.functions.TrainTestDatasetSplit",
+            "parameters": {
+                "shuffle": true
+            },
+            "then": [
+                {
+                    "to_node": "DataFrameLengthCalculator1",
+                    "from_port": "train_dataset",
+                    "to_port": "dataset"
+                },
+                {
+                    "to_node": "DataFrameLengthCalculator2",
+                    "from_port": "test_dataset",
+                    "to_port": "dataset"
+                }
+            ]
+        },
+        {
+            "node_id": "DataFrameLengthCalculator3",
+            "node": "rain.nodes.custom.custom.CustomNode",
+            "parameters": {},
+            "function_name": "dataset_length",
+            "code": "def dataset_length(i, o):\n    df = i['dataset']\n    o['length'] = len(df)",
+            "then": [
+                {
+                    "to_node": "EqualChecker1",
+                    "from_port": "length",
+                    "to_port": "i2"
+                }
+            ]
+        },
+        {
+            "node_id": "DataFrameLengthCalculator1",
+            "node": "rain.nodes.custom.custom.CustomNode",
+            "parameters": {},
+            "function_name": "dataset_length",
+            "code": "def dataset_length(i, o):\n    df = i['dataset']\n    o['length'] = len(df)",
+            "then": [
+                {
+                    "to_node": "SumOfNumbers1",
+                    "from_port": "length",
+                    "to_port": "num1"
+                }
+            ]
+        },
+        {
+            "node_id": "DataFrameLengthCalculator2",
+            "node": "rain.nodes.custom.custom.CustomNode",
+            "parameters": {},
+            "function_name": "dataset_length",
+            "code": "def dataset_length(i, o):\n    df = i['dataset']\n    o['length'] = len(df)",
+            "then": [
+                {
+                    "to_node": "SumOfNumbers1",
+                    "from_port": "length",
+                    "to_port": "num2"
+                }
+            ]
+        },
+        {
+            "node_id": "SumOfNumbers1",
+            "node": "rain.nodes.custom.custom.CustomNode",
+            "parameters": {},
+            "function_name": "sum",
+            "code": "def sum(i, o):\n    o['sum'] = i['num1'] + i['num2']",
+            "then": [
+                {
+                    "to_node": "EqualChecker1",
+                    "from_port": "sum",
+                    "to_port": "i1"
+                }
+            ]
+        },
+        {
+            "node_id": "EqualChecker1",
+            "node": "rain.nodes.custom.custom.CustomNode",
+            "parameters": {},
+            "function_name": "check_equal",
+            "code": "def check_equal(i, o):\n    print(i['i1'] == i['i2'])",
+            "then": []
+        }
+    ],
+    "dependencies": [
+        "base",
+        "sklearn"
+    ],
+    "ui": {
+        "nodes": [
+            [
+                "DatasetCreator1",
+                {
+                    "name": "DatasetCreator1",
+                    "package": "rain.nodes.custom.custom.CustomNode1",
+                    "x": -519.5050175973867,
+                    "y": 705.6263239150043,
+                    "selected": false
+                }
+            ],
+            [
+                "TrainTestDatasetSplit1",
+                {
+                    "name": "TrainTestDatasetSplit1",
+                    "package": "rain.nodes.sklearn.functions.TrainTestDatasetSplit",
+                    "x": -72.44085412179504,
+                    "y": 489.5928438525665,
+                    "selected": false
+                }
+            ],
+            [
+                "DataFrameLengthCalculator3",
+                {
+                    "name": "DataFrameLengthCalculator3",
+                    "package": "rain.nodes.custom.custom.CustomNode2",
+                    "x": 409.16584839570703,
+                    "y": 860.4485875361956,
+                    "selected": false
+                }
+            ],
+            [
+                "DataFrameLengthCalculator1",
+                {
+                    "name": "DataFrameLengthCalculator1",
+                    "package": "rain.nodes.custom.custom.CustomNode2",
+                    "x": 442.2081762656085,
+                    "y": 430.4831109295136,
+                    "selected": false
+                }
+            ],
+            [
+                "DataFrameLengthCalculator2",
+                {
+                    "name": "DataFrameLengthCalculator2",
+                    "package": "rain.nodes.custom.custom.CustomNode2",
+                    "x": 430.228983571566,
+                    "y": 640.3789385374912,
+                    "selected": false
+                }
+            ],
+            [
+                "SumOfNumbers1",
+                {
+                    "name": "SumOfNumbers1",
+                    "package": "rain.nodes.custom.custom.CustomNode3",
+                    "x": 879.04768266519,
+                    "y": 551.8031420065722,
+                    "selected": false
+                }
+            ],
+            [
+                "EqualChecker1",
+                {
+                    "name": "EqualChecker1",
+                    "package": "rain.nodes.custom.custom.CustomNode4",
+                    "x": 1204.1757960554858,
+                    "y": 759.1268310546875,
+                    "selected": false
+                }
+            ]
+        ],
+        "edges": [
+            [
+                "DatasetCreator1-{out}-dataset|TrainTestDatasetSplit1-{in}-dataset",
+                {
+                    "fromNode": "DatasetCreator1",
+                    "fromPort": "dataset",
+                    "toNode": "TrainTestDatasetSplit1",
+                    "toPort": "dataset"
+                }
+            ],
+            [
+                "DatasetCreator1-{out}-dataset|DataFrameLengthCalculator3-{in}-dataset",
+                {
+                    "fromNode": "DatasetCreator1",
+                    "fromPort": "dataset",
+                    "toNode": "DataFrameLengthCalculator3",
+                    "toPort": "dataset"
+                }
+            ],
+            [
+                "TrainTestDatasetSplit1-{out}-train_dataset|DataFrameLengthCalculator1-{in}-dataset",
+                {
+                    "fromNode": "TrainTestDatasetSplit1",
+                    "fromPort": "train_dataset",
+                    "toNode": "DataFrameLengthCalculator1",
+                    "toPort": "dataset"
+                }
+            ],
+            [
+                "TrainTestDatasetSplit1-{out}-test_dataset|DataFrameLengthCalculator2-{in}-dataset",
+                {
+                    "fromNode": "TrainTestDatasetSplit1",
+                    "fromPort": "test_dataset",
+                    "toNode": "DataFrameLengthCalculator2",
+                    "toPort": "dataset"
+                }
+            ],
+            [
+                "DataFrameLengthCalculator3-{out}-length|EqualChecker1-{in}-i2",
+                {
+                    "fromNode": "DataFrameLengthCalculator3",
+                    "fromPort": "length",
+                    "toNode": "EqualChecker1",
+                    "toPort": "i2"
+                }
+            ],
+            [
+                "DataFrameLengthCalculator1-{out}-length|SumOfNumbers1-{in}-num1",
+                {
+                    "fromNode": "DataFrameLengthCalculator1",
+                    "fromPort": "length",
+                    "toNode": "SumOfNumbers1",
+                    "toPort": "num1"
+                }
+            ],
+            [
+                "DataFrameLengthCalculator2-{out}-length|SumOfNumbers1-{in}-num2",
+                {
+                    "fromNode": "DataFrameLengthCalculator2",
+                    "fromPort": "length",
+                    "toNode": "SumOfNumbers1",
+                    "toPort": "num2"
+                }
+            ],
+            [
+                "SumOfNumbers1-{out}-sum|EqualChecker1-{in}-i1",
+                {
+                    "fromNode": "SumOfNumbers1",
+                    "fromPort": "sum",
+                    "toNode": "EqualChecker1",
+                    "toPort": "i1"
+                }
+            ]
+        ],
+        "transform": "translate(460.86758362553394,10.141096342843184) scale(0.6597539553864471)",
+        "structures": [
+            [
+                "rain.nodes.spark.spark_input.SparkModelLoader",
+                {
+                    "clazz": "SparkModelLoader",
+                    "description": "Loads a file as a Spark Model.",
+                    "input": {},
+                    "methods": null,
+                    "output": {
+                        "model": "PipelineModel"
+                    },
+                    "package": "rain.nodes.spark.spark_input.SparkModelLoader",
+                    "parameter": [
+                        {
+                            "name": "path",
+                            "description": "Path of the csv file.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Input"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasSelectRows",
+                {
+                    "clazz": "PandasSelectRows",
+                    "description": "PandasSelectRows manages selection of rows, which can later be filtered or deleted.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "selection": "Series",
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasSelectRows",
+                    "parameter": [
+                        {
+                            "name": "select_nan",
+                            "description": "Whether to select rows with at least one NaN value.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "conditions",
+                            "description": "List of conditions to select rows.",
+                            "is_mandatory": false,
+                            "type": "List[str]",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.zscore.ZScorePredictor",
+                {
+                    "clazz": "ZScorePredictor",
+                    "description": "Node that returns the predictions performed with a ZScore model on the columns of a dataset.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "model": "pickle"
+                    },
+                    "methods": null,
+                    "output": {
+                        "predictions": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.zscore.ZScorePredictor",
+                    "parameter": [
+                        {
+                            "name": "columns",
+                            "description": "Column names to apply ZScore to. Empty to use all columns.",
+                            "is_mandatory": false,
+                            "type": "List[str]",
+                            "default_value": []
+                        },
+                        {
+                            "name": "threshold",
+                            "description": "The threshold of the ZScore to distinguish anomalies.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 1.3
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Predictor"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.sklearn.functions.DaviesBouldinScore",
+                {
+                    "clazz": "DaviesBouldinScore",
+                    "description": "Computes the Davies-Bouldin score using the 'sklearn.metrics.davies_bouldin_score'. The score is defined as the average similarity measure of each cluster with its most similar cluster, where similarity is the ratio of within-cluster distances to between-cluster distances. Thus, clusters which are farther apart and less dispersed will result in a better score. The minimum score is zero, with lower values indicating better clustering.",
+                    "input": {
+                        "samples_dataset": "DataFrame",
+                        "labels": "DataFrame"
+                    },
+                    "methods": [],
+                    "output": {
+                        "score": "float"
+                    },
+                    "package": "rain.nodes.sklearn.functions.DaviesBouldinScore",
+                    "parameter": [],
+                    "tags": {
+                        "library": "Sklearn",
+                        "type": "Metrics"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.pipeline.stages.LogisticRegression",
+                {
+                    "clazz": "LogisticRegression",
+                    "description": "Represent a SparkNode that supports fitting traditional logistic regression model.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "model": "PipelineModel"
+                    },
+                    "package": "rain.nodes.spark.pipeline.stages.LogisticRegression",
+                    "parameter": [
+                        {
+                            "name": "max_iter",
+                            "description": "Max number of iterations.",
+                            "is_mandatory": true,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "reg_param",
+                            "description": "Regularization parameter.",
+                            "is_mandatory": true,
+                            "type": "float",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Estimator"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.data_wrangling.SparkColumnSelector",
+                {
+                    "clazz": "SparkColumnSelector",
+                    "description": "SparkColumnSelector manages filtering of rows, columns and values for a Spark DataFrame.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.spark.data_wrangling.SparkColumnSelector",
+                    "parameter": [
+                        {
+                            "name": "column_list",
+                            "description": "List of columns to select from the dataset",
+                            "is_mandatory": true,
+                            "type": "List[str]",
+                            "default_value": null
+                        },
+                        {
+                            "name": "filter_list",
+                            "description": "List of conditions used to filter the rows of the dataset",
+                            "is_mandatory": false,
+                            "type": "List[str]",
+                            "default_value": []
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.spark_output.SparkSaveModel",
+                {
+                    "clazz": "SparkSaveModel",
+                    "description": "Save a trained PipelineModel",
+                    "input": {
+                        "model": "PipelineModel"
+                    },
+                    "methods": null,
+                    "output": {},
+                    "package": "rain.nodes.spark.spark_output.SparkSaveModel",
+                    "parameter": [
+                        {
+                            "name": "path",
+                            "description": "String representing the path where to save the model.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Output"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.pandas_io.PandasCSVWriter",
+                {
+                    "clazz": "PandasCSVWriter",
+                    "description": "Writes a pandas DataFrame into a CSV file.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {},
+                    "package": "rain.nodes.pandas.pandas_io.PandasCSVWriter",
+                    "parameter": [
+                        {
+                            "name": "path",
+                            "description": "Of the CSV file.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "delim",
+                            "description": "Delimiter symbol of the CSV file.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": ","
+                        },
+                        {
+                            "name": "include_rows",
+                            "description": "Whether to include rows indexes.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        },
+                        {
+                            "name": "rows_column_label",
+                            "description": "If rows indexes must be included you can give a name to its column.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "include_columns",
+                            "description": "Whether to include column names.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        },
+                        {
+                            "name": "columns",
+                            "description": "If column names must be included you can give names to them. The order is relevant.",
+                            "is_mandatory": false,
+                            "type": "list[str]",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Output"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pysad.trainer.HalfSpaceTree",
+                {
+                    "clazz": "HalfSpaceTree",
+                    "description": "Node that trains a model using the HalfSpaceTree algorithm.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "labels": "Series"
+                    },
+                    "methods": null,
+                    "output": {
+                        "model": "pickle",
+                        "auroc": "float"
+                    },
+                    "package": "rain.nodes.pysad.trainer.HalfSpaceTree",
+                    "parameter": [
+                        {
+                            "name": "data",
+                            "description": null,
+                            "is_mandatory": true,
+                            "type": null,
+                            "default_value": null
+                        },
+                        {
+                            "name": "window_size",
+                            "description": "The size of the window.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 100
+                        },
+                        {
+                            "name": "num_trees",
+                            "description": "The number of trees.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 25
+                        },
+                        {
+                            "name": "initial_window_x",
+                            "description": "The initial window to fit for initial calibration period. If not None, we simply apply fit to these instances.",
+                            "is_mandatory": false,
+                            "type": "np.ndarray",
+                            "default_value": null
+                        },
+                        {
+                            "name": "max_depth",
+                            "description": "The maximum depth of the trees.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 15
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySad",
+                        "type": "Trainer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.pipeline.stages.Tokenizer",
+                {
+                    "clazz": "Tokenizer",
+                    "description": "Represent a Spark Tokenizer used to split text in individual term.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.spark.pipeline.stages.Tokenizer",
+                    "parameter": [
+                        {
+                            "name": "in_col",
+                            "description": "The name of the input column.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "out_col",
+                            "description": "The name of the output column.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.tpot.classification.TPOTClassificationPredictor",
+                {
+                    "clazz": "TPOTClassificationPredictor",
+                    "description": "Node that returns the predictions performed with a TPOT Classification model on the columns of a dataset without the target feature column.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "model": "pickle"
+                    },
+                    "methods": null,
+                    "output": {
+                        "predictions": "DataFrame"
+                    },
+                    "package": "rain.nodes.tpot.classification.TPOTClassificationPredictor",
+                    "parameter": [],
+                    "tags": {
+                        "library": "TPOT",
+                        "type": "Predictor"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasAddColumn",
+                {
+                    "clazz": "PandasAddColumn",
+                    "description": "Node used to add a column to a Pandas Dataframe starting from a given Pandas Series.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "column": "Series"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasAddColumn",
+                    "parameter": [
+                        {
+                            "name": "loc",
+                            "description": "Insertion index. Must verify 0 <= loc <= len(columns)",
+                            "is_mandatory": true,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "col",
+                            "description": "Label of the inserted column.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasColumnsFiltering",
+                {
+                    "clazz": "PandasColumnsFiltering",
+                    "description": "PandasColumnsFiltering manages filtering of columns. This node gives access to several functionalities such as: - select columns by their indexes; - select columns by their names (labels); - select columns containing a substring in their names; - select columns that match a regex; - select columns in a range of indexes; - assign a type to a column. Every parameter but 'columns_type' is mutually exclusive, meaning that only one can be used.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasColumnsFiltering",
+                    "parameter": [
+                        {
+                            "name": "column_indexes",
+                            "description": "Filters the dataset selecting the given indexes. Uses the pandas iloc function.",
+                            "is_mandatory": false,
+                            "type": "List[int]",
+                            "default_value": null
+                        },
+                        {
+                            "name": "column_names",
+                            "description": "Filters the dataset selecting the given column labels. Uses the pandas filter function.",
+                            "is_mandatory": false,
+                            "type": "List[str]",
+                            "default_value": null
+                        },
+                        {
+                            "name": "columns_like",
+                            "description": "Keep columns for which the given string is a substring of the column label.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "columns_regex",
+                            "description": "Keep columns for which column labels match a given pattern.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "columns_range",
+                            "description": "Keep columns for which index falls withing the given range (from, to (excluded)).",
+                            "is_mandatory": false,
+                            "type": "Tuple[int, int]",
+                            "default_value": null
+                        },
+                        {
+                            "name": "columns_type",
+                            "description": "Type to assign to columns. It can be either a string, meaning that it will try to apply the chosen type to all the columns, or a list of strings, one for each column, meaning that it will try to assign a chosen type to each column in order.",
+                            "is_mandatory": false,
+                            "type": "str or List[str]",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.pipeline.spark_pipeline.SparkPipelineNode",
+                {
+                    "clazz": "SparkPipelineNode",
+                    "description": "Represent a Spark Pipeline consisting of SparkNode (stages). It should contain some Spark Transformer and a final Spark Estimator that return the trained model.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "model": "PipelineModel"
+                    },
+                    "package": "rain.nodes.spark.pipeline.spark_pipeline.SparkPipelineNode",
+                    "parameter": [
+                        {
+                            "name": "stages",
+                            "description": null,
+                            "is_mandatory": true,
+                            "type": null,
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Estimator"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pysad.transformer.ConformalProbabilityCalibrator",
+                {
+                    "clazz": "ConformalProbabilityCalibrator",
+                    "description": "This class provides an interface to convert the scores into probabilities through conformal prediction.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pysad.transformer.ConformalProbabilityCalibrator",
+                    "parameter": [
+                        {
+                            "name": "windowed",
+                            "description": "Whether the probability calibrator is windowed so that forget scores that are older than `window_size`.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        },
+                        {
+                            "name": "window_size",
+                            "description": "The size of window for running average and std.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 300
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySad",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasRenameColumn",
+                {
+                    "clazz": "PandasRenameColumn",
+                    "description": "Sets column names for a pandas DataFrame.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasRenameColumn",
+                    "parameter": [
+                        {
+                            "name": "columns",
+                            "description": "Column names to assign to the DataFrame. The order is relevant.",
+                            "is_mandatory": true,
+                            "type": "list[str]",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pysad.node_structure.PySadPredictor",
+                {
+                    "clazz": "PySadPredictor",
+                    "description": "Class representing a PySad predictor, use the given model and dataset to obtain the predictions.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "model": "pickle"
+                    },
+                    "methods": null,
+                    "output": {
+                        "predictions": "DataFrame"
+                    },
+                    "package": "rain.nodes.pysad.node_structure.PySadPredictor",
+                    "parameter": [],
+                    "tags": {
+                        "library": "PySad",
+                        "type": "Predictor"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasDropNan",
+                {
+                    "clazz": "PandasDropNan",
+                    "description": "Drops rows or columns that either has at least a NaN value or that has all NaN values.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasDropNan",
+                    "parameter": [
+                        {
+                            "name": "axis",
+                            "description": "The axis from where to remove the nan values.",
+                            "is_mandatory": false,
+                            "type": "{'rows', 'columns'}",
+                            "default_value": "rows"
+                        },
+                        {
+                            "name": "how",
+                            "description": "Whether to remove a row or a column which either contains any nan value or contains all nan values.",
+                            "is_mandatory": false,
+                            "type": "{'any', 'all'}",
+                            "default_value": "any"
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasGroupBy",
+                {
+                    "clazz": "PandasGroupBy",
+                    "description": "PandasGroupBy manages filtering of rows that have been previously selected.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasGroupBy",
+                    "parameter": [
+                        {
+                            "name": "key",
+                            "description": "Groupby key, which selects the grouping column of the target.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "freq",
+                            "description": "This will groupby the specified frequency if the target selection (via key) is a datetime-like object. For full specification of available frequencies, please see `here  /pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases>`_.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "axis",
+                            "description": "Number of the axis.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 0
+                        },
+                        {
+                            "name": "sort",
+                            "description": "Whether to sort the resulting labels.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "dropna",
+                            "description": "If True, and if group keys contain NA values, NA values together with row/column will be dropped. If False, NA values will also be treated as the key in groups.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        },
+                        {
+                            "name": "aggregates",
+                            "description": "The function used to aggregate the different columns during the GroupBy. It can be either a string, meaning that it will try to apply the chosen aggregation function to all the columns, or a list of strings, one for each column, meaning that it will try to assign a chosen type to each column in order.",
+                            "is_mandatory": false,
+                            "type": "str or List[str]",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.mongodb.database_io.MongoCSVWriter",
+                {
+                    "clazz": "MongoCSVWriter",
+                    "description": "Write a Pandas Dataframe into a MongoDB collection.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {},
+                    "package": "rain.nodes.mongodb.database_io.MongoCSVWriter",
+                    "parameter": [
+                        {
+                            "name": "connection",
+                            "description": "Hostname or IP address or Unix domain socket path of a single MongoDB instance to connect to, or a mongodb URI",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "db",
+                            "description": "Name of the database to connect to.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "coll",
+                            "description": "Name of the collection to connect to.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PyMongo",
+                        "type": "Output"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.mongodb.database_io.MongoCSVReader",
+                {
+                    "clazz": "MongoCSVReader",
+                    "description": "Read a Pandas Dataframe from a MongoDB collection.",
+                    "input": {},
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.mongodb.database_io.MongoCSVReader",
+                    "parameter": [
+                        {
+                            "name": "connection",
+                            "description": "Hostname or IP address or Unix domain socket path of a single MongoDB instance to connect to, or a mongodb URI",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "db",
+                            "description": "Name of the database to connect to.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "coll",
+                            "description": "Name of the collection to connect to.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "filter",
+                            "description": "A SON object specifying elements which must be present for a document to be included in the result set",
+                            "is_mandatory": false,
+                            "type": "dict",
+                            "default_value": null
+                        },
+                        {
+                            "name": "projection",
+                            "description": "A dict to exclude fields from the result (e.g. projection={'_id': False})",
+                            "is_mandatory": false,
+                            "type": "dict",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PyMongo",
+                        "type": "Input"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.model_io.PickleModelSave",
+                {
+                    "clazz": "PickleModelSave",
+                    "description": "Node that stores a given object, for instance a trained model, in pickle format.",
+                    "input": {
+                        "model": "pickle"
+                    },
+                    "methods": null,
+                    "output": {},
+                    "package": "rain.nodes.pandas.model_io.PickleModelSave",
+                    "parameter": [
+                        {
+                            "name": "path",
+                            "description": "The path/filename where to store the object/model.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Other",
+                        "type": "Output"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.sklearn.functions.TrainTestDatasetSplit",
+                {
+                    "clazz": "TrainTestDatasetSplit",
+                    "description": "Node that uses the 'sklearn.model_selection.train_test_split' to split a dataset in two parts.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": [],
+                    "output": {
+                        "train_dataset": "DataFrame",
+                        "test_dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.sklearn.functions.TrainTestDatasetSplit",
+                    "parameter": [
+                        {
+                            "name": "test_size",
+                            "description": "The size as percentage of the test dataset (e.g. 0.3 is 30%).",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": null
+                        },
+                        {
+                            "name": "train_size",
+                            "description": "The size as percentage of the train dataset (e.g. 0.7 is 70%)",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": null
+                        },
+                        {
+                            "name": "random_state",
+                            "description": "Seed for the random generation.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "shuffle",
+                            "description": "Whether to shuffle the dataset before the splitting.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        }
+                    ],
+                    "tags": {
+                        "library": "Sklearn",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.sklearn.decomposition.SklearnPCA",
+                {
+                    "clazz": "SklearnPCA",
+                    "description": "Node representation of a sklearn PCA estimator that uses the 'sklearn.decomposition.PCA'.",
+                    "input": {
+                        "fit_dataset": "DataFrame",
+                        "transform_dataset": "DataFrame",
+                        "score_dataset": "DataFrame"
+                    },
+                    "methods": [
+                        "fit",
+                        "transform",
+                        "score"
+                    ],
+                    "output": {
+                        "fitted_model": "BaseEstimator",
+                        "transformed_dataset": "DataFrame",
+                        "score_value": "float"
+                    },
+                    "package": "rain.nodes.sklearn.decomposition.SklearnPCA",
+                    "parameter": [
+                        {
+                            "name": "execute",
+                            "description": "List of strings to specify the methods to execute. The allowed strings are those from the _method attribute.",
+                            "is_mandatory": true,
+                            "type": "{'fit', 'score', 'transform'}",
+                            "default_value": null
+                        },
+                        {
+                            "name": "n_components",
+                            "description": "Number of components to keep.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "whiten",
+                            "description": "When True (False by default) the components_ vectors are multiplied by the square root of n_samples and then divided by the singular values to ensure uncorrelated outputs with unit component-wise variances.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "svd_solver",
+                            "description": "Svd solver.",
+                            "is_mandatory": false,
+                            "type": "{'auto', 'full', 'arpack', 'randomized'}",
+                            "default_value": "auto"
+                        },
+                        {
+                            "name": "tol",
+                            "description": "Tolerance for singular values computed by svd_solver == 'arpack'. Must be positive.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 0
+                        },
+                        {
+                            "name": "iterated_power",
+                            "description": "Number of iterations for the power method computed by svd_solver == 'randomized'. Must be positive.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": "auto"
+                        },
+                        {
+                            "name": "random_state",
+                            "description": "Used when the 'arpack' or 'randomized' solvers are used. Pass an int for reproducible results across multiple function calls.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Sklearn",
+                        "type": "Estimator"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.sklearn.svm.SklearnLinearSVC",
+                {
+                    "clazz": "SklearnLinearSVC",
+                    "description": "Node that uses the 'sklearn.svm.LinearSVC' classifier.",
+                    "input": {
+                        "fit_dataset": "DataFrame",
+                        "predict_dataset": "DataFrame",
+                        "score_dataset": "DataFrame",
+                        "fit_targets": "DataFrame",
+                        "score_targets": "DataFrame"
+                    },
+                    "methods": [
+                        "fit",
+                        "predict",
+                        "score"
+                    ],
+                    "output": {
+                        "fitted_model": "BaseEstimator",
+                        "predictions": "DataFrame",
+                        "score_value": "float"
+                    },
+                    "package": "rain.nodes.sklearn.svm.SklearnLinearSVC",
+                    "parameter": [
+                        {
+                            "name": "execute",
+                            "description": "List of strings to specify the methods to execute. The allowed strings are those from the _method attribute.",
+                            "is_mandatory": true,
+                            "type": "{'fit', 'predict', 'score'}",
+                            "default_value": null
+                        },
+                        {
+                            "name": "penalty",
+                            "description": "Penalty.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": "l2"
+                        },
+                        {
+                            "name": "loss",
+                            "description": "Loss.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": "squared_hinge"
+                        },
+                        {
+                            "name": "dual",
+                            "description": "Dual.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        },
+                        {
+                            "name": "tol",
+                            "description": "Tol.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 0.0001
+                        },
+                        {
+                            "name": "C",
+                            "description": "C.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 1
+                        },
+                        {
+                            "name": "multi_class",
+                            "description": "Multi_class.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": "ovr"
+                        },
+                        {
+                            "name": "fit_intercept",
+                            "description": "Fit_intercept.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        },
+                        {
+                            "name": "intercept_scaling",
+                            "description": "Intercept_scaling.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 1
+                        },
+                        {
+                            "name": "class_weight",
+                            "description": "Class_weight.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": null
+                        },
+                        {
+                            "name": "verbose",
+                            "description": "Verbose.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 0
+                        },
+                        {
+                            "name": "random_state",
+                            "description": "Random_state.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "max_iter",
+                            "description": "Max_iter.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 1000
+                        }
+                    ],
+                    "tags": {
+                        "library": "Sklearn",
+                        "type": "Classifier"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.spark_input.SparkCSVLoader",
+                {
+                    "clazz": "SparkCSVLoader",
+                    "description": "Loads a CSV file as a Spark DataFrame.",
+                    "input": {},
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.spark.spark_input.SparkCSVLoader",
+                    "parameter": [
+                        {
+                            "name": "path",
+                            "description": "Path of the csv file.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "header",
+                            "description": "Uses the first line as names of columns.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "schema",
+                            "description": "Infers the input schema automatically from data. It requires one extra pass over the data.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Input"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.data_wrangling.SparkSplitDataset",
+                {
+                    "clazz": "SparkSplitDataset",
+                    "description": "Splits a Spark DataFrame in two DataFrames, train and test.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame",
+                        "train_dataset": "DataFrame",
+                        "test_dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.spark.data_wrangling.SparkSplitDataset",
+                    "parameter": [
+                        {
+                            "name": "train",
+                            "description": "Percentage of the dataset to split into a train dataset.",
+                            "is_mandatory": true,
+                            "type": "float",
+                            "default_value": null
+                        },
+                        {
+                            "name": "test",
+                            "description": "Percentage of the dataset to split into a test dataset.",
+                            "is_mandatory": true,
+                            "type": "float",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.spark_output.SparkSaveDataset",
+                {
+                    "clazz": "SparkSaveDataset",
+                    "description": "Save a Spark Dataframe in a .csv format",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {},
+                    "package": "rain.nodes.spark.spark_output.SparkSaveDataset",
+                    "parameter": [
+                        {
+                            "name": "path",
+                            "description": "String representing the path where to save the dataset",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "index",
+                            "description": "String representing the path where to save the dataset",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Output"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.zscore.ZScoreTrainer",
+                {
+                    "clazz": "ZScoreTrainer",
+                    "description": "Node that returns the model trained with the ZScore algorithm by analyzing the columns of the dataset.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "model": "pickle"
+                    },
+                    "package": "rain.nodes.pandas.zscore.ZScoreTrainer",
+                    "parameter": [
+                        {
+                            "name": "columns",
+                            "description": "Column names to apply ZScore to. Empty to use all columns.",
+                            "is_mandatory": false,
+                            "type": "List[str]",
+                            "default_value": []
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Trainer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.custom.custom.CustomNode",
+                {
+                    "clazz": "CustomNode",
+                    "description": "A node that can contain user-defined Python code.",
+                    "input": {},
+                    "methods": null,
+                    "output": {},
+                    "package": "rain.nodes.custom.custom.CustomNode",
+                    "parameter": [],
+                    "tags": {
+                        "library": "Base",
+                        "type": "Custom"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.spark.pipeline.stages.HashingTF",
+                {
+                    "clazz": "HashingTF",
+                    "description": "Represent a Spark HashingTF that maps a sequence of terms to their term frequencies using the hashing trick.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.spark.pipeline.stages.HashingTF",
+                    "parameter": [
+                        {
+                            "name": "in_col",
+                            "description": "The name of the input column.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "out_col",
+                            "description": "The name of the output column.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySpark",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.model_io.PickleModelLoad",
+                {
+                    "clazz": "PickleModelLoad",
+                    "description": "Node that loads a given object, for instance a trained model, stored in pickle format.",
+                    "input": {},
+                    "methods": null,
+                    "output": {
+                        "model": "pickle"
+                    },
+                    "package": "rain.nodes.pandas.model_io.PickleModelLoad",
+                    "parameter": [
+                        {
+                            "name": "path",
+                            "description": "The path of the stored object/model.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Other",
+                        "type": "Input"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasReplaceColumn",
+                {
+                    "clazz": "PandasReplaceColumn",
+                    "description": "Node used to replace the boolean values of a Pandas Series with other values given by the user.",
+                    "input": {
+                        "column": "Series"
+                    },
+                    "methods": null,
+                    "output": {
+                        "column": "Series"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasReplaceColumn",
+                    "parameter": [
+                        {
+                            "name": "first_value",
+                            "description": "Value used when the condition is True.",
+                            "is_mandatory": true,
+                            "type": "Any",
+                            "default_value": null
+                        },
+                        {
+                            "name": "second_value",
+                            "description": "Value used when the condition is False.",
+                            "is_mandatory": true,
+                            "type": "Any",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasSequence",
+                {
+                    "clazz": "PandasSequence",
+                    "description": "PandasSequence wraps a list of nodes that must be executed in sequence into a single node. Intermediate values are passed along the chain using the 'dataset' variable, hence only PandasNodes can be used within a sequence.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasSequence",
+                    "parameter": [
+                        {
+                            "name": "stages",
+                            "description": "ordered in an execution sequence. They must all be PandasNodes, hence have a 'dataset' variable used for input and output.",
+                            "is_mandatory": true,
+                            "type": "list of PandasTransformer",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.tpot.classification.TPOTClassificationTrainer",
+                {
+                    "clazz": "TPOTClassificationTrainer",
+                    "description": "Node that returns the classification model trained with the TPOT library.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "code": "str",
+                        "model": "pickle"
+                    },
+                    "package": "rain.nodes.tpot.classification.TPOTClassificationTrainer",
+                    "parameter": [
+                        {
+                            "name": "target_feature",
+                            "description": "Name of the target feature.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "export_script",
+                            "description": "Whether to export the resulting Python script.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "generations",
+                            "description": "Number of iterations to the run pipeline optimization process. It must be a positive number. If not set, the parameter max_time_mins must be defined as the runtime limit. Generally, TPOT will work better when you give it more generations (and therefore time) to optimize the pipeline. TPOT will evaluate POPULATION_SIZE + GENERATIONS x OFFSPRING_SIZE pipelines in total.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 100
+                        },
+                        {
+                            "name": "population_size",
+                            "description": "Number of individuals to retain in the GP population every generation. Generally, TPOT will work better when you give it more individuals (and therefore time) to optimize the pipeline. TPOT will evaluate POPULATION_SIZE + GENERATIONS x OFFSPRING_SIZE pipelines in total.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 100
+                        },
+                        {
+                            "name": "offspring_size",
+                            "description": "Number of offspring to produce in each GP generation. By default, offspring_size = population_size.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "mutation_rate",
+                            "description": "Mutation rate for the genetic programming algorithm in the range [0.0, 1.0]. This parameter tells the GP algorithm how many pipelines to apply random changes to every generation. We recommend using the default parameter unless you understand how the mutation rate affects GP algorithms.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 0.9
+                        },
+                        {
+                            "name": "crossover_rate",
+                            "description": "Crossover rate for the genetic programming algorithm in the range [0.0, 1.0]. This parameter tells the genetic programming algorithm how many pipelines to \"breed\" every generation. We recommend using the default parameter unless you understand how the mutation rate affects GP algorithms.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 0.1
+                        },
+                        {
+                            "name": "scoring",
+                            "description": "Function used to evaluate the quality of a given pipeline for the problem. By default, accuracy is used for classification problems. Offers the same options as sklearn.model_selection.cross_val_score as well as a built-in score 'balanced_accuracy'. Classification metrics: ['accuracy', 'adjusted_rand_score', 'average_precision', 'balanced_accuracy', 'f1', 'f1_macro', 'f1_micro', 'f1_samples', 'f1_weighted', 'precision', 'precision_macro', 'precision_micro', 'precision_samples', 'precision_weighted', 'recall', 'recall_macro', 'recall_micro', 'recall_samples', 'recall_weighted', 'roc_auc']",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": "accuracy"
+                        },
+                        {
+                            "name": "cv",
+                            "description": "The number of folds to evaluate each pipeline over in k-fold cross-validation during the TPOT optimization process.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 5
+                        },
+                        {
+                            "name": "subsample",
+                            "description": "Subsample ratio of the training instance. Setting it to 0.5 means that TPOT randomly collects half of training samples for pipeline optimization process.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 1
+                        },
+                        {
+                            "name": "n_jobs",
+                            "description": "Number of CPUs for evaluating pipelines in parallel during the TPOT optimization process. Assigning this to -1 will use as many cores as available on the computer. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are used.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 1
+                        },
+                        {
+                            "name": "max_time_mins",
+                            "description": "How many minutes TPOT has to optimize the pipeline. If not None, this setting will allow TPOT to run until max_time_mins minutes elapsed and then stop. TPOT will stop earlier if generationsis set and all generations are already evaluated.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "max_eval_time_mins",
+                            "description": "How many minutes TPOT has to optimize a single pipeline. Setting this parameter to higher values will allow TPOT to explore more complex pipelines, but will also allow TPOT to run longer.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 5
+                        },
+                        {
+                            "name": "random_state",
+                            "description": "Random number generator seed for TPOT. Use this parameter to make sure that TPOT will give you the same results each time you run it against the same data set with that seed.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "config_dict",
+                            "description": "String 'TPOT light':     TPOT uses a light version of operator configuration dictionary instead of     the default one. String 'TPOT MDR':     TPOT uses a list of TPOT-MDR operator configuration dictionary instead of     the default one. String 'TPOT sparse':     TPOT uses a configuration dictionary with a one-hot-encoder and the     operators normally included in TPOT that also support sparse matrices. String 'TPOT NN':     TPOT uses a configuration dictionary for PyTorch neural network classifiers     included in `tpot.nn`.",
+                            "is_mandatory": false,
+                            "type": "{'TPOT light', 'TPOT MDR', 'TPOT sparse', 'TPOT NN'}",
+                            "default_value": null
+                        },
+                        {
+                            "name": "template",
+                            "description": "Template of predefined pipeline structure. The option is for specifying a desired structure for the machine learning pipeline evaluated in TPOT. So far this option only supports linear pipeline structure. Each step in the pipeline should be a main class of operators (Selector, Transformer, Classifier or Regressor) or a specific operator (e.g. SelectPercentile) defined in TPOT operator configuration. If one step is a main class, TPOT will randomly assign all subclass operators (subclasses of SelectorMixin, TransformerMixin, ClassifierMixin or RegressorMixin in scikit-learn) to that step. Steps in the template are delimited by \"-\", e.g. \"SelectPercentile-Transformer-Classifier\". By default value of template is None, TPOT generates tree-based pipeline randomly.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "warm_start",
+                            "description": "Flag indicating whether the TPOT instance will reuse the population from previous calls to fit().",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "memory",
+                            "description": "If supplied, pipeline will cache each transformer after calling fit. This feature is used to avoid computing the fit transformers within a pipeline if the parameters and input data are identical with another fitted pipeline during optimization process. String 'auto':     TPOT uses memory caching with a temporary directory and cleans it up upon shutdown. String path of a caching directory     TPOT uses memory caching with the provided directory and TPOT does NOT clean     the caching directory up upon shutdown. If the directory does not exist, TPOT will     create it. None:     TPOT does not use memory caching.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "use_dask",
+                            "description": "Whether to use Dask-ML's pipeline optimizations. This avoid re-fitting the same estimator on the same split of data multiple times. It will also provide more detailed diagnostics when using Dask's distributed scheduler.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "periodic_checkpoint_folder",
+                            "description": "If supplied, a folder in which tpot will periodically save pipelines in pareto front so far while optimizing. Currently once per generation but not more often than once per 30 seconds. Useful in multiple cases:     Sudden death before tpot could save optimized pipeline     Track its progress     Grab pipelines while it's still optimizing",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "early_stop",
+                            "description": "How many generations TPOT checks whether there is no improvement in optimization process. End optimization process if there is no improvement in the set number of generations.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "verbosity",
+                            "description": "How much information TPOT communicates while it's running. 0 = none, 1 = minimal, 2 = high, 3 = all. A setting of 2 or higher will add a progress bar during the optimization procedure.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 0
+                        },
+                        {
+                            "name": "log_file",
+                            "description": "Save progress content to a file.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "TPOT",
+                        "type": "Trainer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.pandas_io.PandasCSVLoader",
+                {
+                    "clazz": "PandasCSVLoader",
+                    "description": "Loads a pandas DataFrame from a CSV file.",
+                    "input": {},
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.pandas_io.PandasCSVLoader",
+                    "parameter": [
+                        {
+                            "name": "path",
+                            "description": "Of the CSV file.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "delim",
+                            "description": "Delimiter symbol of the CSV file.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": ","
+                        },
+                        {
+                            "name": "index_col",
+                            "description": null,
+                            "is_mandatory": false,
+                            "type": null,
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Input"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasPivot",
+                {
+                    "clazz": "PandasPivot",
+                    "description": "Transforms a DataFrame into a Pivot table from the given rows, columns and values.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasPivot",
+                    "parameter": [
+                        {
+                            "name": "rows",
+                            "description": "Name of the column whose values will be the rows of the pivot.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "columns",
+                            "description": "Name of the column whose values will be the columns of the pivot.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "values",
+                            "description": "Name of the column whose values will be the values of the pivot.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "aggfunc",
+                            "description": "Function to use for the aggregation.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": "mean"
+                        },
+                        {
+                            "name": "fill_value",
+                            "description": "Value to replace missing values with.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 0
+                        },
+                        {
+                            "name": "dropna",
+                            "description": "Do not include columns whose entries are all NaN.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        },
+                        {
+                            "name": "sort",
+                            "description": "Specifies if the result should be sorted.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.sklearn.loaders.IrisDatasetLoader",
+                {
+                    "clazz": "IrisDatasetLoader",
+                    "description": "Loads the iris dataset as a pandas DataFrame using the 'sklearn.datasets.load_iris'.",
+                    "input": {},
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame",
+                        "target": "DataFrame"
+                    },
+                    "package": "rain.nodes.sklearn.loaders.IrisDatasetLoader",
+                    "parameter": [
+                        {
+                            "name": "separate_target",
+                            "description": "Whether to get the target labels in the separated output 'target'.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        }
+                    ],
+                    "tags": {
+                        "library": "Sklearn",
+                        "type": "Input"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.tpot.regression.TPOTRegressionTrainer",
+                {
+                    "clazz": "TPOTRegressionTrainer",
+                    "description": "Node that returns the regression model trained with the TPOT library.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "code": "str",
+                        "model": "pickle"
+                    },
+                    "package": "rain.nodes.tpot.regression.TPOTRegressionTrainer",
+                    "parameter": [
+                        {
+                            "name": "target_feature",
+                            "description": "Name of the target feature.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "export_script",
+                            "description": "Whether to export the resulting Python script.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "generations",
+                            "description": "Number of iterations to the run pipeline optimization process. It must be a positive number. If not set, the parameter max_time_mins must be defined as the runtime limit. Generally, TPOT will work better when you give it more generations (and therefore time) to optimize the pipeline. TPOT will evaluate POPULATION_SIZE + GENERATIONS x OFFSPRING_SIZE pipelines in total.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 100
+                        },
+                        {
+                            "name": "population_size",
+                            "description": "Number of individuals to retain in the GP population every generation. Generally, TPOT will work better when you give it more individuals (and therefore time) to optimize the pipeline. TPOT will evaluate POPULATION_SIZE + GENERATIONS x OFFSPRING_SIZE pipelines in total.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 100
+                        },
+                        {
+                            "name": "offspring_size",
+                            "description": "Number of offspring to produce in each GP generation. By default, offspring_size = population_size.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "mutation_rate",
+                            "description": "Mutation rate for the genetic programming algorithm in the range [0.0, 1.0]. This parameter tells the GP algorithm how many pipelines to apply random changes to every generation. We recommend using the default parameter unless you understand how the mutation rate affects GP algorithms.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 0.9
+                        },
+                        {
+                            "name": "crossover_rate",
+                            "description": "Crossover rate for the genetic programming algorithm in the range [0.0, 1.0]. This parameter tells the genetic programming algorithm how many pipelines to \"breed\" every generation. We recommend using the default parameter unless you understand how the mutation rate affects GP algorithms.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 0.1
+                        },
+                        {
+                            "name": "scoring",
+                            "description": "Function used to evaluate the quality of a given pipeline for the problem. By default, mean squared error (MSE) is used for regression problems. Offers the same options as sklearn.model_selection.cross_val_score as well as a built-in score 'balanced_accuracy'. Regression metrics: ['neg_median_absolute_error', 'neg_mean_absolute_error', 'neg_mean_squared_error', 'r2']",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": "neg_mean_squared_error"
+                        },
+                        {
+                            "name": "cv",
+                            "description": "The number of folds to evaluate each pipeline over in k-fold cross-validation during the TPOT optimization process.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 5
+                        },
+                        {
+                            "name": "subsample",
+                            "description": "Subsample ratio of the training instance. Setting it to 0.5 means that TPOT randomly collects half of training samples for pipeline optimization process.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 1
+                        },
+                        {
+                            "name": "n_jobs",
+                            "description": "Number of CPUs for evaluating pipelines in parallel during the TPOT optimization process. Assigning this to -1 will use as many cores as available on the computer. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are used.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 1
+                        },
+                        {
+                            "name": "max_time_mins",
+                            "description": "How many minutes TPOT has to optimize the pipeline. If not None, this setting will allow TPOT to run until max_time_mins minutes elapsed and then stop. TPOT will stop earlier if generationsis set and all generations are already evaluated.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "max_eval_time_mins",
+                            "description": "How many minutes TPOT has to optimize a single pipeline. Setting this parameter to higher values will allow TPOT to explore more complex pipelines, but will also allow TPOT to run longer.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 5
+                        },
+                        {
+                            "name": "random_state",
+                            "description": "Random number generator seed for TPOT. Use this parameter to make sure that TPOT will give you the same results each time you run it against the same data set with that seed.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "config_dict",
+                            "description": "String 'TPOT light':     TPOT uses a light version of operator configuration dictionary instead of     the default one. String 'TPOT MDR':     TPOT uses a list of TPOT-MDR operator configuration dictionary instead of     the default one. String 'TPOT sparse':     TPOT uses a configuration dictionary with a one-hot-encoder and the     operators normally included in TPOT that also support sparse matrices. String 'TPOT NN':     TPOT uses a configuration dictionary for PyTorch neural network classifiers     included in `tpot.nn`.",
+                            "is_mandatory": false,
+                            "type": "{'TPOT light', 'TPOT MDR', 'TPOT sparse', 'TPOT NN'}",
+                            "default_value": null
+                        },
+                        {
+                            "name": "template",
+                            "description": "Template of predefined pipeline structure. The option is for specifying a desired structure for the machine learning pipeline evaluated in TPOT. So far this option only supports linear pipeline structure. Each step in the pipeline should be a main class of operators (Selector, Transformer, Classifier or Regressor) or a specific operator (e.g. SelectPercentile) defined in TPOT operator configuration. If one step is a main class, TPOT will randomly assign all subclass operators (subclasses of SelectorMixin, TransformerMixin, ClassifierMixin or RegressorMixin in scikit-learn) to that step. Steps in the template are delimited by \"-\", e.g. \"SelectPercentile-Transformer-Classifier\". By default value of template is None, TPOT generates tree-based pipeline randomly.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "warm_start",
+                            "description": "Flag indicating whether the TPOT instance will reuse the population from previous calls to fit().",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "memory",
+                            "description": "If supplied, pipeline will cache each transformer after calling fit. This feature is used to avoid computing the fit transformers within a pipeline if the parameters and input data are identical with another fitted pipeline during optimization process. String 'auto':     TPOT uses memory caching with a temporary directory and cleans it up upon shutdown. String path of a caching directory     TPOT uses memory caching with the provided directory and TPOT does NOT clean     the caching directory up upon shutdown. If the directory does not exist, TPOT will     create it. None:     TPOT does not use memory caching.",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "use_dask",
+                            "description": "Whether to use Dask-ML's pipeline optimizations. This avoid re-fitting the same estimator on the same split of data multiple times. It will also provide more detailed diagnostics when using Dask's distributed scheduler.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": false
+                        },
+                        {
+                            "name": "periodic_checkpoint_folder",
+                            "description": "If supplied, a folder in which tpot will periodically save pipelines in pareto front so far while optimizing. Currently once per generation but not more often than once per 30 seconds. Useful in multiple cases:     Sudden death before tpot could save optimized pipeline     Track its progress     Grab pipelines while it's still optimizing",
+                            "is_mandatory": false,
+                            "type": "str",
+                            "default_value": null
+                        },
+                        {
+                            "name": "early_stop",
+                            "description": "How many generations TPOT checks whether there is no improvement in optimization process. End optimization process if there is no improvement in the set number of generations.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "verbosity",
+                            "description": "How much information TPOT communicates while it's running. 0 = none, 1 = minimal, 2 = high, 3 = all. A setting of 2 or higher will add a progress bar during the optimization procedure.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 0
+                        }
+                    ],
+                    "tags": {
+                        "library": "TPOT",
+                        "type": "Trainer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pysad.trainer.XStream",
+                {
+                    "clazz": "XStream",
+                    "description": "Node that trains a model using the xStream algorithm.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "labels": "Series"
+                    },
+                    "methods": null,
+                    "output": {
+                        "model": "pickle",
+                        "auroc": "float"
+                    },
+                    "package": "rain.nodes.pysad.trainer.XStream",
+                    "parameter": [
+                        {
+                            "name": "window_size",
+                            "description": "The size (and the sliding length) of the reference window.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 25
+                        },
+                        {
+                            "name": "num_components",
+                            "description": "The number of components for streamhash projection.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 100
+                        },
+                        {
+                            "name": "n_chains",
+                            "description": "The number of half-space chains.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 100
+                        },
+                        {
+                            "name": "depth",
+                            "description": "The maximum depth for the chains.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 25
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySad",
+                        "type": "Trainer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.PandasFilterRows",
+                {
+                    "clazz": "PandasFilterRows",
+                    "description": "PandasFilterRows manages filtering of rows that have been previously selected.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "selected_rows": "Series"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.PandasFilterRows",
+                    "parameter": [],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pandas.transform_nodes.SplitFeaturesAndLabels",
+                {
+                    "clazz": "SplitFeaturesAndLabels",
+                    "description": "Node used to split a Dataframe into Features and Labels.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame",
+                        "labels": "Series"
+                    },
+                    "package": "rain.nodes.pandas.transform_nodes.SplitFeaturesAndLabels",
+                    "parameter": [
+                        {
+                            "name": "target",
+                            "description": "The name of the column containing the labels.",
+                            "is_mandatory": true,
+                            "type": "str",
+                            "default_value": null
+                        }
+                    ],
+                    "tags": {
+                        "library": "Pandas",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pysad.transformer.InstanceUnitNormScaler",
+                {
+                    "clazz": "InstanceUnitNormScaler",
+                    "description": "A scaler that makes the instance feature vector's norm equal to 1, i.e., the unit vector.",
+                    "input": {
+                        "dataset": "DataFrame"
+                    },
+                    "methods": null,
+                    "output": {
+                        "dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.pysad.transformer.InstanceUnitNormScaler",
+                    "parameter": [
+                        {
+                            "name": "pow",
+                            "description": "The power, for which the norm is calculated. pow=2 is equivalent to the euclidean distance.",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": 2
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySad",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.tpot.regression.TPOTRegressionPredictor",
+                {
+                    "clazz": "TPOTRegressionPredictor",
+                    "description": "Node that returns the predictions performed with a TPOT Regression model on the columns of a dataset without the target feature column.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "model": "pickle"
+                    },
+                    "methods": null,
+                    "output": {
+                        "predictions": "DataFrame"
+                    },
+                    "package": "rain.nodes.tpot.regression.TPOTRegressionPredictor",
+                    "parameter": [],
+                    "tags": {
+                        "library": "TPOT",
+                        "type": "Predictor"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.sklearn.cluster.SimpleKMeans",
+                {
+                    "clazz": "SimpleKMeans",
+                    "description": "A clusterer for the sklearn KMeans that uses the 'sklearn.cluster.KMeans'.",
+                    "input": {
+                        "fit_dataset": "DataFrame",
+                        "predict_dataset": "DataFrame",
+                        "score_dataset": "DataFrame",
+                        "transform_dataset": "DataFrame"
+                    },
+                    "methods": [
+                        "fit",
+                        "predict",
+                        "score",
+                        "transform"
+                    ],
+                    "output": {
+                        "fitted_model": "BaseEstimator",
+                        "predictions": "DataFrame",
+                        "score_value": "float",
+                        "transformed_dataset": "DataFrame",
+                        "labels": "DataFrame"
+                    },
+                    "package": "rain.nodes.sklearn.cluster.SimpleKMeans",
+                    "parameter": [
+                        {
+                            "name": "execute",
+                            "description": "List of strings to specify the methods to execute. The allowed strings are those from the _method attribute.",
+                            "is_mandatory": true,
+                            "type": "{'fit', 'predict', 'score', 'transform'}",
+                            "default_value": null
+                        },
+                        {
+                            "name": "n_clusters",
+                            "description": "The number of clusters to form as well as the number of centroids to generate.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 8
+                        }
+                    ],
+                    "tags": {
+                        "library": "Sklearn",
+                        "type": "Clusterer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.sklearn.functions.TrainTestSampleTargetSplit",
+                {
+                    "clazz": "TrainTestSampleTargetSplit",
+                    "description": "Node that uses the 'sklearn.model_selection.train_test_split' to split two datasets in four parts. It is useful for classification where you have to split equally the sample and the target datasets.",
+                    "input": {
+                        "sample_dataset": "DataFrame",
+                        "target_dataset": "DataFrame"
+                    },
+                    "methods": [],
+                    "output": {
+                        "sample_train_dataset": "DataFrame",
+                        "sample_test_dataset": "DataFrame",
+                        "target_train_dataset": "DataFrame",
+                        "target_test_dataset": "DataFrame"
+                    },
+                    "package": "rain.nodes.sklearn.functions.TrainTestSampleTargetSplit",
+                    "parameter": [
+                        {
+                            "name": "test_size",
+                            "description": "The size as percentage of the test dataset (e.g. 0.3 is 30%).",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": null
+                        },
+                        {
+                            "name": "train_size",
+                            "description": "The size as percentage of the train dataset (e.g. 0.7 is 70%)",
+                            "is_mandatory": false,
+                            "type": "float",
+                            "default_value": null
+                        },
+                        {
+                            "name": "random_state",
+                            "description": "Seed for the random generation.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": null
+                        },
+                        {
+                            "name": "shuffle",
+                            "description": "Whether to shuffle the dataset before the splitting.",
+                            "is_mandatory": false,
+                            "type": "bool",
+                            "default_value": true
+                        }
+                    ],
+                    "tags": {
+                        "library": "Sklearn",
+                        "type": "Transformer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.pysad.trainer.IForestASD",
+                {
+                    "clazz": "IForestASD",
+                    "description": "Node that trains a model using the IForestASD algorithm.",
+                    "input": {
+                        "dataset": "DataFrame",
+                        "labels": "Series"
+                    },
+                    "methods": null,
+                    "output": {
+                        "model": "pickle",
+                        "auroc": "float"
+                    },
+                    "package": "rain.nodes.pysad.trainer.IForestASD",
+                    "parameter": [
+                        {
+                            "name": "window_size",
+                            "description": "The size of the reference window and its sliding.",
+                            "is_mandatory": false,
+                            "type": "int",
+                            "default_value": 2048
+                        }
+                    ],
+                    "tags": {
+                        "library": "PySad",
+                        "type": "Trainer"
+                    }
+                }
+            ],
+            [
+                "rain.nodes.custom.custom.CustomNode1",
+                {
+                    "package": "rain.nodes.custom.custom.CustomNode1",
+                    "clazz": "CreateDataset",
+                    "input": {},
+                    "output": {
+                        "dataset": "custom"
+                    },
+                    "parameter": [
+                        {
+                            "name": "nums",
+                            "type": "Any",
+                            "is_mandatory": false,
+                            "description": "Custom Parameter: nums",
+                            "default_value": null
+                        },
+                        {
+                            "name": "p1",
+                            "type": "Any",
+                            "is_mandatory": false,
+                            "description": "Custom Parameter: p1",
+                            "default_value": null
+                        },
+                        {
+                            "name": "p2",
+                            "type": "Any",
+                            "is_mandatory": false,
+                            "description": "Custom Parameter: p2",
+                            "default_value": null
+                        },
+                        {
+                            "name": "p3",
+                            "type": "Any",
+                            "is_mandatory": false,
+                            "description": "Custom Parameter: p3",
+                            "default_value": null
+                        },
+                        {
+                            "name": "p4",
+                            "type": "Any",
+                            "is_mandatory": false,
+                            "description": "Custom Parameter: p4",
+                            "default_value": null
+                        }
+                    ],
+                    "methods": null,
+                    "tags": {
+                        "library": "Base",
+                        "type": "Custom"
+                    },
+                    "description": "A Custom Node.",
+                    "function_name": "create_dataset",
+                    "code": "def create_dataset(i, o, nums, p1, p2=True, p3='bb', p4=100):\n    import pandas as pd\n\n    def char_range(c1, c2):\n        for c in range(ord(c1), ord(c2) + 1):\n            yield chr(c)\n    arr_number = [i for i in range(nums)]\n    arr_letter = [c for c in char_range('A', 'Z')]\n    index = pd.MultiIndex.from_product([arr_number, arr_letter], names=['nums', 'letters'])\n    df = pd.DataFrame(index=index).reset_index()\n    o['dataset'] = df"
+                }
+            ],
+            [
+                "rain.nodes.custom.custom.CustomNode2",
+                {
+                    "package": "rain.nodes.custom.custom.CustomNode2",
+                    "clazz": "DatasetLength",
+                    "input": {
+                        "dataset": "custom"
+                    },
+                    "output": {
+                        "length": "custom"
+                    },
+                    "parameter": [],
+                    "methods": null,
+                    "tags": {
+                        "library": "Base",
+                        "type": "Custom"
+                    },
+                    "description": "A Custom Node.",
+                    "function_name": "dataset_length",
+                    "code": "def dataset_length(i, o):\n    df = i['dataset']\n    o['length'] = len(df)"
+                }
+            ],
+            [
+                "rain.nodes.custom.custom.CustomNode3",
+                {
+                    "package": "rain.nodes.custom.custom.CustomNode3",
+                    "clazz": "Sum",
+                    "input": {
+                        "num1": "custom",
+                        "num2": "custom"
+                    },
+                    "output": {
+                        "sum": "custom"
+                    },
+                    "parameter": [],
+                    "methods": null,
+                    "tags": {
+                        "library": "Base",
+                        "type": "Custom"
+                    },
+                    "description": "A Custom Node.",
+                    "function_name": "sum",
+                    "code": "def sum(i, o):\n    o['sum'] = i['num1'] + i['num2']"
+                }
+            ],
+            [
+                "rain.nodes.custom.custom.CustomNode4",
+                {
+                    "package": "rain.nodes.custom.custom.CustomNode4",
+                    "clazz": "CheckEqual",
+                    "input": {
+                        "i1": "custom",
+                        "i2": "custom"
+                    },
+                    "output": {},
+                    "parameter": [],
+                    "methods": null,
+                    "tags": {
+                        "library": "Base",
+                        "type": "Custom"
+                    },
+                    "description": "A Custom Node.",
+                    "function_name": "check_equal",
+                    "code": "def check_equal(i, o):\n    print(i['i1'] == i['i2'])"
+                }
+            ]
+        ],
+        "configs": [
+            [
+                "DatasetCreator1",
+                {
+                    "nums": 100,
+                    "p1": "ciao",
+                    "p2": null,
+                    "p3": null,
+                    "p4": null
+                }
+            ],
+            [
+                "TrainTestDatasetSplit1",
+                {
+                    "test_size": null,
+                    "train_size": null,
+                    "random_state": null,
+                    "shuffle": true
+                }
+            ],
+            [
+                "DataFrameLengthCalculator3",
+                {}
+            ],
+            [
+                "DataFrameLengthCalculator1",
+                {}
+            ],
+            [
+                "DataFrameLengthCalculator2",
+                {}
+            ],
+            [
+                "SumOfNumbers1",
+                {}
+            ],
+            [
+                "EqualChecker1",
+                {}
+            ]
+        ],
+        "anyConfigs": [
+            [
+                "DatasetCreator1$nums",
+                "int"
+            ],
+            [
+                "DatasetCreator1$p1",
+                "str"
+            ],
+            [
+                "DatasetCreator1$p2",
+                "str"
+            ],
+            [
+                "DatasetCreator1$p3",
+                "str"
+            ],
+            [
+                "DatasetCreator1$p4",
+                "str"
+            ]
+        ]
+    },
+    "repository": "abc"
+}
