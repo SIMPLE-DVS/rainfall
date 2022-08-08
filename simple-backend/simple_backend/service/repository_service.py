@@ -1,89 +1,54 @@
 import shutil
 import zipfile
-from typing import List, Optional
-
-import yaml
-from yaml import SafeLoader
-
+from typing import List
+from simple_backend import config
 from simple_backend.errors import BadRequestError
-from simple_backend.model.repository_model import Dataflow, DataflowScript, DataflowMetadata, DataflowUI
-from simple_backend.config import BASE_OUTPUT_DIR, ARCHIVE_DIR
+from simple_backend.schemas.dataflow import DataFlow
 
 
 def get_repositories_names() -> List[str]:
     """ Returns the immediate subdirectories names of the output dir. """
-    return [name.stem for name in BASE_OUTPUT_DIR.iterdir() if name.is_dir() and not name == ARCHIVE_DIR]
+    return [name.stem for name in config.BASE_OUTPUT_DIR.iterdir() if name.is_dir() and not name == config.ARCHIVE_DIR]
 
 
 def get_archived_repositories_names() -> List[str]:
     """ Returns the immediate subdirectories names of the archived output dir. """
-    return [name.stem for name in ARCHIVE_DIR.iterdir() if name.is_dir()]
+    return [name.stem for name in config.ARCHIVE_DIR.iterdir() if name.is_dir()]
 
 
-def get_repository_content(repository: str) -> List[str]:
-    """ Returns the content (only zip file names) of the given repository. """
-    return [name.stem for name in (BASE_OUTPUT_DIR / repository).iterdir() if name.is_file() and name.suffix == ".zip"]
+def get_repository_content(repository: str) -> List[list]:
+    """ Returns the content (only zip file names) and the last modified dates of the given repository. """
+    return [[name.stem, name.stat().st_mtime] for name in (config.BASE_OUTPUT_DIR / repository).iterdir()
+            if name.is_file() and name.suffix == ".zip"]
 
 
 def create_repository(repository: str) -> None:
-    (BASE_OUTPUT_DIR / repository).mkdir()
+    (config.BASE_OUTPUT_DIR / repository).mkdir()
 
 
 def delete_repository(repository: str, archived: bool, shallow: bool) -> None:
-    repo_path = (ARCHIVE_DIR if archived else BASE_OUTPUT_DIR) / repository
+    repo_path = (config.ARCHIVE_DIR if archived else config.BASE_OUTPUT_DIR) / repository
 
     if not repo_path.is_dir():
         raise BadRequestError(f"Repository '{repository}' does not exists!")
 
     if shallow:
-        shutil.move(str(repo_path), ARCHIVE_DIR)
+        shutil.move(str(repo_path), config.ARCHIVE_DIR)
     else:
         shutil.rmtree(repo_path)
 
 
 def unarchive_repository(repository: str) -> None:
-    repo_path = ARCHIVE_DIR / repository
+    repo_path = config.ARCHIVE_DIR / repository
 
     if not repo_path.is_dir():
         raise BadRequestError(f"Repository '{repository}' does not exists!")
 
-    shutil.move(str(repo_path), BASE_OUTPUT_DIR)
+    shutil.move(str(repo_path), config.BASE_OUTPUT_DIR)
 
 
-def extract_script_info(dataflow: zipfile.ZipFile) -> Optional[DataflowScript]:
-    scripts = list(filter(lambda zipinfo: ".py" in zipinfo.filename, dataflow.infolist()))
-
-    if not scripts or len(scripts) > 1:
-        return None
-
-    script = scripts[0]
-    rows = len(dataflow.read(script.filename).split(b'\n'))
-
-    return DataflowScript(script.filename, rows, script.file_size)
-
-
-def extract_metadata_info(dataflow: zipfile.ZipFile) -> DataflowMetadata:
-    configs = list(filter(lambda filename: ".yml" in filename, dataflow.namelist()))
-
-    metadata = DataflowMetadata()
-
-    if configs and not len(configs) > 1:
-        config = configs[0]
-        config = yaml.load(dataflow.read(config), Loader=SafeLoader)
-        metadata.created_at = config.get("created_at") if config.get("created_at") else None
-
-    has_requirements = True if "requirements.txt" in dataflow.namelist() else False
-    metadata.requirements = dataflow.read("requirements.txt").decode("utf-8") if has_requirements else ""
-    return metadata
-
-
-def extract_ui_info(dataflow: zipfile.ZipFile) -> Optional[DataflowUI]:
-    # TODO: read content of ui.json (?)
-    return DataflowUI() if "ui.json" in dataflow.namelist() else None
-
-
-def get_dataflow_from_repository(repository: str, id: str) -> Dataflow:
-    repo_path = BASE_OUTPUT_DIR / repository
+def get_dataflow_from_repository(repository: str, id: str) -> DataFlow:
+    repo_path = config.BASE_OUTPUT_DIR / repository
 
     if not repo_path.exists() or not repo_path.is_dir():
         raise BadRequestError(f"Repository {repository} does not exists!")
@@ -93,31 +58,19 @@ def get_dataflow_from_repository(repository: str, id: str) -> Dataflow:
     if not dataflow_path.exists() or not dataflow_path.is_file():
         raise BadRequestError(f"Dataflow {id} does not exists!")
 
-    with zipfile.ZipFile(str(dataflow_path), "r") as dataflow:
-        script = extract_script_info(dataflow)
-        metadata = extract_metadata_info(dataflow)
-        ui = extract_ui_info(dataflow)
+    dataflow_path = str(dataflow_path)
 
-    return Dataflow(id, dataflow_path, script, metadata, ui)
+    with zipfile.ZipFile(dataflow_path, "r") as dataflow:
+        script = dataflow.read('script.py') if 'script.py' in dataflow.namelist() else None
+        metadata = dataflow.read('metadata.yml') if 'metadata.yml' in dataflow.namelist() else None
+        requirements = dataflow.read('requirements.txt') if 'requirements.txt' in dataflow.namelist() else None
+        ui = dataflow.read('ui.json') if 'ui.json' in dataflow.namelist() else None
 
-
-def shallow_delete_dataflow(repository: str, id: str) -> None:
-    dataflow_path = BASE_OUTPUT_DIR / repository / f"{id}.zip"
-    destination_path = ARCHIVE_DIR / repository
-
-    if not dataflow_path.exists() or not dataflow_path.is_file():
-        raise BadRequestError(f"Repository {repository} does not contain the dataflow '{id}'")
-
-    if not destination_path.exists():
-        destination_path.mkdir()
-    elif not destination_path.is_dir():
-        raise BadRequestError(f"The archive contains a file named {repository}!")
-
-    shutil.move(str(dataflow_path), destination_path)
+    return DataFlow(id=id, path=dataflow_path, script=script, metadata=metadata, requirements=requirements, ui=ui)
 
 
 def delete_dataflow(repository: str, id: str) -> None:
-    repo_path = BASE_OUTPUT_DIR / repository
+    repo_path = config.BASE_OUTPUT_DIR / repository
     dataflow_path = repo_path / f"{id}.zip"
 
     if not repo_path.is_dir():

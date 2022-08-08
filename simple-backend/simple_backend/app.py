@@ -10,20 +10,18 @@ from simple_backend.errors import register_errors
 
 
 def create_app():
-    app = FastAPI()
-
-    debug = os.environ.get("MODE", "DEBUG") == "DEBUG"
+    app = FastAPI(debug=os.environ.get("MODE", "DEBUG") == "DEBUG")
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:7000"] if debug else [],
+        allow_origins=["http://localhost:7000"] if app.debug else [],
         allow_methods=["*"],
     )
     app.include_router(initialize_api_routes())
     app.include_router(initialize_ws_routes())
     register_errors(app)
 
-    if not debug:
+    if not app.debug:
         static_files_folder = os.path.join(os.path.dirname(__file__), 'static')
         if os.path.exists(static_files_folder) and os.path.isdir(static_files_folder):
             app.mount("/", StaticFiles(directory=static_files_folder, html=True), name="static")

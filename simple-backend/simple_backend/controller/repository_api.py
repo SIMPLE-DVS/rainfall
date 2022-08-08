@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Response
+from simple_backend import config
 from simple_backend.errors import BadRequestError
 from simple_backend.schemas.repository_schemas import RepositoryGet, RepositoryPost
 from simple_backend.service import repository_service as rs
@@ -27,7 +28,7 @@ async def get_repository(repository: str):
     except FileNotFoundError as e:
         raise BadRequestError(e.__str__())
 
-    return RepositoryGet(repository=repository, path=str(rs.BASE_OUTPUT_DIR / repository), content=content)
+    return RepositoryGet(repository=repository, path=str(config.BASE_OUTPUT_DIR / repository), content=content)
 
 
 @router.post('/{repository}', responses={200: {"model": RepositoryPost}, 404: {"schema": BadRequestError}})
@@ -36,9 +37,9 @@ async def create_repository(repository: str):
     try:
         rs.create_repository(repository)
     except FileExistsError:
-        raise BadRequestError(f"Repository '{repository}' already exists in {str(rs.BASE_OUTPUT_DIR)}")
+        raise BadRequestError(f"Repository '{repository}' already exists in {str(config.BASE_OUTPUT_DIR)}")
 
-    return RepositoryPost(repository=repository, path=str(rs.BASE_OUTPUT_DIR / repository),
+    return RepositoryPost(repository=repository, path=str(config.BASE_OUTPUT_DIR / repository),
                           uri=f"/repositories/{repository}")
 
 
@@ -64,7 +65,7 @@ async def unarchive_repository(repository: str):
     try:
         rs.unarchive_repository(repository)
     except FileExistsError:
-        raise BadRequestError(f"Repository '{repository}' already exists in {str(rs.BASE_OUTPUT_DIR)}")
+        raise BadRequestError(f"Repository '{repository}' already exists in {str(config.BASE_OUTPUT_DIR)}")
 
-    return RepositoryPost(repository=repository, path=str(rs.BASE_OUTPUT_DIR / repository),
+    return RepositoryPost(repository=repository, path=str(config.BASE_OUTPUT_DIR / repository),
                           uri=f"/repositories/{repository}")

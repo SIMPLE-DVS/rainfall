@@ -4,7 +4,14 @@
 
     <q-item v-for="[name, value] in repoStore.repos" :key="name">
       <q-item-section avatar top>
-        <q-icon name="folder" color="black" size="34px" />
+        <q-btn
+          size="12px"
+          outline
+          icon="folder_open"
+          label="Open"
+          title="List repository content"
+          @click="openRepositoryDialog(name)"
+        />
       </q-item-section>
 
       <q-item-section top>
@@ -25,21 +32,21 @@
       <q-item-section top side>
         <div class="text-grey-8 q-gutter-xs">
           <q-btn
-            class="gt-xs"
             size="12px"
             flat
             dense
             round
             icon="archive"
+            title="Archive repository"
             @click="deleteRepo(name, true)"
           />
           <q-btn
-            class="gt-xs"
             size="12px"
             flat
             dense
             round
             icon="delete"
+            title="Delete repository"
             @click="deleteRepo(name, false)"
           />
           <q-btn
@@ -106,8 +113,10 @@
 import { defineComponent, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRepoStore } from 'stores/repoStore';
-import { api } from '../boot/axios';
-import { Repository } from './models';
+import { api } from '../../boot/axios';
+import { Repository } from '../models';
+import RepositoryDialog from './RepositoryDialog.vue';
+import { AxiosError, AxiosResponse } from 'axios';
 
 export default defineComponent({
   name: 'RepositoryManager',
@@ -247,6 +256,32 @@ export default defineComponent({
       });
     };
 
+    const openRepositoryDialog = async (repoName: string) => {
+      await api
+        .get('/repositories/' + repoName)
+        .then((res: AxiosResponse) => {
+          const dataflows: [string, number][] = res.data['content'];
+          dataflows.sort((a, b) => b[1] - a[1]);
+          if (dataflows.length == 0) {
+            $q.notify({
+              message: 'No dataflows available in the repository: ' + repoName,
+              type: 'negative',
+            });
+          } else {
+            $q.dialog({
+              component: RepositoryDialog,
+              componentProps: { repoName, dataflows },
+            });
+          }
+        })
+        .catch((err: AxiosError) => {
+          $q.notify({
+            message: (err.response.data as { message: string }).message,
+            type: 'negative',
+          });
+        });
+    };
+
     return {
       repoStore,
       addRepo,
@@ -254,6 +289,7 @@ export default defineComponent({
       deleteArchivedRepo,
       unarchiveRepo,
       markAsDefault,
+      openRepositoryDialog,
     };
   },
 });

@@ -1,7 +1,8 @@
+from typing import Union
 from fastapi import APIRouter
 from pydantic import BaseModel
-from simple_backend.schemas.nodes import CustomNode, ConfigurationSchema
-from simple_backend.service import config_service, node_service
+from simple_backend.schemas.nodes import ConfigurationSchema, CustomNode, Node
+from simple_backend.service import config_service
 
 
 router = APIRouter()
@@ -22,17 +23,19 @@ async def post_config(config: ConfigurationSchema):
         - UI configuration
         - metadata
     """
-    dag = config_service.check_dag(config.nodes)
 
-    ordered_nodes = dag.get_ordered_nodes()
-    ordered_edges = dag.get_ordered_edges()
-
-    if custom_nodes := list(filter(lambda node: isinstance(node, CustomNode), ordered_nodes)):
-        node_service.check_custom_node_code(custom_nodes)
-
-    script = config_service.generate_script(ordered_nodes, ordered_edges)
+    script = config_service.generate_script(config.nodes)
 
     zip_file = config_service.generate_artifacts(config.repository, script, config.dependencies, config.ui)
 
     return ConfigResponse(id=zip_file.stem, path=str(zip_file),
                           url=f"/repositories/{config.repository}/dataflows/{zip_file.stem}")
+
+
+@router.post('/convert', response_model=str)
+async def convert_to_script(nodes: list[Union[CustomNode, Node]]):
+    """
+    Api used to create a Python script from a list of node configurations
+    """
+
+    return config_service.generate_script(nodes)

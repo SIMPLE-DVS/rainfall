@@ -102,12 +102,17 @@ class NodeStructure(BaseModel):
     tags: NodeTags
 
 
+class CustomNodeStructure(NodeStructure):
+    function_name: str
+    code: str
+
+
 class UI(BaseModel):
     anyConfigs: dict[str, str]
     configs: dict[str, dict]
     edges: dict[str, UIEdge]
     nodes: dict[str, UINode]
-    structures: dict[str, NodeStructure]
+    structures: dict[str, Union[CustomNodeStructure, NodeStructure]]
     transform: str
 
 

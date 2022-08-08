@@ -33,16 +33,26 @@
       <q-btn
         outline
         icon="file_upload"
+        label="LOAD UI"
+        @click="filePicker.pickFiles()"
+      />
+      <q-btn
+        outline
+        icon="file_download"
+        label="SAVE UI"
+        @click="saveUI()"
+      /><q-btn
+        outline
+        icon="file_upload"
         label="LOAD FROM SCRIPT"
         @click="scriptPicker.pickFiles()"
       />
       <q-btn
         outline
-        icon="file_upload"
-        label="LOAD"
-        @click="filePicker.pickFiles()"
+        icon="file_download"
+        label="SAVE SCRIPT"
+        @click="saveScript()"
       />
-      <q-btn outline icon="file_download" label="SAVE" @click="saveUI()" />
     </div>
   </div>
 </template>
@@ -62,7 +72,7 @@ import {
 } from 'src/components/d3/models';
 import { useConfigStore } from 'src/stores/configStore';
 import { NodeInfo } from '../models';
-import { useQuasar, event, QFile, exportFile } from 'quasar';
+import { useQuasar, event, QFile } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { D3_CONSTS, DataType, GenericCoords, PathElements } from './types';
 import {
@@ -75,6 +85,8 @@ import {
   loadUIFromFile,
 } from './utils';
 import { useRouter } from 'vue-router';
+import { downloadPythonScript, downloadUI, getNodesConfig } from '../utils';
+import { api } from 'src/boot/axios';
 
 export default defineComponent({
   name: 'D3Canvas',
@@ -526,24 +538,23 @@ export default defineComponent({
 
     const saveUI = () => {
       const uiState = getUIState();
+      downloadUI(uiState);
+    };
 
-      const status = exportFile('ui.json', JSON.stringify(uiState), {
-        mimeType: 'application/json',
-        encoding: 'utf-8',
-      });
+    const saveScript = async () => {
+      const config = getNodesConfig();
 
-      if (status) {
-        $q.notify({
-          message: 'UI file exported successfully',
-          type: 'positive',
+      await api
+        .post<string>('/config/convert', config)
+        .then((res) => {
+          downloadPythonScript(res.data);
+        })
+        .catch((error: Error) => {
+          $q.notify({
+            message: error.message,
+            type: 'negative',
+          });
         });
-      } else {
-        $q.notify({
-          message:
-            'Error while exporting UI file: ' + (status as Error).message,
-          type: 'negative',
-        });
-      }
     };
 
     return {
@@ -553,6 +564,7 @@ export default defineComponent({
       file,
       loadFile,
       saveUI,
+      saveScript,
       allowDrop,
       drop,
     };

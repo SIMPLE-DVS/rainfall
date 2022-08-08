@@ -27,15 +27,7 @@ async def handle_execution(ws: WebSocket):
     await ws.send_text('Request accepted')
     await asyncio.sleep(0.001)
 
-    dag = config_service.check_dag(nodes)
-
-    ordered_nodes = dag.get_ordered_nodes()
-    ordered_edges = dag.get_ordered_edges()
-
-    if custom_nodes := list(filter(lambda node: isinstance(node, CustomNode), ordered_nodes)):
-        node_service.check_custom_node_code(custom_nodes)
-
-    script = config_service.generate_script(ordered_nodes, ordered_edges)
+    script = config_service.generate_script(nodes)
     dependencies = get_requirements(config.dependencies)
 
     with open(os.path.join(path, "script.py"), "w+") as sp:

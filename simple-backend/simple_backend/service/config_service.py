@@ -1,17 +1,17 @@
 import time
 import io
-import json
 import zipfile
 import yaml
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Union
 from simple_backend.errors import DagCycleError, FileWriteError
-from simple_backend.schemas.nodes import UI
+from simple_backend.schemas.nodes import UI, CustomNode, Node
+from simple_backend.service import node_service
 from simple_backend.service.node_service import rain_structure
 from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend.service.dag_generator import DagCreator
-from simple_backend.config import BASE_OUTPUT_DIR
+from simple_backend import config
 
 
 def check_dag(nodes):
@@ -26,11 +26,19 @@ def check_dag(nodes):
     return dag
 
 
-def generate_script(nodes, edges):
+def generate_script(nodes: list[Union[CustomNode, Node]]):
     """
     Method that generates the final python script
     """
-    script_generator = ScriptGenerator(nodes, edges)
+    dag = check_dag(nodes)
+
+    ordered_nodes = dag.get_ordered_nodes()
+    ordered_edges = dag.get_ordered_edges()
+
+    if custom_nodes := list(filter(lambda node: isinstance(node, CustomNode), ordered_nodes)):
+        node_service.check_custom_node_code(custom_nodes)
+
+    script_generator = ScriptGenerator(ordered_nodes, ordered_edges)
     script = script_generator.generate_script()
 
     return script
@@ -51,12 +59,12 @@ def get_requirements(libs: List[str]) -> List[str]:
 
 
 def get_repository_path(repository: str) -> Path:
-    repository_path = BASE_OUTPUT_DIR / repository
+    repository_path = config.BASE_OUTPUT_DIR / repository
     repository_path.mkdir(exist_ok=True)
     return repository_path
 
 
-def generate_artifacts(repository: str, script: str, dependencies: List[str], config: UI) -> Path:
+def generate_artifacts(repository: str, script: str, dependencies: List[str], ui: UI) -> Path:
     """
     Method that stores the artifacts (script, requirements, GUI configuration, other metadata)
     """
@@ -70,7 +78,7 @@ def generate_artifacts(repository: str, script: str, dependencies: List[str], co
             zip_file.writestr("metadata.yml", yaml.dump(
                 {"created_at": datetime.fromtimestamp(timestamp / 1000), "generated_by": "MarcoScarp94",
                  "company": "Sigma Spa"}, default_flow_style=False))
-            zip_file.writestr("ui.json", config.json())
+            zip_file.writestr("ui.json", ui.json())
         zip_buffer.seek(0)
 
         repo_path = get_repository_path(repository)

@@ -38,12 +38,12 @@ export interface PathElements {
 }
 
 export interface UIState {
-  nodes: [string, DataType][];
-  edges: [string, PathElements][];
+  nodes: { [_: string]: DataType };
+  edges: { [_: string]: PathElements };
   transform: string;
-  structures: [string, SimpleNodeStructure][];
-  configs: [string, { [index: string]: unknown }][];
-  anyConfigs: [string, string][];
+  structures: { [_: string]: SimpleNodeStructure };
+  configs: { [_: string]: { [_: string]: unknown } };
+  anyConfigs: { [_: string]: string };
 }
 
 export interface ReversedScript {

@@ -1,9 +1,9 @@
 <template>
   <q-page padding>
     <div class="q-pa-md q-gutter-sm">
-      <p>Zip File</p>
+      <p>DataFlow</p>
 
-      <q-btn color="secondary" label="Download ZIP" @click="getZip()"></q-btn>
+      <q-btn color="secondary" label="Save DataFlow" @click="getZip()"></q-btn>
     </div>
 
     <q-separator spaced=""></q-separator>
@@ -20,7 +20,7 @@
 import { ref, Ref } from 'vue';
 import { api } from '../boot/axios';
 import { QFile, useQuasar } from 'quasar';
-import RepositoryManager from 'src/components/RepositoryManager.vue';
+import RepositoryManager from 'src/components/repository/RepositoryManager.vue';
 import { getConfig } from 'src/components/utils';
 
 export default {

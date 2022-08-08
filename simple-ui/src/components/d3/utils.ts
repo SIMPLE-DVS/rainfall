@@ -129,23 +129,23 @@ export function getUIState() {
   const configStore = useConfigStore();
 
   return {
-    nodes: [...canvasStore.canvasNodes.entries()],
-    edges: [...canvasStore.canvasEdges.entries()],
+    nodes: Object.fromEntries([...canvasStore.canvasNodes.entries()]),
+    edges: Object.fromEntries([...canvasStore.canvasEdges.entries()]),
     transform: canvasStore.canvasTransform,
-    structures: [...configStore.nodeStructures.entries()],
-    configs: [...configStore.nodeConfigs.entries()],
-    anyConfigs: [...configStore.nodeAnyConfigs.entries()],
+    structures: Object.fromEntries([...configStore.nodeStructures.entries()]),
+    configs: Object.fromEntries([...configStore.nodeConfigs.entries()]),
+    anyConfigs: Object.fromEntries([...configStore.nodeAnyConfigs.entries()]),
   } as UIState;
 }
 
-function setUIState(uiState: UIState) {
+export function setUIState(uiState: UIState) {
   const canvasStore = useCanvasStore();
   const configStore = useConfigStore();
-  configStore.nodeStructures = new Map(uiState.structures);
-  configStore.nodeConfigs = new Map(uiState.configs);
-  configStore.nodeAnyConfigs = new Map(uiState.anyConfigs);
-  canvasStore.canvasNodes = new Map(uiState.nodes);
-  canvasStore.canvasEdges = new Map(uiState.edges);
+  configStore.nodeStructures = new Map(Object.entries(uiState.structures));
+  configStore.nodeConfigs = new Map(Object.entries(uiState.configs));
+  configStore.nodeAnyConfigs = new Map(Object.entries(uiState.anyConfigs));
+  canvasStore.canvasNodes = new Map(Object.entries(uiState.nodes));
+  canvasStore.canvasEdges = new Map(Object.entries(uiState.edges));
   canvasStore.canvasTransform = uiState.transform;
 }
 
