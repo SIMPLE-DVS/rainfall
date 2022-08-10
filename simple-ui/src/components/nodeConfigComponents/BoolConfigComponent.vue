@@ -8,26 +8,12 @@
   ></q-toggle>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script setup lang="ts">
 import { SimpleNodeParameter } from '../models';
 
-export default defineComponent({
-  name: 'BoolConfigComponent',
-
-  props: {
-    modelValue: {
-      type: [Boolean, null],
-      required: true,
-    },
-    param: {
-      type: Object as PropType<SimpleNodeParameter>,
-      required: true,
-    },
-    nodeName: {
-      type: String,
-      required: true,
-    },
-  },
-});
+defineProps<{
+  modelValue: boolean | null;
+  param: SimpleNodeParameter;
+  nodeName: string;
+}>();
 </script>

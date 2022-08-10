@@ -16,50 +16,32 @@
   </q-page>
 </template>
 
-<script lang="ts">
-import { ref, Ref } from 'vue';
+<script setup lang="ts">
 import { api } from '../boot/axios';
-import { QFile, useQuasar } from 'quasar';
-import RepositoryManager from 'src/components/repository/RepositoryManager.vue';
+import { useQuasar } from 'quasar';
 import { getConfig } from 'src/components/utils';
+import RepositoryManager from 'src/components/repository/RepositoryManager.vue';
 
-export default {
-  name: 'PageImportExport',
-
-  components: { RepositoryManager },
-
-  setup() {
-    const $q = useQuasar();
-    const filePicker: Ref<QFile> = ref(null);
-    const file: Ref<File> = ref(null);
-
-    const getZip = async () => {
-      const config = getConfig();
-      await api
-        .post('/config', config)
-        .then((res) => {
-          $q.notify({
-            message:
-              'Dataflow: ' +
-              res.data['id'] +
-              ' salvato con successo in ' +
-              res.data['uri'],
-            type: 'positive',
-          });
-        })
-        .catch((error: Error) => {
-          $q.notify({
-            message: error.message,
-            type: 'negative',
-          });
-        });
-    };
-
-    return {
-      filePicker,
-      file,
-      getZip,
-    };
-  },
+const $q = useQuasar();
+const getZip = async () => {
+  const config = getConfig();
+  await api
+    .post('/config', config)
+    .then((res) => {
+      $q.notify({
+        message:
+          'Dataflow: ' +
+          res.data['id'] +
+          ' saved successfully to ' +
+          res.data['uri'],
+        type: 'positive',
+      });
+    })
+    .catch((error: Error) => {
+      $q.notify({
+        message: error.message,
+        type: 'negative',
+      });
+    });
 };
 </script>

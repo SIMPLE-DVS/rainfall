@@ -1,3 +1,13 @@
+import StringConfigComponent from 'components/nodeConfigComponents/StringConfigComponent.vue';
+import BoolConfigComponent from 'components/nodeConfigComponents/BoolConfigComponent.vue';
+import IntConfigComponent from 'components/nodeConfigComponents/IntConfigComponent.vue';
+import FloatConfigComponent from 'components/nodeConfigComponents/FloatConfigComponent.vue';
+import ListConfigComponent from 'components/nodeConfigComponents/ListConfigComponent.vue';
+import SelectConfigComponent from 'components/nodeConfigComponents/SelectConfigComponent.vue';
+import AnyConfigComponent from 'components/nodeConfigComponents/AnyConfigComponent.vue';
+import TupleConfigComponent from 'components/nodeConfigComponents/TupleConfigComponent.vue';
+import { Component, markRaw } from 'vue';
+
 export const ComponentTypeRegexes = new Map<string, RegExp>([
   ['String', /^str$/i],
   ['Bool', /^bool$/i],
@@ -12,19 +22,30 @@ export const ComponentTypeRegexes = new Map<string, RegExp>([
   ['Tuple', /^tuple\[(.+)\]$/i],
 ]);
 
-export const ManageableComponentTypes = new Map<string, string>([
-  ['str', 'StringConfigComponent'],
-  ['bool', 'BoolConfigComponent'],
-  ['int', 'IntConfigComponent'],
-  ['float', 'FloatConfigComponent'],
-  ['list[str]', 'ListConfigComponent'],
-  ['list[bool]', 'ListConfigComponent'],
-  ['list[int]', 'ListConfigComponent'],
-  ['list[float]', 'ListConfigComponent'],
-  ['list of str', 'ListConfigComponent'],
-  ['list of bool', 'ListConfigComponent'],
-  ['list of int', 'ListConfigComponent'],
-  ['list of float', 'ListConfigComponent'],
+export const ManageableComponentTypes = new Map<string, Component>([
+  ['str', markRaw(StringConfigComponent)],
+  ['bool', markRaw(BoolConfigComponent)],
+  ['int', markRaw(IntConfigComponent)],
+  ['float', markRaw(FloatConfigComponent)],
+  ['list[str]', markRaw(ListConfigComponent)],
+  ['list[bool]', markRaw(ListConfigComponent)],
+  ['list[int]', markRaw(ListConfigComponent)],
+  ['list[float]', markRaw(ListConfigComponent)],
+  ['list of str', markRaw(ListConfigComponent)],
+  ['list of bool', markRaw(ListConfigComponent)],
+  ['list of int', markRaw(ListConfigComponent)],
+  ['list of float', markRaw(ListConfigComponent)],
+]);
+
+export const AvailableComponents = new Map<string, Component>([
+  ['StringConfigComponent', markRaw(StringConfigComponent)],
+  ['BoolConfigComponent', markRaw(BoolConfigComponent)],
+  ['IntConfigComponent', markRaw(IntConfigComponent)],
+  ['FloatConfigComponent', markRaw(FloatConfigComponent)],
+  ['ListConfigComponent', markRaw(ListConfigComponent)],
+  ['SelectConfigComponent', markRaw(SelectConfigComponent)],
+  ['AnyConfigComponent', markRaw(AnyConfigComponent)],
+  ['TupleConfigComponent', markRaw(TupleConfigComponent)],
 ]);
 
 export interface NodeInfo {

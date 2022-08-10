@@ -72,103 +72,71 @@
   </q-scroll-area>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref, Ref, watch } from 'vue';
+<script setup lang="ts">
+import { markRaw, ref, Ref, watch } from 'vue';
 import { useConfigStore } from 'stores/configStore';
-import { ComponentTypeRegexes, NodeInfo, SimpleNodeParameter } from './models';
-import StringConfigComponent from './nodeConfigComponents/StringConfigComponent.vue';
-import BoolConfigComponent from './nodeConfigComponents/BoolConfigComponent.vue';
-import IntConfigComponent from './nodeConfigComponents/IntConfigComponent.vue';
-import FloatConfigComponent from './nodeConfigComponents/FloatConfigComponent.vue';
-import ListConfigComponent from './nodeConfigComponents/ListConfigComponent.vue';
-import SelectConfigComponent from './nodeConfigComponents/SelectConfigComponent.vue';
-import AnyConfigComponent from './nodeConfigComponents/AnyConfigComponent.vue';
-import TupleConfigComponent from './nodeConfigComponents/TupleConfigComponent.vue';
+import {
+  AvailableComponents,
+  ComponentTypeRegexes,
+  NodeInfo,
+  SimpleNodeParameter,
+} from './models';
 import { useRouter } from 'vue-router';
+import { QInput } from 'quasar';
 
-export default defineComponent({
-  name: 'ConfigFormComponent',
+const props = defineProps<{
+  node: NodeInfo;
+}>();
 
-  components: {
-    StringConfigComponent,
-    BoolConfigComponent,
-    IntConfigComponent,
-    FloatConfigComponent,
-    ListConfigComponent,
-    SelectConfigComponent,
-    AnyConfigComponent,
-    TupleConfigComponent,
+const router = useRouter();
+const configStore = useConfigStore();
+const nodeDescription: Ref<string> = ref('');
+const nodeConfigStructure: Ref<{ [index: string]: SimpleNodeParameter }> = ref(
+  {}
+);
+const nodeConfigComponents: Ref<Map<string, unknown>> = ref();
+const nodeConfigData: Ref<{ [index: string]: unknown }> = ref({});
+
+const updateNode = (node: NodeInfo) => {
+  const nodeStructure = configStore.getNodeStructureByNodePackage(node.package);
+  nodeDescription.value = nodeStructure.description;
+  nodeConfigStructure.value = nodeStructure.parameter.reduce(
+    (acc, value) => Object.assign(acc, { [value.name]: value }),
+    {}
+  );
+  nodeConfigComponents.value = new Map<string, unknown>(
+    Object.entries(nodeConfigStructure.value).map((v) => [
+      v[0],
+      getConfigComponent((v[1] as SimpleNodeParameter).type),
+    ])
+  );
+  nodeConfigData.value = configStore.nodeConfigs.get(node.name);
+};
+
+const getConfigComponent = (type: string) => {
+  let component = null;
+  for (const [k, v] of ComponentTypeRegexes) {
+    if (v.test(type)) {
+      component = AvailableComponents.get(k + 'ConfigComponent');
+      break;
+    }
+  }
+  return component == null ? markRaw(QInput) : component;
+};
+
+const editCustomNode = (nodePackage: string) => {
+  void router.push({
+    name: 'editor',
+    params: { nodePackage },
+  });
+};
+
+watch(
+  () => props.node,
+  (newVal) => {
+    (document.activeElement as HTMLElement)?.blur();
+    updateNode(newVal);
   },
-
-  props: {
-    node: {
-      type: Object as PropType<NodeInfo>,
-      required: true,
-    },
-  },
-
-  setup(props) {
-    const router = useRouter();
-    const configStore = useConfigStore();
-    const nodeDescription: Ref<string> = ref('');
-    const nodeConfigStructure: Ref<{ [index: string]: SimpleNodeParameter }> =
-      ref({});
-    const nodeConfigComponents: Ref<Map<string, string>> = ref();
-    const nodeConfigData: Ref<{ [index: string]: unknown }> = ref({});
-
-    const updateNode = (node: NodeInfo) => {
-      const nodeStructure = configStore.getNodeStructureByNodePackage(
-        node.package
-      );
-      nodeDescription.value = nodeStructure.description;
-      nodeConfigStructure.value = nodeStructure.parameter.reduce(
-        (acc, value) => Object.assign(acc, { [value.name]: value }),
-        {}
-      );
-      nodeConfigComponents.value = new Map<string, string>(
-        Object.entries(nodeConfigStructure.value).map((v) => [
-          v[0],
-          getConfigComponent((v[1] as SimpleNodeParameter).type),
-        ])
-      );
-      nodeConfigData.value = configStore.nodeConfigs.get(node.name);
-    };
-
-    const getConfigComponent = (type: string) => {
-      let component = 'q-input';
-      for (const [k, v] of ComponentTypeRegexes) {
-        if (v.test(type)) {
-          component = k + 'ConfigComponent';
-          break;
-        }
-      }
-      return component;
-    };
-
-    const editCustomNode = (nodePackage: string) => {
-      void router.push({
-        name: 'editor',
-        params: { nodePackage },
-      });
-    };
-
-    watch(
-      () => props.node,
-      (newVal) => {
-        (document.activeElement as HTMLElement)?.blur();
-        updateNode(newVal);
-      },
-      { immediate: true }
-    );
-
-    return {
-      configStore,
-      nodeDescription,
-      nodeConfigStructure,
-      nodeConfigComponents,
-      nodeConfigData,
-      editCustomNode,
-    };
-  },
-});
+  { immediate: true }
+);
 </script>

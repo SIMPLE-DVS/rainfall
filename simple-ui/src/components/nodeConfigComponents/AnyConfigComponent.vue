@@ -27,71 +27,32 @@
       :param="newParam"
       :nodeName="nodeName"
       @update:model-value="
-        $emit('update:modelValue', $event);
-        updateConfig();
-        updateKey++;
+        [$emit('update:modelValue', $event), updateConfig(), updateKey++]
       "
     ></component>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
 import { ManageableComponentTypes, SimpleNodeParameter } from '../models';
-import StringConfigComponent from './StringConfigComponent.vue';
-import BoolConfigComponent from './BoolConfigComponent.vue';
-import IntConfigComponent from './IntConfigComponent.vue';
-import FloatConfigComponent from './FloatConfigComponent.vue';
-import ListConfigComponent from './ListConfigComponent.vue';
 import { useConfigStore } from 'stores/configStore';
 
-export default defineComponent({
-  name: 'AnyConfigComponent',
+const props = defineProps<{
+  modelValue: unknown;
+  param: SimpleNodeParameter;
+  nodeName: string;
+}>();
 
-  components: {
-    StringConfigComponent,
-    BoolConfigComponent,
-    IntConfigComponent,
-    FloatConfigComponent,
-    ListConfigComponent,
-  },
+const configStore = useConfigStore();
+const parameterName = `${props.nodeName}$${props.param.name}`;
+const type = ref(configStore.nodeAnyConfigs.get(parameterName));
+const value = ref(props.modelValue);
+const updateKey = ref(0);
+const newParam = { ...props.param, type: type.value };
 
-  props: {
-    modelValue: {
-      required: true,
-    },
-    param: {
-      type: Object as PropType<SimpleNodeParameter>,
-      required: true,
-    },
-    nodeName: {
-      type: String,
-      required: true,
-    },
-  },
-
-  setup(props) {
-    const configStore = useConfigStore();
-    const parameterName = `${props.nodeName}$${props.param.name}`;
-    const type = ref(configStore.nodeAnyConfigs.get(parameterName));
-    const value = ref(props.modelValue);
-    const updateKey = ref(0);
-    const newParam = { ...props.param };
-    newParam.type = type.value;
-
-    const updateConfig = () => {
-      configStore.nodeAnyConfigs.set(parameterName, type.value);
-      configStore.nodeConfigs.get(props.nodeName)[props.param.name] = value;
-    };
-
-    return {
-      type,
-      ManageableComponentTypes,
-      value,
-      updateKey,
-      newParam,
-      updateConfig,
-    };
-  },
-});
+const updateConfig = () => {
+  configStore.nodeAnyConfigs.set(parameterName, type.value);
+  configStore.nodeConfigs.get(props.nodeName)[props.param.name] = value;
+};
 </script>

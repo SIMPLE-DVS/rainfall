@@ -13,9 +13,11 @@
         }"
         :nodeName="nodeName"
         @update:model-value="
-          value[k] = $event;
-          $emit('update:modelValue', value);
-          updateKeys[k]++;
+          [
+            (value[k] = $event),
+            $emit('update:modelValue', value),
+            updateKeys[k]++,
+          ]
         "
       >
       </component>
@@ -23,68 +25,31 @@
   </q-list>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref, toRaw } from 'vue';
+<script setup lang="ts">
+import { ref, toRaw } from 'vue';
 import {
   ComponentTypeRegexes,
   ManageableComponentTypes,
   SimpleNodeParameter,
 } from '../models';
-import StringConfigComponent from './StringConfigComponent.vue';
-import BoolConfigComponent from './BoolConfigComponent.vue';
-import IntConfigComponent from './IntConfigComponent.vue';
-import FloatConfigComponent from './FloatConfigComponent.vue';
-import ListConfigComponent from './ListConfigComponent.vue';
 
-export default defineComponent({
-  name: 'TupleConfigComponent',
+const props = defineProps<{
+  modelValue: Array<unknown> | null;
+  param: SimpleNodeParameter;
+  nodeName: string;
+}>();
 
-  components: {
-    StringConfigComponent,
-    BoolConfigComponent,
-    IntConfigComponent,
-    FloatConfigComponent,
-    ListConfigComponent,
-  },
+const paramType = toRaw(props.param.type);
 
-  props: {
-    modelValue: {
-      type: [Array, null],
-      required: true,
-    },
-    param: {
-      type: Object as PropType<SimpleNodeParameter>,
-      required: true,
-    },
-    nodeName: {
-      type: String,
-      required: true,
-    },
-  },
+const types = ComponentTypeRegexes.get('Tuple')
+  .exec(paramType)[1]
+  .toLowerCase()
+  .replace(/, /g, ',')
+  .split(',');
 
-  setup(props) {
-    const paramType = toRaw(props.param.type);
+const value = ref(
+  props.modelValue != null ? props.modelValue : Array(types.length).fill(null)
+);
 
-    const types = ComponentTypeRegexes.get('Tuple')
-      .exec(paramType)[1]
-      .toLowerCase()
-      .replace(/, /g, ',')
-      .split(',');
-
-    const value = ref(
-      props.modelValue != null
-        ? props.modelValue
-        : Array(types.length).fill(null)
-    );
-
-    const updateKeys = ref(Array(types.length).fill(0));
-
-    return {
-      types,
-      ManageableComponentTypes,
-      value,
-      updateKeys,
-    };
-  },
-});
+const updateKeys = ref(Array(types.length).fill(0));
 </script>

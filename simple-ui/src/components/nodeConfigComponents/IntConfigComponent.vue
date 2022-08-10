@@ -24,36 +24,15 @@
   ></q-input>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
 import { SimpleNodeParameter } from '../models';
 
-export default defineComponent({
-  name: 'IntConfigComponent',
+const props = defineProps<{
+  modelValue: number | null;
+  param: SimpleNodeParameter;
+  nodeName: string;
+}>();
 
-  props: {
-    modelValue: {
-      type: [Number, null],
-      required: true,
-    },
-    param: {
-      type: Object as PropType<SimpleNodeParameter>,
-      required: true,
-    },
-    nodeName: {
-      type: String,
-      required: true,
-    },
-  },
-
-  setup(props) {
-    const value = ref(
-      props.modelValue != null ? props.modelValue.toString() : ''
-    );
-
-    return {
-      value,
-    };
-  },
-});
+const value = ref(props.modelValue != null ? props.modelValue.toString() : '');
 </script>

@@ -34,3 +34,7 @@ yarn-error.log*
 
 # Visual Studio Code
 .vscode
+
+# Test Coverage
+.nyc_output
+coverage/

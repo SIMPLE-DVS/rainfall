@@ -1,0 +1,11 @@
+{
+  "e2e-cypress": {
+    "runnerCommand": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:7000 \"cypress run\""
+  },
+  "component-cypress": {
+    "runnerCommand": "cross-env NODE_ENV=test cypress run-ct"
+  },
+  "unit-vitest": {
+    "runnerCommand": "vitest run"
+  }
+}

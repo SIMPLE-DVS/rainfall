@@ -9,20 +9,8 @@
   />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
-export default defineComponent({
-  name: 'LocaleChanger',
-
-  setup() {
-    const { availableLocales, locale } = useI18n();
-
-    return {
-      availableLocales,
-      locale,
-    };
-  },
-});
+const { availableLocales, locale } = useI18n();
 </script>

@@ -15,40 +15,21 @@
   ></q-select>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
 import { SimpleNodeParameter } from '../models';
 
-export default defineComponent({
-  name: 'SelectConfigComponent',
+const props = defineProps<{
+  modelValue: unknown;
+  param: SimpleNodeParameter;
+  nodeName: string;
+}>();
 
-  props: {
-    modelValue: {
-      required: true,
-    },
-    param: {
-      type: Object as PropType<SimpleNodeParameter>,
-      required: true,
-    },
-    nodeName: {
-      type: String,
-      required: true,
-    },
-  },
+const options = props.param.type
+  .slice(1)
+  .slice(0, -1)
+  .replace(/, /g, ',')
+  .split(',');
 
-  setup(props) {
-    const options = props.param.type
-      .slice(1)
-      .slice(0, -1)
-      .replace(/, /g, ',')
-      .split(',');
-
-    const value = ref(props.modelValue);
-
-    return {
-      value,
-      options,
-    };
-  },
-});
+const value = ref(props.modelValue);
 </script>

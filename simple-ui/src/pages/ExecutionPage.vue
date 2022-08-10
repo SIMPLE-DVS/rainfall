@@ -19,22 +19,10 @@
   </q-page>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue';
 import ExecutionCanvas from '../components/execution/ExecutionCanvas.vue';
 import ExecutionPanel from '../components/execution/ExecutionPanel.vue';
 
-export default {
-  name: 'PageExecution',
-
-  components: { ExecutionCanvas, ExecutionPanel },
-
-  setup() {
-    const splitterModel = ref(66);
-
-    return {
-      splitterModel,
-    };
-  },
-};
+const splitterModel = ref(66);
 </script>

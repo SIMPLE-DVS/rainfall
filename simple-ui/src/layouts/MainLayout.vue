@@ -104,71 +104,48 @@
   </q-layout>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+<script setup lang="ts">
+import { ref, watch } from 'vue';
 import LocaleChanger from 'components/LocaleChanger.vue';
 import NodeCollection from 'components/NodeCollection.vue';
 import CustomCollection from 'components/custom/CustomCollection.vue';
 import ConfigFormComponent from 'components/ConfigFormComponent.vue';
-import { useCanvasStore } from 'src/stores/canvasStore';
-import { NodeInfo } from 'src/components/models';
+import { useCanvasStore } from 'stores/canvasStore';
+import { NodeInfo } from 'components/models';
 
-export default defineComponent({
-  name: 'MainLayout',
+const canvasStore = useCanvasStore();
+const leftDrawerOpen = ref(false);
+const rightDrawerOpen = ref(false);
+const tab = ref('ui');
+const resetKey = ref(0);
+const selectedNodes = ref([] as NodeInfo[]);
 
-  components: {
-    LocaleChanger,
-    NodeCollection,
-    CustomCollection,
-    ConfigFormComponent,
+const toggleLeftDrawer = () => {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
+};
+
+const toggleRightDrawer = () => {
+  rightDrawerOpen.value = !rightDrawerOpen.value;
+};
+
+watch(
+  () => canvasStore.selectedNodes,
+  (newVal) => {
+    selectedNodes.value = newVal;
+    if (newVal.length != 1) {
+      rightDrawerOpen.value = false;
+    }
   },
+  { deep: true }
+);
 
-  setup() {
-    const canvasStore = useCanvasStore();
-    const leftDrawerOpen = ref(false);
-    const rightDrawerOpen = ref(false);
-    const tab = ref('ui');
-    const resetKey = ref(0);
-    const selectedNodes = ref([] as NodeInfo[]);
-
-    watch(
-      () => canvasStore.selectedNodes,
-      (newVal) => {
-        selectedNodes.value = newVal;
-        if (newVal.length != 1) {
-          rightDrawerOpen.value = false;
-        }
-      },
-      { deep: true }
-    );
-
-    watch(
-      () => canvasStore.doubleClick,
-      () => {
-        canvasStore.doubleClick = false;
-        if (canvasStore.selectedNodes.length == 1) {
-          rightDrawerOpen.value = true;
-        }
-      }
-    );
-
-    const toggleLeftDrawer = () => {
-      leftDrawerOpen.value = !leftDrawerOpen.value;
-    };
-
-    const toggleRightDrawer = () => {
-      rightDrawerOpen.value = !rightDrawerOpen.value;
-    };
-
-    return {
-      leftDrawerOpen,
-      toggleLeftDrawer,
-      rightDrawerOpen,
-      toggleRightDrawer,
-      tab,
-      selectedNodes,
-      resetKey,
-    };
-  },
-});
+watch(
+  () => canvasStore.doubleClick,
+  () => {
+    canvasStore.doubleClick = false;
+    if (canvasStore.selectedNodes.length == 1) {
+      rightDrawerOpen.value = true;
+    }
+  }
+);
 </script>

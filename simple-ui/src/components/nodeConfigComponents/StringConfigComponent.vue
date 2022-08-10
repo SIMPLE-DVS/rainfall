@@ -18,34 +18,15 @@
   ></q-input>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
 import { SimpleNodeParameter } from '../models';
 
-export default defineComponent({
-  name: 'StringConfigComponent',
+const props = defineProps<{
+  modelValue: string | null;
+  param: SimpleNodeParameter;
+  nodeName: string;
+}>();
 
-  props: {
-    modelValue: {
-      type: [String, null],
-      required: true,
-    },
-    param: {
-      type: Object as PropType<SimpleNodeParameter>,
-      required: true,
-    },
-    nodeName: {
-      type: String,
-      required: true,
-    },
-  },
-
-  setup(props) {
-    const value = ref(props.modelValue);
-
-    return {
-      value,
-    };
-  },
-});
+const value = ref(props.modelValue);
 </script>
