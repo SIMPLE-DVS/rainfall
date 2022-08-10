@@ -4,7 +4,6 @@ import { NodeInfo } from 'src/components/models';
 
 export const useCanvasStore = defineStore('canvas', {
   state: () => ({
-    canvasGrid: false,
     canvasNodes: new Map<string, DataType>(),
     canvasEdges: new Map<string, PathElements>(),
     canvasTransform: 'translate(0,0) scale(1)',

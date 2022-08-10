@@ -154,7 +154,9 @@ export default defineComponent({
 
     const saveCustomNode = () => {
       const editorInfo = {
-        package: nodePackage,
+        package: configStore.nodeStructures.has(nodePackage)
+          ? nodePackage
+          : null,
         code: editor.getValue(),
       };
 

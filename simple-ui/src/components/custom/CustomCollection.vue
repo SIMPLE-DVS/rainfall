@@ -1,11 +1,7 @@
 <template>
   <q-item-label header class="row justify-center">Custom Nodes</q-item-label>
 
-  <q-list
-    style="display: flex; flex-direction: column; align-items: center"
-    bordered
-    separator
-  >
+  <q-list bordered separator>
     <div v-if="customNodes.length == 0">No custom nodes defined so far...</div>
     <q-item
       v-for="node in customNodes"
@@ -14,9 +10,15 @@
       @dragstart="$event.dataTransfer.setData('text', node.package)"
     >
       <q-item-section avatar>
-        <q-icon name="share" color="orange" size="34px" />
+        <q-icon name="share" color="orange" />
       </q-item-section>
       <q-item-section>{{ node.clazz }}</q-item-section>
+      <q-btn
+        dense
+        outline
+        icon="delete"
+        @click="onDeleteCustomNode(node.package)"
+      />
     </q-item>
   </q-list>
 </template>
@@ -24,6 +26,8 @@
 <script lang="ts">
 import { defineComponent, watch, ref, onMounted } from 'vue';
 import { useConfigStore } from 'stores/configStore';
+import { useCanvasStore } from 'src/stores/canvasStore';
+import { PathElements } from '../d3/types';
 
 export default defineComponent({
   name: 'CustomCollection',
@@ -51,8 +55,29 @@ export default defineComponent({
       );
     });
 
+    const onDeleteCustomNode = (nodePackage: string) => {
+      const canvasStore = useCanvasStore();
+      const customNodesWithSamePackage = [...canvasStore.canvasNodes.values()]
+        .filter((n) => n.package == nodePackage)
+        .map((n) => n.name);
+      customNodesWithSamePackage.forEach((n) => {
+        canvasStore.canvasEdges = new Map<string, PathElements>(
+          [...canvasStore.canvasEdges.entries()].filter(([, e]) => {
+            return n != e.fromNode && n != e.toNode;
+          })
+        );
+        canvasStore.canvasNodes.delete(n);
+        configStore.removeNodeConfig(n);
+      });
+      configStore.nodeStructures.delete(nodePackage);
+      customNodes.value.splice(
+        customNodes.value.findIndex((v) => v == nodePackage, 1)
+      );
+    };
+
     return {
       customNodes,
+      onDeleteCustomNode,
     };
   },
 });
