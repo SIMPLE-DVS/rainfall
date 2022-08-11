@@ -95,136 +95,116 @@
   </q-tree>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, Ref, nextTick, watch } from 'vue';
+<script setup lang="ts">
+import { ref, Ref, nextTick, watch } from 'vue';
 import { QTree } from 'quasar';
 import { api } from '../boot/axios';
 import { QTreeNode, SimpleNodeStructure } from './models';
 import { useConfigStore } from 'stores/configStore';
 
 // TODO: manage API call failure (e.g. show a 'Pull to refresh')
-export default defineComponent({
-  name: 'NodeCollection',
+const configStore = useConfigStore();
+const tree: Ref<QTree> = ref(null);
+enum ViewMode {
+  LIBRARY,
+  TYPE,
+}
+const currentViewMode = ref(ViewMode.LIBRARY);
+const filter = ref('');
+const nodes = ref([] as QTreeNode[]);
+const descriptions = new Map<string, string>();
+const organizedNodes = ref([]);
+let libraries = [] as string[];
+let types = [] as string[];
 
-  setup() {
-    const configStore = useConfigStore();
-    const tree: Ref<QTree> = ref(null);
-    enum ViewMode {
-      LIBRARY,
-      TYPE,
-    }
-    const currentViewMode = ref(ViewMode.LIBRARY);
-    const filter = ref('');
-    const nodes = ref([] as QTreeNode[]);
-    const descriptions = new Map<string, string>();
-    const organizedNodes = ref([]);
-    let libraries = [] as string[];
-    let types = [] as string[];
-
-    watch(
-      () => configStore.nodeStructures,
-      (newVal) => {
-        nodes.value = [];
-        descriptions.clear();
-        setNodeStructures([...newVal.values()]);
-      },
-      { deep: true }
-    );
-
-    const getNodes = () => {
-      api
-        .get<SimpleNodeStructure[]>('/nodes')
-        .then((value) => {
-          const tempCustomNodes = [
-            ...configStore.nodeStructures.values(),
-          ].filter((n) =>
-            n.package.includes('rain.nodes.custom.custom.CustomNode')
-          );
-          configStore.setNodeStructures(value.data);
-          tempCustomNodes.forEach((n) => configStore.addNodeStructure(n));
-        })
-        .catch((error) => {
-          alert(error);
-        });
-    };
-
-    const setNodeStructures = (structures: SimpleNodeStructure[]) => {
-      libraries = [...new Set(structures.map((n) => n.tags.library))];
-      types = [...new Set(structures.map((n) => n.tags.type))];
-      structures.forEach((v) => {
-        nodes.value.push({
-          label: v.clazz,
-          selectable: true,
-          body: 'story',
-          story: {
-            library: v.tags.library,
-            type: v.tags.type,
-          },
-          id: v.package,
-        });
-        descriptions.set(v.package, v.description);
-      });
-      organizeNodesByViewMode();
-    };
-
-    const organizeNodesByViewMode = () => {
-      const treeData = new Map<string, QTreeNode[]>();
-      if (currentViewMode.value == ViewMode.LIBRARY) {
-        libraries.forEach((l) => treeData.set(l, []));
-      } else {
-        types.forEach((t) => treeData.set(t, []));
-      }
-      nodes.value.forEach((n) => {
-        if (currentViewMode.value == ViewMode.LIBRARY) {
-          treeData.get(n.story.library).push(n);
-        } else {
-          treeData.get(n.story.type).push(n);
-        }
-      });
-      const organizedTreeData = [...treeData.keys()].map((k) => ({
-        label: k,
-        selectable: false,
-        header: 'root',
-        id: k,
-        children: treeData.get(k),
-      }));
-      organizedNodes.value = organizedTreeData;
-      if (filter.value != null && filter.value.trim() !== '') {
-        void nextTick(() => tree.value.expandAll());
-      }
-    };
-
-    const filterMethod = (node: QTreeNode, filter: string) => {
-      if (filter == null || filter.trim() === '') {
-        return false;
-      }
-      if (node.header) {
-        return false;
-      }
-      return node.label.toLowerCase().indexOf(filter.toLowerCase()) > -1;
-    };
-
-    const expandTree = (expand: boolean) => {
-      if (expand) {
-        tree.value.expandAll();
-      } else {
-        tree.value.collapseAll();
-      }
-    };
-
-    getNodes();
-
-    return {
-      tree,
-      ViewMode,
-      currentViewMode,
-      filter,
-      filterMethod,
-      descriptions,
-      organizedNodes,
-      organizeNodesByViewMode,
-      expandTree,
-    };
+watch(
+  () => configStore.nodeStructures,
+  (newVal) => {
+    nodes.value = [];
+    descriptions.clear();
+    setNodeStructures([...newVal.values()]);
   },
-});
+  { deep: true }
+);
+
+const getNodes = () => {
+  api
+    .get<SimpleNodeStructure[]>('/nodes')
+    .then((value) => {
+      const tempCustomNodes = [...configStore.nodeStructures.values()].filter(
+        (n) => n.package.includes('rain.nodes.custom.custom.CustomNode')
+      );
+      configStore.setNodeStructures(value.data);
+      tempCustomNodes.forEach((n) => configStore.addNodeStructure(n));
+    })
+    .catch((error) => {
+      alert(error);
+    });
+};
+
+getNodes();
+
+const setNodeStructures = (structures: SimpleNodeStructure[]) => {
+  libraries = [...new Set(structures.map((n) => n.tags.library))];
+  types = [...new Set(structures.map((n) => n.tags.type))];
+  structures.forEach((v) => {
+    nodes.value.push({
+      label: v.clazz,
+      selectable: true,
+      body: 'story',
+      story: {
+        library: v.tags.library,
+        type: v.tags.type,
+      },
+      id: v.package,
+    });
+    descriptions.set(v.package, v.description);
+  });
+  organizeNodesByViewMode();
+};
+
+const organizeNodesByViewMode = () => {
+  const treeData = new Map<string, QTreeNode[]>();
+  if (currentViewMode.value == ViewMode.LIBRARY) {
+    libraries.forEach((l) => treeData.set(l, []));
+  } else {
+    types.forEach((t) => treeData.set(t, []));
+  }
+  nodes.value.forEach((n) => {
+    if (currentViewMode.value == ViewMode.LIBRARY) {
+      treeData.get(n.story.library).push(n);
+    } else {
+      treeData.get(n.story.type).push(n);
+    }
+  });
+  const organizedTreeData = [...treeData.keys()].map((k) => ({
+    label: k,
+    selectable: false,
+    header: 'root',
+    id: k,
+    children: treeData.get(k),
+  }));
+  organizedNodes.value = organizedTreeData;
+  if (filter.value != null && filter.value.trim() !== '') {
+    void nextTick(() => tree.value.expandAll());
+  }
+};
+
+const filterMethod = (node: QTreeNode, filter: string) => {
+  if (filter == null || filter.trim() === '') {
+    return false;
+  }
+  if (node.header) {
+    return false;
+  }
+  return node.label.toLowerCase().indexOf(filter.toLowerCase()) > -1;
+};
+
+const expandTree = (expand: boolean) => {
+  if (expand) {
+    tree.value.expandAll();
+  } else {
+    tree.value.collapseAll();
+  }
+};
 </script>

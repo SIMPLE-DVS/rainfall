@@ -23,62 +23,51 @@
   </q-list>
 </template>
 
-<script lang="ts">
-import { defineComponent, watch, ref, onMounted } from 'vue';
+<script setup lang="ts">
+import { watch, ref, onMounted } from 'vue';
 import { useConfigStore } from 'stores/configStore';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { PathElements } from '../d3/types';
 
-export default defineComponent({
-  name: 'CustomCollection',
+const configStore = useConfigStore();
+const customNodes = ref([]);
 
-  setup() {
-    const configStore = useConfigStore();
-    const customNodes = ref([]);
-
-    onMounted(() => {
-      watch(
-        () => configStore.nodeStructures,
-        (newVal) => {
-          customNodes.value = [...newVal.values()]
-            .filter((n) => {
-              return (
-                n.package != 'rain.nodes.custom.custom.CustomNode' &&
-                n.package.includes('rain.nodes.custom.custom.CustomNode')
-              );
-            })
-            .map((n) => {
-              return { clazz: n.clazz, package: n.package };
-            });
-        },
-        { deep: true, immediate: true }
-      );
-    });
-
-    const onDeleteCustomNode = (nodePackage: string) => {
-      const canvasStore = useCanvasStore();
-      const customNodesWithSamePackage = [...canvasStore.canvasNodes.values()]
-        .filter((n) => n.package == nodePackage)
-        .map((n) => n.name);
-      customNodesWithSamePackage.forEach((n) => {
-        canvasStore.canvasEdges = new Map<string, PathElements>(
-          [...canvasStore.canvasEdges.entries()].filter(([, e]) => {
-            return n != e.fromNode && n != e.toNode;
-          })
-        );
-        canvasStore.canvasNodes.delete(n);
-        configStore.removeNodeConfig(n);
-      });
-      configStore.nodeStructures.delete(nodePackage);
-      customNodes.value.splice(
-        customNodes.value.findIndex((v) => v == nodePackage, 1)
-      );
-    };
-
-    return {
-      customNodes,
-      onDeleteCustomNode,
-    };
-  },
+onMounted(() => {
+  watch(
+    () => configStore.nodeStructures,
+    (newVal) => {
+      customNodes.value = [...newVal.values()]
+        .filter((n) => {
+          return (
+            n.package != 'rain.nodes.custom.custom.CustomNode' &&
+            n.package.includes('rain.nodes.custom.custom.CustomNode')
+          );
+        })
+        .map((n) => {
+          return { clazz: n.clazz, package: n.package };
+        });
+    },
+    { deep: true, immediate: true }
+  );
 });
+
+const onDeleteCustomNode = (nodePackage: string) => {
+  const canvasStore = useCanvasStore();
+  const customNodesWithSamePackage = [...canvasStore.canvasNodes.values()]
+    .filter((n) => n.package == nodePackage)
+    .map((n) => n.name);
+  customNodesWithSamePackage.forEach((n) => {
+    canvasStore.canvasEdges = new Map<string, PathElements>(
+      [...canvasStore.canvasEdges.entries()].filter(([, e]) => {
+        return n != e.fromNode && n != e.toNode;
+      })
+    );
+    canvasStore.canvasNodes.delete(n);
+    configStore.removeNodeConfig(n);
+  });
+  configStore.nodeStructures.delete(nodePackage);
+  customNodes.value.splice(
+    customNodes.value.findIndex((v) => v == nodePackage, 1)
+  );
+};
 </script>

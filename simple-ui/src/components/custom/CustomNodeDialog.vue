@@ -45,138 +45,123 @@
   </q-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, reactive, ref, toRaw } from 'vue';
+<script setup lang="ts">
+import { reactive, ref, toRaw } from 'vue';
 import { api } from 'src/boot/axios';
 import { useDialogPluginComponent, useQuasar } from 'quasar';
 import { AxiosError, AxiosResponse } from 'axios';
 import { CustomNodeStructure, SimpleNodeParameter } from '../models';
 import { useConfigStore } from 'src/stores/configStore';
 
-export default defineComponent({
-  name: 'CustomNodeDialog',
+const props = defineProps<{
+  editorInfo: {
+    package: string;
+    code: string;
+  };
+}>();
 
-  emits: { ...useDialogPluginComponent.emitsObject },
+defineEmits(useDialogPluginComponent.emitsObject);
 
-  props: {
-    editorInfo: {
-      type: Object as PropType<{ package: string; code: string }>,
-      required: true,
-    },
+const $q = useQuasar();
+const configStore = useConfigStore();
+const { dialogRef, onDialogOK } = useDialogPluginComponent();
+
+const structure: CustomNodeStructure = reactive({
+  package: toRaw(props.editorInfo.package),
+  clazz: null,
+  input: {},
+  output: {},
+  parameter: [],
+  methods: null,
+  tags: {
+    library: 'Base',
+    type: 'Custom',
   },
+  description: 'A Custom Node.',
+  function_name: null,
+  code: toRaw(props.editorInfo.code),
+} as CustomNodeStructure);
 
-  setup(props) {
-    const $q = useQuasar();
-    const configStore = useConfigStore();
-    const { dialogRef, onDialogOK } = useDialogPluginComponent();
+if (structure.package != null) {
+  const nodeStructure = configStore.getNodeStructureByNodePackage(
+    structure.package
+  ) as CustomNodeStructure;
+  structure.clazz = nodeStructure.clazz;
+}
 
-    const structure: CustomNodeStructure = reactive({
-      package: toRaw(props.editorInfo.package),
-      clazz: null,
-      input: {},
-      output: {},
-      parameter: [],
-      methods: null,
-      tags: {
-        library: 'Base',
-        type: 'Custom',
-      },
-      description: 'A Custom Node.',
-      function_name: null,
-      code: toRaw(props.editorInfo.code),
-    } as CustomNodeStructure);
+const getMatches = (str: string) => {
+  const regex = /def (.+?)\(.+?,.+?\):/gm;
+  const matches = [] as string[];
 
-    if (structure.package != null) {
-      const nodeStructure = configStore.getNodeStructureByNodePackage(
-        structure.package
-      ) as CustomNodeStructure;
-      structure.clazz = nodeStructure.clazz;
+  let m;
+  while ((m = regex.exec(str)) !== null) {
+    if (m.index === regex.lastIndex) {
+      regex.lastIndex++;
     }
 
-    const getMatches = (str: string) => {
-      const regex = /def (.+?)\(.+?,.+?\):/gm;
-      const matches = [] as string[];
+    matches.push(m[1]);
+  }
 
-      let m;
-      while ((m = regex.exec(str)) !== null) {
-        if (m.index === regex.lastIndex) {
-          regex.lastIndex++;
-        }
+  return matches;
+};
 
-        matches.push(m[1]);
-      }
+const options = ref(getMatches(structure.code));
+if (options.value.length == 1) {
+  structure.function_name = options.value[0];
+}
 
-      return matches;
-    };
+const onOKClick = async () => {
+  await api
+    .post('/nodes/custom', {
+      function_name: structure.function_name,
+      code: structure.code,
+    })
+    .then((res: AxiosResponse) => {
+      const data = res.data as {
+        inputs: string[];
+        outputs: string[];
+        params: string[];
+      };
 
-    const options = ref(getMatches(structure.code));
-    if (options.value.length == 1) {
-      structure.function_name = options.value[0];
-    }
+      structure.clazz = structure.clazz.replace(/\s/g, '');
+      structure.input = data.inputs.reduce(
+        (acc, value) => Object.assign(acc, { [value]: 'custom' }),
+        {}
+      );
+      structure.output = data.outputs.reduce(
+        (acc, value) => Object.assign(acc, { [value]: 'custom' }),
+        {}
+      );
+      structure.parameter = data.params.map((p) => {
+        return {
+          name: p,
+          type: 'Any',
+          is_mandatory: false,
+          description: 'Custom Parameter: ' + p,
+          default_value: null,
+        } as SimpleNodeParameter;
+      });
+      onDialogOK(toRaw(structure));
+    })
+    .catch((err: AxiosError) => {
+      $q.notify({
+        message: (err.response.data as { message: string }).message,
+        type: 'negative',
+      });
+    });
+};
 
-    const onOKClick = async () => {
-      await api
-        .post('/nodes/custom', {
-          function_name: structure.function_name,
-          code: structure.code,
-        })
-        .then((res: AxiosResponse) => {
-          const data = res.data as {
-            inputs: string[];
-            outputs: string[];
-            params: string[];
-          };
+const customNodeExists = (name: string) => {
+  return [...configStore.nodeStructures.values()]
+    .filter((n) => n.package != structure.package)
+    .map((n) => n.clazz.toLowerCase())
+    .includes(name.replace(/\s/g, '').toLowerCase());
+};
 
-          structure.clazz = structure.clazz.replace(/\s/g, '');
-          structure.input = data.inputs.reduce(
-            (acc, value) => Object.assign(acc, { [value]: 'custom' }),
-            {}
-          );
-          structure.output = data.outputs.reduce(
-            (acc, value) => Object.assign(acc, { [value]: 'custom' }),
-            {}
-          );
-          structure.parameter = data.params.map((p) => {
-            return {
-              name: p,
-              type: 'Any',
-              is_mandatory: false,
-              description: 'Custom Parameter: ' + p,
-              default_value: null,
-            } as SimpleNodeParameter;
-          });
-          onDialogOK(toRaw(structure));
-        })
-        .catch((err: AxiosError) => {
-          $q.notify({
-            message: (err.response.data as { message: string }).message,
-            type: 'negative',
-          });
-        });
-    };
-
-    const customNodeExists = (name: string) => {
-      return [...configStore.nodeStructures.values()]
-        .filter((n) => n.package != structure.package)
-        .map((n) => n.clazz.toLowerCase())
-        .includes(name.replace(/\s/g, '').toLowerCase());
-    };
-
-    const customFunctionExists = (name: string) => {
-      return [...configStore.nodeStructures.values()]
-        .filter((n) => n.package != structure.package)
-        .map((n) => (n as CustomNodeStructure).function_name)
-        .includes(name);
-    };
-
-    return {
-      dialogRef,
-      customNodeExists,
-      customFunctionExists,
-      onOKClick,
-      structure,
-      options,
-    };
-  },
-});
+const customFunctionExists = (name: string) => {
+  return [...configStore.nodeStructures.values()]
+    .filter((n) => n.package != structure.package)
+    .map((n) => (n as CustomNodeStructure).function_name)
+    .includes(name);
+};
 </script>

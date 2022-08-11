@@ -76,109 +76,79 @@
   </q-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
 import { useDialogPluginComponent, useQuasar } from 'quasar';
 import { api } from 'src/boot/axios';
 import { AxiosError } from 'axios';
 import { downloadPythonScript, downloadUI } from '../utils';
 import { setUIState } from '../d3/utils';
 
-export default defineComponent({
-  name: 'RepositoryDialog',
+const props = defineProps<{
+  repoName: string;
+  dataflows: [string, number][];
+}>();
 
-  emits: { ...useDialogPluginComponent.emitsObject },
+defineEmits(useDialogPluginComponent.emitsObject);
 
-  props: {
-    repoName: {
-      type: String,
-      required: true,
-    },
-    dataflows: {
-      type: Object as PropType<[string, number][]>,
-      required: true,
-    },
-  },
+const $q = useQuasar();
+const { dialogRef } = useDialogPluginComponent();
+const metadata = ref(new Map<string, DataFlowData>());
+const copiedDataFlows = ref(props.dataflows.slice());
 
-  setup(props) {
-    const $q = useQuasar();
-    const { dialogRef, onDialogOK } = useDialogPluginComponent();
-    const metadata = ref(new Map<string, DataFlowData>());
-    const copiedDataFlows = ref(props.dataflows.slice());
+interface DataFlowData {
+  id: string;
+  path: string;
+  script: string;
+  metadata: string;
+  requirements: string;
+  ui: string;
+}
 
-    interface DataFlowData {
-      id: string;
-      path: string;
-      script: string;
-      metadata: string;
-      requirements: string;
-      ui: string;
-    }
+const loadDataflow = async (flow: string) => {
+  if (metadata.value.has(flow)) {
+    return;
+  }
+  await api
+    .get<DataFlowData>(`repositories/${props.repoName}/dataflows/${flow}`)
+    .then((res) => {
+      metadata.value.set(flow, res.data);
+    })
+    .catch((err: AxiosError) => {
+      $q.notify({
+        message: (err.response.data as { message: string }).message,
+        type: 'negative',
+      });
+    });
+};
 
-    const onOKClick = (dataflow: string) => {
-      onDialogOK(metadata.value.get(dataflow).ui);
-    };
+const onLoadUI = (flow: string) => {
+  setUIState(JSON.parse(metadata.value.get(flow).ui));
+};
 
-    const loadDataflow = async (flow: string) => {
-      if (metadata.value.has(flow)) {
-        return;
-      }
-      await api
-        .get<DataFlowData>(`repositories/${props.repoName}/dataflows/${flow}`)
-        .then((res) => {
-          metadata.value.set(flow, res.data);
-        })
-        .catch((err: AxiosError) => {
-          $q.notify({
-            message: (err.response.data as { message: string }).message,
-            type: 'negative',
-          });
-        });
-    };
+const onDownloadUI = (flow: string) => {
+  downloadUI(JSON.parse(metadata.value.get(flow).ui));
+};
 
-    const onLoadUI = (flow: string) => {
-      setUIState(JSON.parse(metadata.value.get(flow).ui));
-    };
+const onDownloadScript = (flow: string) => {
+  downloadPythonScript(metadata.value.get(flow).script);
+};
 
-    const onDownloadUI = (flow: string) => {
-      downloadUI(JSON.parse(metadata.value.get(flow).ui));
-    };
-
-    const onDownloadScript = (flow: string) => {
-      downloadPythonScript(metadata.value.get(flow).script);
-    };
-
-    const onDeleteDataFlow = async (flow: string) => {
-      await api
-        .delete<DataFlowData>(
-          `repositories/${props.repoName}/dataflows/${flow}`
-        )
-        .then(() => {
-          copiedDataFlows.value.splice(
-            copiedDataFlows.value.findIndex(([name]) => name == flow),
-            1
-          );
-          metadata.value.delete(flow);
-        })
-        .catch((err: AxiosError) => {
-          $q.notify({
-            message: (err.response.data as { message: string }).message,
-            type: 'negative',
-          });
-        });
-    };
-
-    return {
-      dialogRef,
-      onOKClick,
-      copiedDataFlows,
-      loadDataflow,
-      metadata,
-      onLoadUI,
-      onDownloadUI,
-      onDownloadScript,
-      onDeleteDataFlow,
-    };
-  },
-});
+const onDeleteDataFlow = async (flow: string) => {
+  await api
+    .delete<DataFlowData>(`repositories/${props.repoName}/dataflows/${flow}`)
+    .then(() => {
+      copiedDataFlows.value.splice(
+        copiedDataFlows.value.findIndex(([name]) => name == flow),
+        1
+      );
+      metadata.value.delete(flow);
+    })
+    .catch((err: AxiosError) => {
+      $q.notify({
+        message: (err.response.data as { message: string }).message,
+        type: 'negative',
+      });
+    });
+};
 </script>
