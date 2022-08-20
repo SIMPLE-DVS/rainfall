@@ -56,9 +56,12 @@ const execute = async () => {
   }).onOk((path) => {
     socket = new WebSocket(getWebSocketURL() + '/execution');
     socket.onopen = () => {
+      const config = getConfig();
+      if (config == null) {
+        return;
+      }
       socket.onmessage = executionListener;
       logText.value = '';
-      const config = getConfig();
       config['path'] = path;
       socket.send(JSON.stringify(config));
     };

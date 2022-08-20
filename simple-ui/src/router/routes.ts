@@ -28,7 +28,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'import_export',
         name: 'import_export',
-        component: () => import('pages/ImportExportSettings.vue'),
+        component: () => import('pages/ImportExportPage.vue'),
       },
     ],
   },

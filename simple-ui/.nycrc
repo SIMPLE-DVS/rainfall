@@ -1,3 +1,8 @@
 {
-  "extends": "@quasar/quasar-app-extension-testing-e2e-cypress/nyc-config-preset"
+  "extends": "@quasar/quasar-app-extension-testing-e2e-cypress/nyc-config-preset",
+  "exclude": ["src/i18n", "src/**/*.{d.ts,spec.ts}", "test/**/*.{js,ts,vue}"],
+  "include": ["src/**/*.{js,ts,vue}"],
+  "reporter": ["lcov", "text"],
+  "report-dir": "coverage/cypress",
+  "all": true
 }

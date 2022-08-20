@@ -245,7 +245,7 @@ const saveCustomNode = () => {
 const getNextCustomNodeStructureId = () => {
   let nodeStructureId = '';
   for (let i = 1; true; i++) {
-    nodeStructureId = `${'rain.nodes.custom.custom.CustomNode'}${i}`;
+    nodeStructureId = `rain.nodes.custom.custom.CustomNode${i}`;
     if (configStore.getNodeStructureByNodePackage(nodeStructureId) == null) {
       break;
     }

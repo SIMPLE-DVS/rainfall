@@ -1,0 +1,133 @@
+{
+  "nodes": [
+    {
+      "node": "DatasetCreator1",
+      "clazz": "CreateDataset",
+      "pos": [572.116341929108, 641.2142926284764],
+      "params": [
+        { "key": "nums", "value": 100, "type": "int" },
+        { "key": "p1", "value": "ciao", "type": "str" }
+      ]
+    },
+    {
+      "node": "TrainTestDatasetSplit1",
+      "clazz": "TrainTestDatasetSplit",
+      "pos": [911.1061424046829, 495.5474784813787],
+      "params": [{ "key": "shuffle", "value": false, "type": null }]
+    },
+    {
+      "node": "DataFrameLengthCalculator3",
+      "clazz": "DatasetLength",
+      "pos": [157.84731734088473, 616.1426100551657],
+      "params": []
+    },
+    {
+      "node": "DataFrameLengthCalculator1",
+      "clazz": "DatasetLength",
+      "pos": [702.3229362703954, 723.8164750958899],
+      "params": []
+    },
+    {
+      "node": "DataFrameLengthCalculator2",
+      "clazz": "DatasetLength",
+      "pos": [711.5603321209951, 253.25261030792484],
+      "params": []
+    },
+    {
+      "node": "SumOfNumbers1",
+      "clazz": "Sum",
+      "pos": [445.04692993393445, 444.41149896101774],
+      "params": []
+    },
+    {
+      "node": "EqualChecker1",
+      "clazz": "CheckEqual",
+      "pos": [-5.684341886080802e-14, 325.6150344701467],
+      "params": []
+    }
+  ],
+  "custom": [
+    {
+      "function_name": "create_dataset",
+      "clazz": "CreateDataset",
+      "code": "def create_dataset(i, o, nums, p1, p2=True, p3='bb', p4=100):\n    import pandas as pd\n\n    def char_range(c1, c2):\n        for c in range(ord(c1), ord(c2) + 1):\n            yield chr(c)\n    arr_number = [i for i in range(nums)]\n    arr_letter = [c for c in char_range('A', 'Z')]\n    index = pd.MultiIndex.from_product([arr_number, arr_letter], names=['nums', 'letters'])\n    df = pd.DataFrame(index=index).reset_index()\n    o['dataset'] = df",
+      "inputs": [],
+      "outputs": ["dataset"],
+      "params": ["nums", "p1", "p2", "p3", "p4"]
+    },
+    {
+      "function_name": "dataset_length",
+      "clazz": "DatasetLength",
+      "code": "def dataset_length(i, o):\n    df = i['dataset']\n    o['length'] = len(df)",
+      "inputs": ["dataset"],
+      "outputs": ["length"],
+      "params": []
+    },
+    {
+      "function_name": "sum",
+      "clazz": "Sum",
+      "code": "def sum(i, o):\n    o['sum'] = i['num1'] + i['num2']",
+      "inputs": ["num1", "num2"],
+      "outputs": ["sum"],
+      "params": []
+    },
+    {
+      "function_name": "check_equal",
+      "clazz": "CheckEqual",
+      "code": "def check_equal(i, o):\n    print(i['i1'] == i['i2'])",
+      "inputs": ["i1", "i2"],
+      "outputs": [],
+      "params": []
+    }
+  ],
+  "edges": [
+    {
+      "from_node": "DatasetCreator1",
+      "from_var": "dataset",
+      "to_node": "TrainTestDatasetSplit1",
+      "to_var": "dataset"
+    },
+    {
+      "from_node": "DatasetCreator1",
+      "from_var": "dataset",
+      "to_node": "DataFrameLengthCalculator3",
+      "to_var": "dataset"
+    },
+    {
+      "from_node": "TrainTestDatasetSplit1",
+      "from_var": "train_dataset",
+      "to_node": "DataFrameLengthCalculator1",
+      "to_var": "dataset"
+    },
+    {
+      "from_node": "TrainTestDatasetSplit1",
+      "from_var": "test_dataset",
+      "to_node": "DataFrameLengthCalculator2",
+      "to_var": "dataset"
+    },
+    {
+      "from_node": "DataFrameLengthCalculator3",
+      "from_var": "length",
+      "to_node": "EqualChecker1",
+      "to_var": "i2"
+    },
+    {
+      "from_node": "DataFrameLengthCalculator1",
+      "from_var": "length",
+      "to_node": "SumOfNumbers1",
+      "to_var": "num1"
+    },
+    {
+      "from_node": "DataFrameLengthCalculator2",
+      "from_var": "length",
+      "to_node": "SumOfNumbers1",
+      "to_var": "num2"
+    },
+    {
+      "from_node": "SumOfNumbers1",
+      "from_var": "sum",
+      "to_node": "EqualChecker1",
+      "to_var": "i1"
+    }
+  ]
+}

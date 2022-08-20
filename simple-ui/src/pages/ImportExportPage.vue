@@ -3,7 +3,11 @@
     <div class="q-pa-md q-gutter-sm">
       <p>DataFlow</p>
 
-      <q-btn color="secondary" label="Save DataFlow" @click="getZip()"></q-btn>
+      <q-btn
+        color="secondary"
+        label="Save DataFlow"
+        @click="saveDataFlow()"
+      ></q-btn>
     </div>
 
     <q-separator spaced=""></q-separator>
@@ -23,8 +27,11 @@ import { getConfig } from 'src/components/utils';
 import RepositoryManager from 'src/components/repository/RepositoryManager.vue';
 
 const $q = useQuasar();
-const getZip = async () => {
+const saveDataFlow = async () => {
   const config = getConfig();
+  if (config == null) {
+    return;
+  }
   await api
     .post('/config', config)
     .then((res) => {

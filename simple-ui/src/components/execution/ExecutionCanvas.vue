@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
+import { watch } from 'vue';
 import * as d3 from 'd3';
 import { event } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
@@ -95,51 +95,44 @@ import { createExecutionEdge, createExecutionNode } from './models';
 import { useLogStore } from 'src/stores/logStore';
 
 const canvasStore = useCanvasStore();
-const svgSize = 128;
 const logStore = useLogStore();
+const svgSize = 128;
+const d3elem: Element = document.getElementsByClassName('d3-svg')[0];
+const d3svg: d3.Selection<Element, unknown, null, undefined> =
+  d3.select(d3elem);
+const d3g: d3.Selection<Element, unknown, null, undefined> =
+  d3svg.selectChild('.graphics');
 
-let d3elem: Element = null;
-let d3svg: d3.Selection<Element, unknown, null, undefined> = null;
-let d3g: d3.Selection<Element, unknown, null, undefined> = null;
-
-onMounted(() => {
-  d3elem = document.getElementsByClassName('d3-svg')[0];
-  d3svg = d3.select(d3elem);
-  d3g = d3svg.selectChild('.graphics');
-
-  function handleZoom(
-    this: Element,
-    e: d3.D3ZoomEvent<d3.ZoomedElementBaseType, unknown>
-  ) {
-    if (this == d3elem) {
-      d3g.attr('transform', e.transform.toString());
-      canvasStore.canvasTransform = e.transform.toString();
-    }
+function handleZoom(
+  this: Element,
+  e: d3.D3ZoomEvent<d3.ZoomedElementBaseType, unknown>
+) {
+  if (this == d3elem) {
+    d3g.attr('transform', e.transform.toString());
+    canvasStore.canvasTransform = e.transform.toString();
   }
+}
 
-  d3svg
-    .call(
-      d3
-        .zoom()
-        .scaleExtent([0.2, 5])
-        .filter(function (this: Element, e: Event) {
-          if (e.type == 'wheel') {
-            return !(e as WheelEvent).ctrlKey;
-          }
-          if (event.rightClick(e as MouseEvent)) {
-            return false;
-          }
-          return true;
-        })
-        .on('zoom', handleZoom)
-    )
-    .on('dblclick.zoom', null)
-    .on('contextmenu', (e: PointerEvent) => {
-      event.prevent(e);
-    });
-
-  initSVG();
-});
+d3svg
+  .call(
+    d3
+      .zoom()
+      .scaleExtent([0.2, 5])
+      .filter(function (this: Element, e: Event) {
+        if (e.type == 'wheel') {
+          return !(e as WheelEvent).ctrlKey;
+        }
+        if (event.rightClick(e as MouseEvent)) {
+          return false;
+        }
+        return true;
+      })
+      .on('zoom', handleZoom)
+  )
+  .on('dblclick.zoom', null)
+  .on('contextmenu', (e: PointerEvent) => {
+    event.prevent(e);
+  });
 
 const handleNewLogLine = (line: string) => {
   const parts = line.split('|');
@@ -241,6 +234,10 @@ const initSVG = () => {
     }
   );
 };
+
+initSVG();
+
+defineExpose({ d3g });
 </script>
 
 <style scoped>

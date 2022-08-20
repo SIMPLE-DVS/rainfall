@@ -11,12 +11,6 @@ export const useCanvasStore = defineStore('canvas', {
     doubleClick: false,
   }),
   actions: {
-    removeCanvasNode(nodeId: string) {
-      this.canvasNodes.delete(nodeId);
-    },
-    removeCanvasEdge(edgeId: string) {
-      this.canvasEdges.delete(edgeId);
-    },
     clearCanvasNodes() {
       this.canvasNodes = new Map<string, DataType>();
     },

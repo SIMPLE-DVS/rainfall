@@ -58,6 +58,7 @@ export const getConfig = () => {
         'No default repository is selected! Mark a repository as default',
       type: 'negative',
     });
+    return null;
   }
 
   const canvasStore = useCanvasStore();
