@@ -65,6 +65,7 @@
         <div
           v-if="prop.node.header === 'root'"
           class="text-weight-bold text-primary"
+          data-cy="treeRoot"
         >
           <q-icon
             name="settings_applications"
@@ -82,9 +83,10 @@
           :draggable="true"
           @dragstart="$event.dataTransfer.setData('text', prop.node.id)"
           style="border: 2px solid gray; padding: 5px"
+          data-cy="treeNode"
         >
           <q-tooltip anchor="center right" self="center right" :delay="750">
-            {{ descriptions.get(prop.node.id) }}
+            {{ configStore.nodeStructures.get(prop.node.id).description }}
           </q-tooltip>
           <q-icon name="share" color="orange" size="28px" class="q-mr-sm" />
 
@@ -112,7 +114,6 @@ enum ViewMode {
 const currentViewMode = ref(ViewMode.LIBRARY);
 const filter = ref('');
 const nodes = ref([] as QTreeNode[]);
-const descriptions = new Map<string, string>();
 const organizedNodes = ref([]);
 let libraries = [] as string[];
 let types = [] as string[];
@@ -121,7 +122,6 @@ watch(
   () => configStore.nodeStructures,
   (newVal) => {
     nodes.value = [];
-    descriptions.clear();
     setNodeStructures([...newVal.values()]);
   },
   { deep: true }
@@ -158,7 +158,6 @@ const setNodeStructures = (structures: SimpleNodeStructure[]) => {
       },
       id: v.package,
     });
-    descriptions.set(v.package, v.description);
   });
   organizeNodesByViewMode();
 };

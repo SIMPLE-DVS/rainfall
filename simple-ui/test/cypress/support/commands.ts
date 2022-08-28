@@ -28,3 +28,26 @@
 // Imports Quasar Cypress AE predefined commands
 import { registerCommands } from '@quasar/quasar-app-extension-testing-e2e-cypress';
 registerCommands();
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Cypress {
+    interface Chainable {
+      /**
+       * Custom command to drop a node in the canvas
+       * @param library
+       * @param name
+       * @param x
+       * @param y
+       * @example cy.dropNode('Base', 'CustomNode')
+       */
+      dropNode(
+        library: string,
+        name: string,
+        x?: number,
+        y?: number,
+        options?: Partial<TypeOptions>
+      ): Chainable<unknown>;
+    }
+  }
+}

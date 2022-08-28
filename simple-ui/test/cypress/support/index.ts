@@ -15,3 +15,39 @@
 
 import './commands';
 import '@cypress/code-coverage/support';
+
+Cypress.Commands.add('dropNode', (library, name, x?, y?) => {
+  cy.url().then((url) => {
+    if (!url.endsWith('#/') && !url.endsWith('#/canvas')) {
+      cy.visit('/');
+    }
+  });
+  cy.get('.q-drawer').then((drawer) => {
+    if (drawer.css('visibility') == 'hidden') {
+      cy.dataCy('leftDrawer').click();
+    }
+  });
+  cy.dataCy('treeNode')
+    .contains(name)
+    .then((root) => {
+      if (!root.is(':visible')) {
+        cy.dataCy('treeRoot')
+          .contains(`Library: ${library}`)
+          .click()
+          .then(() => {
+            cy.wrap(root).click();
+          });
+      }
+    });
+  const node = cy.dataCy('treeNode').contains(name);
+  const dataTransfer = new DataTransfer();
+  node.trigger('dragstart', { dataTransfer });
+  cy.dataCy('canvas').trigger('drop', {
+    dataTransfer,
+    offsetX: x == null ? 0 : x,
+    offsetY: y == null ? 0 : y,
+  });
+  if (!(library == 'Base' && name == 'CustomNode')) {
+    cy.dataCy('okBtn').click();
+  }
+});

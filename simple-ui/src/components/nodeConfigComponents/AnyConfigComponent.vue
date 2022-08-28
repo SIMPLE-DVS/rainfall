@@ -18,6 +18,7 @@
         updateConfig();
         updateKey++;
       "
+      data-cy="select"
     ></q-select>
     <component
       v-if="type != null"

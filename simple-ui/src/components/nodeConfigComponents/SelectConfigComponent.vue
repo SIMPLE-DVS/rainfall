@@ -12,6 +12,7 @@
       (val) => (param.is_mandatory ? !!val : true) || 'Field is required',
     ]"
     @update:model-value="$emit('update:modelValue', $event)"
+    data-cy="select"
   ></q-select>
 </template>
 
@@ -32,4 +33,6 @@ const options = props.param.type
   .split(',');
 
 const value = ref(props.modelValue);
+
+defineExpose({ options, value });
 </script>

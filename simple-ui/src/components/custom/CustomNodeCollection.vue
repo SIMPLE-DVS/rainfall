@@ -8,6 +8,7 @@
       :key="node"
       :draggable="true"
       @dragstart="$event.dataTransfer.setData('text', node.package)"
+      data-cy="customNode"
     >
       <q-item-section avatar>
         <q-icon name="share" color="orange" />
@@ -18,6 +19,7 @@
         outline
         icon="delete"
         @click="onDeleteCustomNode(node.package)"
+        data-cy="deleteCustomNode"
       />
     </q-item>
   </q-list>

@@ -23,6 +23,7 @@
                 label="New Custom Node"
                 color="primary"
                 @click="newCustomNode"
+                data-cy="newCustomNode"
               ></q-btn>
             </div>
             <div class="col">
@@ -30,6 +31,7 @@
                 label="Save Custom Node"
                 color="primary"
                 @click="saveCustomNode"
+                data-cy="saveCustomNode"
               ></q-btn>
             </div>
           </div>
@@ -44,6 +46,7 @@
         style="position: relative"
         @dragover="allowDrop($event)"
         @drop="drop($event)"
+        data-cy="editor"
       ></div>
     </template>
   </q-splitter>

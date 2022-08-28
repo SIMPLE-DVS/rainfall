@@ -18,6 +18,7 @@
               :label="flow"
               :caption="`Last Modified: ${new Date(modifiedTime * 1000)}`"
               @before-show="loadDataflow(flow)"
+              data-cy="dataflow"
             >
               <q-item-section avatar top style="align-items: center">
                 <q-icon name="account_tree" color="black" size="34px" />
@@ -31,6 +32,7 @@
                     icon="architecture"
                     label="LOAD UI"
                     @click="onLoadUI(flow)"
+                    data-cy="loadUI"
                   ></q-btn>
                   <q-btn
                     :disable="
@@ -40,6 +42,7 @@
                     icon="download"
                     label="UI"
                     @click="onDownloadUI(flow)"
+                    data-cy="downloadUI"
                   ></q-btn>
                   <q-btn
                     :disable="
@@ -49,12 +52,14 @@
                     icon="download"
                     label="SCRIPT"
                     @click="onDownloadScript(flow)"
+                    data-cy="downloadScript"
                   ></q-btn>
                   <q-btn
                     outline
                     icon="delete"
                     label="DELETE"
                     @click="onDeleteDataFlow(flow)"
+                    data-cy="deleteDataflow"
                   ></q-btn>
                 </span>
               </q-item-section>
@@ -83,6 +88,7 @@ import { api } from 'src/boot/axios';
 import { AxiosError } from 'axios';
 import { downloadPythonScript, downloadUI } from '../utils';
 import { setUIState } from '../d3/utils';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
   repoName: string;
@@ -92,7 +98,8 @@ const props = defineProps<{
 defineEmits(useDialogPluginComponent.emitsObject);
 
 const $q = useQuasar();
-const { dialogRef } = useDialogPluginComponent();
+const router = useRouter();
+const { dialogRef, onDialogCancel } = useDialogPluginComponent();
 const metadata = ref(new Map<string, DataFlowData>());
 const copiedDataFlows = ref(props.dataflows.slice());
 
@@ -124,6 +131,7 @@ const loadDataflow = async (flow: string) => {
 
 const onLoadUI = (flow: string) => {
   setUIState(JSON.parse(metadata.value.get(flow).ui));
+  router.push({ name: 'canvas' });
 };
 
 const onDownloadUI = (flow: string) => {
@@ -143,6 +151,9 @@ const onDeleteDataFlow = async (flow: string) => {
         1
       );
       metadata.value.delete(flow);
+      if (copiedDataFlows.value.length == 0) {
+        onDialogCancel();
+      }
     })
     .catch((err: AxiosError) => {
       $q.notify({

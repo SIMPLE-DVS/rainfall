@@ -22,6 +22,7 @@
           color="primary"
           icon="edit"
           @click="editCustomNode(node.package)"
+          data-cy="editCustomNode"
         ></q-btn>
       </div>
 

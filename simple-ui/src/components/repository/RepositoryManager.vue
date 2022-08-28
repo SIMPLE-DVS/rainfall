@@ -2,7 +2,11 @@
   <q-list bordered>
     <q-item-label header>Repositories</q-item-label>
 
-    <q-item v-for="[name, value] in repoStore.repos" :key="name">
+    <q-item
+      v-for="[name, value] in repoStore.repos"
+      :key="name"
+      data-cy="repository"
+    >
       <q-item-section avatar top>
         <q-btn
           size="12px"
@@ -11,6 +15,7 @@
           label="Open"
           title="List repository content"
           @click="openRepositoryDialog(name)"
+          data-cy="openRepositoryDialog"
         />
       </q-item-section>
 
@@ -39,6 +44,7 @@
             icon="archive"
             title="Archive repository"
             @click="deleteRepo(name, true)"
+            data-cy="archiveRepo"
           />
           <q-btn
             size="12px"
@@ -48,6 +54,7 @@
             icon="delete"
             title="Delete repository"
             @click="deleteRepo(name, false)"
+            data-cy="deleteRepo"
           />
           <q-btn
             v-if="repoStore.currentRepo != name"
@@ -58,18 +65,23 @@
             icon="done"
             title="Mark as Default"
             @click="markAsDefault(name)"
+            data-cy="markAsDefault"
           />
         </div>
       </q-item-section>
     </q-item>
   </q-list>
 
-  <q-btn icon="add" outline @click="addRepo"></q-btn>
+  <q-btn icon="add" outline @click="addRepo" data-cy="addRepo"></q-btn>
 
   <q-list bordered>
     <q-item-label header>Archived Repositories</q-item-label>
 
-    <q-item v-for="[name, value] in repoStore.archivedRepos" :key="name">
+    <q-item
+      v-for="[name, value] in repoStore.archivedRepos"
+      :key="name"
+      data-cy="archivedRepository"
+    >
       <q-item-section avatar top>
         <q-icon name="archive" color="black" size="34px" />
       </q-item-section>
@@ -93,6 +105,7 @@
             round
             icon="unarchive"
             @click="unarchiveRepo(name)"
+            data-cy="unarchiveRepo"
           />
           <q-btn
             class="gt-xs"
@@ -102,6 +115,7 @@
             round
             icon="delete"
             @click="deleteArchivedRepo(name)"
+            data-cy="deleteArchivedRepo"
           />
         </div>
       </q-item-section>

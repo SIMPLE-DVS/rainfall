@@ -28,7 +28,8 @@ import '@quasar/extras/material-icons/material-icons.css';
 
 import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-e2e-cypress';
 import { config } from '@vue/test-utils';
-import { Dialog } from 'quasar';
+import { Dialog, Notify } from 'quasar';
+import { createPinia, Pinia, setActivePinia } from 'pinia';
 
 // Example to import i18n from boot and use as plugin
 // import { i18n } from 'src/boot/i18n';
@@ -44,4 +45,6 @@ config.global.mocks = {
 // We do want transitions to show when doing visual testing :)
 config.global.stubs = {};
 
-installQuasarPlugin({ plugins: { Dialog } });
+config.global.plugins.push(setActivePinia(createPinia()) as Pinia);
+
+installQuasarPlugin({ plugins: { Dialog, Notify } });

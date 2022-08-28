@@ -7,6 +7,7 @@
       color="primary"
       label="Execute"
       @click="execute()"
+      data-cy="executionButton"
     ></q-btn>
     <div class="q-pt-md">Execution Log</div>
   </div>
@@ -17,6 +18,7 @@
       autogrow
       readonly
       outlined
+      data-cy="log"
     ></q-input>
   </div>
 </template>
@@ -54,12 +56,12 @@ const execute = async () => {
     },
     cancel: true,
   }).onOk((path) => {
+    const config = getConfig();
+    if (config == null) {
+      return;
+    }
     socket = new WebSocket(getWebSocketURL() + '/execution');
     socket.onopen = () => {
-      const config = getConfig();
-      if (config == null) {
-        return;
-      }
       socket.onmessage = executionListener;
       logText.value = '';
       config['path'] = path;

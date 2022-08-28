@@ -1,0 +1,5 @@
+{
+  "inputs": ["i0", "i3"],
+  "outputs": ["o2", "o4"],
+  "params": ["p2"]
+}

@@ -1,0 +1,66 @@
+Request received
+Request accepted
+Files written
+Created virtual environment
+Installing requirements
+Requirements installed
+Started process
+2022-08-27T00:58:55.789325+0200|INFO|dataflow1|Create Dataflow.
+2022-08-27T00:58:55.789325+0200|DEBUG|dataflow1|Use executor LocalExecutor.
+2022-08-27T00:58:55.789325+0200|INFO|DatasetCreator1|Create Node.
+2022-08-27T00:58:55.792325+0200|INFO|TrainTestDatasetSplit1|Create Node.
+2022-08-27T00:58:55.792325+0200|INFO|DataFrameLengthCalculator3|Create Node.
+2022-08-27T00:58:55.792325+0200|INFO|DataFrameLengthCalculator1|Create Node.
+2022-08-27T00:58:55.792325+0200|INFO|DataFrameLengthCalculator2|Create Node.
+2022-08-27T00:58:55.793326+0200|INFO|SumOfNumbers1|Create Node.
+2022-08-27T00:58:55.793326+0200|INFO|EqualChecker1|Create Node.
+2022-08-27T00:58:55.793326+0200|DEBUG|DatasetCreator1|Create edge from ['dataset'] to TrainTestDatasetSplit1 - ['dataset'].
+2022-08-27T00:58:55.793326+0200|DEBUG|DatasetCreator1|Create edge from ['dataset'] to DataFrameLengthCalculator3 - ['dataset'].
+2022-08-27T00:58:55.793326+0200|DEBUG|TrainTestDatasetSplit1|Create edge from ['train_dataset'] to DataFrameLengthCalculator1 - ['dataset'].
+2022-08-27T00:58:55.793326+0200|DEBUG|TrainTestDatasetSplit1|Create edge from ['test_dataset'] to DataFrameLengthCalculator2 - ['dataset'].
+2022-08-27T00:58:55.793326+0200|DEBUG|DataFrameLengthCalculator3|Create edge from ['length'] to EqualChecker1 - ['i2'].
+2022-08-27T00:58:55.793326+0200|DEBUG|DataFrameLengthCalculator1|Create edge from ['length'] to SumOfNumbers1 - ['num1'].
+2022-08-27T00:58:55.793326+0200|DEBUG|DataFrameLengthCalculator2|Create edge from ['length'] to SumOfNumbers1 - ['num2'].
+2022-08-27T00:58:55.793326+0200|DEBUG|SumOfNumbers1|Create edge from ['sum'] to EqualChecker1 - ['i1'].
+2022-08-27T00:58:55.793326+0200|INFO|dataflow1|Add edge from DatasetCreator1 - ['dataset'] to TrainTestDatasetSplit1 - ['dataset'].
+2022-08-27T00:58:55.793326+0200|INFO|dataflow1|Add node DatasetCreator1.
+2022-08-27T00:58:55.793326+0200|INFO|dataflow1|Add node TrainTestDatasetSplit1.
+2022-08-27T00:58:55.793326+0200|INFO|dataflow1|Add edge from DatasetCreator1 - ['dataset'] to DataFrameLengthCalculator3 - ['dataset'].
+2022-08-27T00:58:55.793326+0200|INFO|dataflow1|Add node DatasetCreator1.
+2022-08-27T00:58:55.793326+0200|INFO|dataflow1|Add node DataFrameLengthCalculator3.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add edge from TrainTestDatasetSplit1 - ['train_dataset'] to DataFrameLengthCalculator1 - ['dataset'].
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node TrainTestDatasetSplit1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node DataFrameLengthCalculator1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add edge from TrainTestDatasetSplit1 - ['test_dataset'] to DataFrameLengthCalculator2 - ['dataset'].
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node TrainTestDatasetSplit1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node DataFrameLengthCalculator2.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add edge from DataFrameLengthCalculator3 - ['length'] to EqualChecker1 - ['i2'].
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node DataFrameLengthCalculator3.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node EqualChecker1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add edge from DataFrameLengthCalculator1 - ['length'] to SumOfNumbers1 - ['num1'].
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node DataFrameLengthCalculator1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node SumOfNumbers1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add edge from DataFrameLengthCalculator2 - ['length'] to SumOfNumbers1 - ['num2'].
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node DataFrameLengthCalculator2.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node SumOfNumbers1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add edge from SumOfNumbers1 - ['sum'] to EqualChecker1 - ['i1'].
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node SumOfNumbers1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Add node EqualChecker1.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1|Start execution of the Dataflow.
+2022-08-27T00:58:55.794327+0200|DEBUG|dataflow1|Checking if the Dataflow contains cycles.
+2022-08-27T00:58:55.794327+0200|INFO|dataflow1:DatasetCreator1|Starting execution of the node.
+2022-08-27T00:58:55.795961+0200|SUCCESS|dataflow1:DatasetCreator1|Node executed succesfully.
+2022-08-27T00:58:55.795961+0200|INFO|dataflow1:TrainTestDatasetSplit1|Starting execution of the node.
+2022-08-27T00:58:55.796966+0200|SUCCESS|dataflow1:TrainTestDatasetSplit1|Node executed succesfully.
+2022-08-27T00:58:55.796966+0200|INFO|dataflow1:DataFrameLengthCalculator3|Starting execution of the node.
+2022-08-27T00:58:55.796966+0200|SUCCESS|dataflow1:DataFrameLengthCalculator3|Node executed succesfully.
+2022-08-27T00:58:55.796966+0200|INFO|dataflow1:DataFrameLengthCalculator1|Starting execution of the node.
+2022-08-27T00:58:55.796966+0200|SUCCESS|dataflow1:DataFrameLengthCalculator1|Node executed succesfully.
+2022-08-27T00:58:55.796966+0200|INFO|dataflow1:DataFrameLengthCalculator2|Starting execution of the node.
+2022-08-27T00:58:55.796966+0200|SUCCESS|dataflow1:DataFrameLengthCalculator2|Node executed succesfully.
+2022-08-27T00:58:55.796966+0200|INFO|dataflow1:SumOfNumbers1|Starting execution of the node.
+2022-08-27T00:58:55.796966+0200|SUCCESS|dataflow1:SumOfNumbers1|Node executed succesfully.
+2022-08-27T00:58:55.796966+0200|INFO|dataflow1:EqualChecker1|Starting execution of the node.
+True
+2022-08-27T00:58:55.796966+0200|SUCCESS|dataflow1:EqualChecker1|Node executed succesfully.
+2022-08-27T00:58:55.796966+0200|SUCCESS|dataflow1|Execution completed.

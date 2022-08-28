@@ -1,5 +1,5 @@
 <template>
-  <q-list dense>
+  <q-list dense data-cy="tuple">
     <q-item class="column" v-for="(t, k) in types" :key="t">
       <component
         class="q-py-xs"
@@ -52,4 +52,6 @@ const value = ref(
 );
 
 const updateKeys = ref(Array(types.length).fill(0));
+
+defineExpose({ types, value });
 </script>

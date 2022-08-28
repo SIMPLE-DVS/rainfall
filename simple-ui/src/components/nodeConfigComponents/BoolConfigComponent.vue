@@ -5,6 +5,7 @@
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
     :toggle-indeterminate="!param.is_mandatory"
+    data-cy="toggle"
   ></q-toggle>
 </template>
 

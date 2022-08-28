@@ -4,8 +4,9 @@
       class="d3-svg full-space"
       @dragover="allowDrop($event)"
       @drop="drop($event)"
+      data-cy="canvas"
     >
-      <g class="graphics">
+      <g class="graphics" data-cy="canvasGraphics">
         <g class="selection">
           <rect class="sel-rect"></rect>
         </g>
@@ -21,6 +22,7 @@
       accept=".py"
       v-model="script"
       @update:model-value="loadFile(true)"
+      data-cy="loadFromScript"
     ></q-file>
     <q-file
       ref="filePicker"
@@ -28,6 +30,7 @@
       accept=".json"
       v-model="file"
       @update:model-value="loadFile(false)"
+      data-cy="loadFromJSON"
     ></q-file>
     <div class="row justify-center q-gutter-md q-pt-md">
       <q-btn
@@ -41,6 +44,7 @@
         icon="file_download"
         label="SAVE UI"
         @click="saveUI()"
+        data-cy="saveUI"
       /><q-btn
         outline
         icon="file_upload"
@@ -52,6 +56,7 @@
         icon="file_download"
         label="SAVE SCRIPT"
         @click="saveScript()"
+        data-cy="saveScript"
       />
     </div>
   </div>
@@ -446,6 +451,9 @@ const drop = (e: DragEvent) => {
       },
       cancel: true,
       persistent: false,
+      ok: {
+        'data-cy': 'okBtn',
+      },
     }).onOk((name) => {
       dropNode(e.offsetX, e.offsetY, clazz, name);
     });

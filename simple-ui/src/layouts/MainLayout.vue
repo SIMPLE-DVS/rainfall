@@ -10,6 +10,7 @@
           icon="menu"
           aria-label="Menu"
           @click="toggleLeftDrawer"
+          data-cy="leftDrawer"
         />
 
         <q-toolbar-title> Flow UI </q-toolbar-title>
@@ -25,6 +26,7 @@
           round
           icon="menu"
           @click="toggleRightDrawer"
+          data-cy="rightDrawer"
         />
       </q-toolbar>
     </q-header>
@@ -38,7 +40,9 @@
       side="left"
     >
       <node-collection v-if="tab == 'ui'"></node-collection>
-      <custom-collection v-else-if="tab == 'editor'"></custom-collection>
+      <custom-node-collection
+        v-else-if="tab == 'editor'"
+      ></custom-node-collection>
     </q-drawer>
 
     <q-drawer
@@ -108,7 +112,7 @@
 import { ref, watch } from 'vue';
 import LocaleChanger from 'components/LocaleChanger.vue';
 import NodeCollection from 'components/NodeCollection.vue';
-import CustomCollection from 'components/custom/CustomCollection.vue';
+import CustomNodeCollection from 'components/custom/CustomNodeCollection.vue';
 import ConfigFormComponent from 'components/ConfigFormComponent.vue';
 import { useCanvasStore } from 'stores/canvasStore';
 import { NodeInfo } from 'components/models';

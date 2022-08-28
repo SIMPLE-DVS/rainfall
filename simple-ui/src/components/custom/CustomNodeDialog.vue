@@ -21,6 +21,7 @@
               (val) =>
                 !customNodeExists(val) || 'Custom node name already exists',
             ]"
+            data-cy="customNodeName"
           >
           </q-input>
           <q-select
@@ -39,7 +40,12 @@
             ]"
           />
         </q-card-section>
-        <q-btn type="submit" color="primary" label="Create custom node"></q-btn>
+        <q-btn
+          type="submit"
+          color="primary"
+          label="Create custom node"
+          data-cy="createCustomNode"
+        ></q-btn>
       </q-form>
     </q-card>
   </q-dialog>

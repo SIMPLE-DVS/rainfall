@@ -18,6 +18,7 @@
         $emit('update:modelValue', newVal);
       }
     "
+    data-cy="list"
   />
 </template>
 
@@ -63,4 +64,6 @@ const splitToRows = (data: string) => {
     .filter((x) => conversionCheckFunctions.get(listType)(x))
     .map((x) => conversionMapFunctions.get(listType)(x));
 };
+
+defineExpose({ value });
 </script>

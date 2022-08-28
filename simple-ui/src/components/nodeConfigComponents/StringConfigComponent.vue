@@ -15,6 +15,7 @@
         $emit('update:modelValue', newVal);
       }
     "
+    data-cy="input"
   ></q-input>
 </template>
 
@@ -29,4 +30,6 @@ const props = defineProps<{
 }>();
 
 const value = ref(props.modelValue);
+
+defineExpose({ value });
 </script>
