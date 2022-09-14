@@ -48,6 +48,18 @@ def parse_custom_node_code(code: str, function_name: str):
     return main_func
 
 
+def parse_custom_node_requirements(code: str):
+    parsed = ast.parse(code)
+    requirements = set([])
+    for statement in ast.walk(parsed):
+        if isinstance(statement, ast.Import):
+            for name in statement.names:
+                requirements.add(name.name.split('.')[0])
+        elif isinstance(statement, ast.ImportFrom):
+            requirements.add(statement.module.split('.')[0])
+    return requirements
+
+
 def find_custom_node_params(code, main_func: str) -> CustomNodeIOParams:
     """
     Method that retrieves all the parameters of a custom nodes
@@ -92,10 +104,6 @@ def check_custom_node_code(custom_nodes: List[CustomNode]):
             # as of now they are all CustomNode and rain.nodes.custom.custom.CustomNode
             if node.code not in nodes:
                 raise CustomNodeConfigurationError(f"Duplicated function name in node {node.node_id}!")
-        # TODO check imports
-        # get code, split \n, add to a list those string that contains "import",
-        # check if other imports are already in the list, if yes remove the import from the code,
-        # join the code string list
 
 
 def get_nodes_structure() -> list[NodeStructure]:

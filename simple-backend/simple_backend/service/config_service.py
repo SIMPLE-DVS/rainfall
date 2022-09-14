@@ -6,11 +6,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Union
 from simple_backend.errors import DagCycleError, FileWriteError
-from simple_backend.schemas.nodes import UI, CustomNode, Node
+from simple_backend.schemas.nodes import UI, CustomNode, Node, UINode, CustomNodeStructure, NodeStructure
 from simple_backend.service import node_service
-from simple_backend.service.node_service import rain_structure
-from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend.service.dag_generator import DagCreator
+from simple_backend.service.node_service import rain_structure, parse_custom_node_requirements
+from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend import config
 
 
@@ -44,17 +44,25 @@ def generate_script(nodes: list[Union[CustomNode, Node]]):
     return script
 
 
-def get_requirements(libs: List[str]) -> List[str]:
+def get_requirements(libs: List[str], ui_nodes: List[UINode],
+                     ui_structures: dict[str, Union[CustomNodeStructure, NodeStructure]]) -> List[str]:
     """
     Method that returns the corresponding version of the given Python dependencies, useful to re-create the
     environment of a given Dataflow
     """
     libs = [lib.lower() for lib in libs]
-    requirements = ["git+ssh://git@github.com/SIMPLE-DVS/rain@master#egg=rain"]
+    requirements = set(["git+ssh://git@github.com/SIMPLE-DVS/rain@master#egg=rain"])
 
     for dep in rain_structure["dependencies"]:
         if any(lib in dep for lib in libs):
-            requirements.append(dep)
+            requirements.add(dep)
+
+    custom_structures = set([node.package for node in ui_nodes
+                             if node.package.startswith('rain.nodes.custom.custom.CustomNode')])
+    for structure in custom_structures:
+        for req in parse_custom_node_requirements(ui_structures[structure].code):
+            requirements.add(req)
+
     return requirements
 
 
@@ -69,7 +77,7 @@ def generate_artifacts(repository: str, script: str, dependencies: List[str], ui
     Method that stores the artifacts (script, requirements, GUI configuration, other metadata)
     """
     timestamp = int(time.time() * 1000)
-    requirements = get_requirements(dependencies)
+    requirements = get_requirements(dependencies, ui.nodes.values(), ui.structures)
     zip_buffer = io.BytesIO()
     try:
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:

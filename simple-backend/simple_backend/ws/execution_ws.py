@@ -5,8 +5,8 @@ import subprocess
 import os
 from virtualenv import cli_run
 from simple_backend.errors import BadRequestError
-from simple_backend.schemas.nodes import ConfigurationSchema, CustomNode
-from simple_backend.service import config_service, node_service
+from simple_backend.schemas.nodes import ConfigurationSchema
+from simple_backend.service import config_service
 from simple_backend.service.config_service import get_requirements
 
 
@@ -28,7 +28,7 @@ async def handle_execution(ws: WebSocket):
     await asyncio.sleep(0.001)
 
     script = config_service.generate_script(nodes)
-    dependencies = get_requirements(config.dependencies)
+    dependencies = get_requirements(config.dependencies, config.ui.nodes.values(), config.ui.structures)
 
     with open(os.path.join(path, "script.py"), "w+") as sp:
         sp.write(script)
