@@ -7,7 +7,6 @@ from virtualenv import cli_run
 from simple_backend.errors import BadRequestError
 from simple_backend.schemas.nodes import ConfigurationSchema
 from simple_backend.service import config_service
-from simple_backend.service.config_service import get_requirements
 
 
 router = APIRouter()
@@ -28,12 +27,15 @@ async def handle_execution(ws: WebSocket):
     await asyncio.sleep(0.001)
 
     script = config_service.generate_script(nodes)
-    dependencies = get_requirements(config.dependencies, config.ui.nodes.values(), config.ui.structures)
 
+    if not os.path.isdir(path):
+        os.mkdir(path)
     with open(os.path.join(path, "script.py"), "w+") as sp:
         sp.write(script)
     with open(os.path.join(path, "requirements.txt"), "w+") as req:
-        req.write(" \n".join(dependencies))
+        req.write("\n".join(config.dependencies))
+    with open(os.path.join(path, "ui.json"), "w+") as ui:
+        ui.write(config.ui.json(separators=(',', ':')))
 
     await ws.send_text('Files written')
     await asyncio.sleep(0.001)

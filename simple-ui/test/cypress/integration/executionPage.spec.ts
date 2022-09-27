@@ -102,12 +102,6 @@ describe('Execution Page tests', () => {
     cy.dataCy('executionButton')
       .click()
       .then(() => {
-        cy.withinDialog({
-          fn: ($dialog) => {
-            cy.wrap($dialog).get('input').type('path');
-            cy.wrap($dialog).get('.q-btn').contains('OK').click();
-          },
-        });
         cy.dataCy('log').then((log) => {
           cy.get('.q-notification').should('exist');
           expect(log.val()).to.be.empty;
@@ -128,6 +122,11 @@ describe('Execution Page tests', () => {
     cy.dataCy('executionButton')
       .click()
       .then(() => {
+        cy.withinDialog({
+          fn: ($dialog) => {
+            cy.wrap($dialog).get('.q-btn').contains('OK').click();
+          },
+        });
         cy.withinDialog({
           fn: ($dialog) => {
             cy.wrap($dialog).get('input').type('path');

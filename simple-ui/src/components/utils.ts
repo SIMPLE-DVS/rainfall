@@ -50,6 +50,22 @@ export const getNodesConfig = () => {
   });
 };
 
+export const getNodesRequirements = () => {
+  const canvasStore = useCanvasStore();
+  const configStore = useConfigStore();
+
+  return [...canvasStore.canvasNodes.keys()]
+    .map((nodeName) => canvasStore.canvasNodes.get(nodeName).package)
+    .map((nodePackage) =>
+      configStore.nodeStructures.get(nodePackage).tags['library'].toLowerCase()
+    )
+    .reduce(
+      (acc, value) =>
+        value != 'custom' && acc.indexOf(value) == -1 ? acc.concat(value) : acc,
+      [] as string[]
+    );
+};
+
 export const getConfig = () => {
   const repoStore = useRepoStore();
   if (repoStore.currentRepo == null) {
@@ -61,24 +77,12 @@ export const getConfig = () => {
     return null;
   }
 
-  const canvasStore = useCanvasStore();
-  const configStore = useConfigStore();
-
   const config: { [index: string]: unknown } = {};
   config['pipeline_uid'] = Math.floor(100000 * Math.random()).toString();
 
   config['nodes'] = getNodesConfig();
 
-  config['dependencies'] = [...canvasStore.canvasNodes.keys()]
-    .map((nodeName) => canvasStore.canvasNodes.get(nodeName).package)
-    .map((nodePackage) =>
-      configStore.nodeStructures.get(nodePackage).tags['library'].toLowerCase()
-    )
-    .reduce(
-      (acc, value) =>
-        value != 'custom' && acc.indexOf(value) == -1 ? acc.concat(value) : acc,
-      [] as string[]
-    );
+  config['dependencies'] = getNodesRequirements();
 
   config['ui'] = getUIState();
 

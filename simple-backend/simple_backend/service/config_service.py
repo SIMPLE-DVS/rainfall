@@ -9,7 +9,7 @@ from simple_backend.errors import DagCycleError, FileWriteError
 from simple_backend.schemas.nodes import UI, CustomNode, Node, UINode, CustomNodeStructure, NodeStructure
 from simple_backend.service import node_service
 from simple_backend.service.dag_generator import DagCreator
-from simple_backend.service.node_service import rain_structure, parse_custom_node_requirements
+from simple_backend.service.node_service import parse_custom_node_requirements
 from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend import config
 
@@ -47,15 +47,20 @@ def generate_script(nodes: list[Union[CustomNode, Node]]):
 def get_requirements(libs: List[str], ui_nodes: List[UINode],
                      ui_structures: dict[str, Union[CustomNodeStructure, NodeStructure]]) -> List[str]:
     """
-    Method that returns the corresponding version of the given Python dependencies, useful to re-create the
-    environment of a given Dataflow
+    Method that returns the Python dependencies, useful to re-create the environment of a given Dataflow
     """
     libs = [lib.lower() for lib in libs]
     requirements = set(["git+ssh://git@github.com/SIMPLE-DVS/rain@master#egg=rain"])
 
-    for dep in rain_structure["dependencies"]:
-        if any(lib in dep for lib in libs):
-            requirements.add(dep)
+    # TODO: manage dependencies' versions and avoid duplicates
+    #       e.g. pandas and pandas~=1.3.0 shouldn't be two different dependencies
+    # for dep in rain_structure["dependencies"]:
+    #    if any(lib in dep for lib in libs):
+    #        requirements.add(dep)
+
+    for lib in libs:
+        if lib != 'base':
+            requirements.add(lib)
 
     custom_structures = set([node.package for node in ui_nodes
                              if node.package.startswith('rain.nodes.custom.custom.CustomNode')])
@@ -82,7 +87,7 @@ def generate_artifacts(repository: str, script: str, dependencies: List[str], ui
     try:
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
             zip_file.writestr("script.py", script)
-            zip_file.writestr("requirements.txt", " \n".join(requirements))
+            zip_file.writestr("requirements.txt", "\n".join(requirements))
             zip_file.writestr("metadata.yml", yaml.dump(
                 {"created_at": datetime.fromtimestamp(timestamp / 1000), "generated_by": "MarcoScarp94",
                  "company": "Sigma Spa"}, default_flow_style=False))
