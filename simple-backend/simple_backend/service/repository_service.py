@@ -1,3 +1,4 @@
+import sys
 import shutil
 import zipfile
 from typing import List
@@ -5,6 +6,14 @@ from simple_backend import config
 from simple_backend.errors import BadRequestError
 from simple_backend.schemas.dataflow import DataFlow
 
+
+try:
+    config.BASE_OUTPUT_DIR.mkdir(exist_ok=True)
+    config.BASE_OUTPUT_DIR.joinpath('.gitkeep').touch(exist_ok=True)
+    config.ARCHIVE_DIR.mkdir(exist_ok=True)
+except:
+    print('Can\'t create repositories directory!')
+    sys.exit(1)
 
 def get_repositories_names() -> List[str]:
     """ Returns the immediate subdirectories names of the output dir. """
