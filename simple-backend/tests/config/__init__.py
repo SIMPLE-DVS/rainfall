@@ -1,4 +1,3 @@
-from simple_backend.schemas.nodes import ConfigurationSchema
 from tests.create_test_client import create_test_client, setup_dirs
 
 
@@ -15,6 +14,5 @@ class TestScript:
         assert response.status_code == 422
 
     def test_script_ok(self):
-        configuration = ConfigurationSchema(pipeline_uid="378921", nodes=[], dependencies=[], ui={"anyConfigs": {}, "configs": {}, "edges": {}, "nodes": {}, "structures": {}, "transform": ""}, repository="abc")
-        response = client.post('/api/v1/script', data=configuration.json())
+        response = client.post('/api/v1/script', data={'script': ''})
         assert response.status_code == 200

@@ -1,7 +1,6 @@
 import { exportFile, Notify } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { useConfigStore } from 'src/stores/configStore';
-import { useRepoStore } from 'src/stores/repoStore';
 import { UIState } from './d3/types';
 import { getUIState } from './d3/utils';
 import { CustomNodeStructure } from './models';
@@ -67,26 +66,11 @@ export const getNodesRequirements = () => {
 };
 
 export const getConfig = () => {
-  const repoStore = useRepoStore();
-  if (repoStore.currentRepo == null) {
-    Notify.create({
-      message:
-        'No default repository is selected! Mark a repository as default',
-      type: 'negative',
-    });
-    return null;
-  }
-
   const config: { [index: string]: unknown } = {};
   config['pipeline_uid'] = Math.floor(100000 * Math.random()).toString();
-
   config['nodes'] = getNodesConfig();
-
   config['dependencies'] = getNodesRequirements();
-
   config['ui'] = getUIState();
-
-  config['repository'] = repoStore.currentRepo;
 
   return config;
 };

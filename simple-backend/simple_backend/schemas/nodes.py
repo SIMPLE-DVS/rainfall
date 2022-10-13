@@ -121,6 +121,7 @@ class ConfigurationSchema(BaseModel):
     nodes: list[Union[CustomNode, Node]]
     dependencies: list[str]
     ui: UI
-    repository: str
+    # repository is used only to save dataflow
+    repository: str = None
     # path is used only for execution
     path: str = None

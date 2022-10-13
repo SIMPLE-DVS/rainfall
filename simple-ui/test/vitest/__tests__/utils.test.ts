@@ -8,8 +8,7 @@ import {
   downloadUI,
   getConfig,
 } from 'src/components/utils';
-import { useRepoStore } from 'src/stores/repoStore';
-import { CustomNodeStructure, Repository } from 'src/components/models';
+import { CustomNodeStructure } from 'src/components/models';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { useConfigStore } from 'src/stores/configStore';
 import { getUIState } from 'src/components/d3/utils';
@@ -91,22 +90,7 @@ describe('utils test', () => {
     );
   });
 
-  it('returns null and notifies if no repo is selected', async () => {
-    expect(NotifyWrapper).toBeTruthy();
-    mount(NotifyWrapper, {});
-    const spy = vi.spyOn(Notify, 'create');
-    expect(spy).not.toHaveBeenCalled();
-    expect(getConfig()).toBeNull();
-    expect(spy).toHaveBeenCalled();
-  });
-
-  it('returns a valid config if a repo is selected', async () => {
-    const repoStore = useRepoStore();
-    repoStore.repos = new Map<string, Repository>([
-      ['abc', { name: 'abc', type: 'local' }],
-      ['def', { name: 'def', type: 'local' }],
-    ]);
-    repoStore.currentRepo = 'abc';
+  it('returns a valid config', async () => {
     expect(getConfig()).not.toBeNull();
   });
 

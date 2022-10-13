@@ -25,13 +25,23 @@ import { api } from '../boot/axios';
 import { useQuasar } from 'quasar';
 import { getConfig } from 'src/components/utils';
 import RepositoryManager from 'src/components/repository/RepositoryManager.vue';
+import { useRepoStore } from 'src/stores/repoStore';
 
 const $q = useQuasar();
+const repoStore = useRepoStore();
+
 const saveDataFlow = async () => {
   const config = getConfig();
-  if (config == null) {
+  if (repoStore.currentRepo == null) {
+    $q.notify({
+      message:
+        'No default repository is selected! Mark a repository as default',
+      type: 'negative',
+    });
     return;
   }
+  config['repository'] = repoStore.currentRepo;
+
   await api
     .post('/config', config)
     .then((res) => {

@@ -95,20 +95,6 @@ describe('Execution Page tests', () => {
     });
   });
 
-  it("doesn't start execution if no repo is selected", () => {
-    cy.dataCy('log').then((log) => {
-      expect(log.val()).to.be.empty;
-    });
-    cy.dataCy('executionButton')
-      .click()
-      .then(() => {
-        cy.dataCy('log').then((log) => {
-          cy.get('.q-notification').should('exist');
-          expect(log.val()).to.be.empty;
-        });
-      });
-  });
-
   it('executes and logs', () => {
     cy.get('.q-tab[href="#/canvas"]').click();
     cy.dataCy('loadFromJSON').selectFile('test/cypress/fixtures/ui.json', {

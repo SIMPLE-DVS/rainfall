@@ -71,9 +71,6 @@ const execute = async () => {
   const canvasStore = useCanvasStore();
   const configStore = useConfigStore();
   const config = getConfig();
-  if (config == null) {
-    return;
-  }
 
   await api
     .post<string[]>('/execution', {
