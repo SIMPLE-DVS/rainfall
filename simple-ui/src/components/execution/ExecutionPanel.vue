@@ -1,18 +1,25 @@
 <template>
-  <div class="column items-center">
-    <q-item-label header class="row justify-center">Execution</q-item-label>
-    <q-btn
-      class="q-pa-sm"
-      icon="play_arrow"
-      color="primary"
-      label="Execute"
-      @click="execute()"
-      data-cy="executionButton"
-    ></q-btn>
-    <div class="q-pt-md">Execution Log</div>
-  </div>
-  <div style="position: relative">
+  <div ref="container">
+    <div class="column items-center">
+      <q-item-label header class="row justify-center">Execution</q-item-label>
+      <q-btn
+        class="q-pa-sm"
+        icon="play_arrow"
+        color="primary"
+        label="Execute"
+        @click="execute()"
+        data-cy="executionButton"
+      ></q-btn>
+      <div class="q-pt-md">Execution Log</div>
+      <q-checkbox
+        label="Autoscroll to end"
+        :toggle-indeterminate="false"
+        v-model="autoScroll"
+      ></q-checkbox>
+    </div>
+
     <q-input
+      ref="input"
       class="q-pa-md"
       v-model="logText"
       autogrow
@@ -24,8 +31,8 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue';
-import { useQuasar } from 'quasar';
+import { onUnmounted, Ref, ref } from 'vue';
+import { QInput, useQuasar } from 'quasar';
 import {
   destroyWebSocket,
   getConfig,
@@ -39,8 +46,11 @@ import { useConfigStore } from 'src/stores/configStore';
 import { onBeforeRouteLeave } from 'vue-router';
 
 const $q = useQuasar();
+const container: Ref<Element> = ref(null);
+const input: Ref<QInput> = ref(null);
 const logText = ref('');
 const logStore = useLogStore();
+const autoScroll = ref(true);
 let socket: WebSocket = null;
 
 onBeforeRouteLeave((_to, _from, next) => {
@@ -59,11 +69,22 @@ onBeforeRouteLeave((_to, _from, next) => {
     .onCancel(() => next(false));
 });
 
+const updateTextAndScroll = (line: string) => {
+  logText.value += line;
+
+  if (!autoScroll.value) {
+    return;
+  }
+
+  container.value.scrollIntoView(false);
+  input.value.getNativeElement().scrollIntoView(false);
+};
+
 const executionListener = (ev: MessageEvent<string>) => {
   const data = ev.data;
   logStore.executionLogLine = data;
   const line = data + (data.endsWith('\n') ? '' : '\n');
-  logText.value += line;
+  updateTextAndScroll(line);
   // TODO: manage ws exception message or check connection close code
 };
 

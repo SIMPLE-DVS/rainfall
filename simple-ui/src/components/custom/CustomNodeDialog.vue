@@ -64,6 +64,7 @@ const props = defineProps<{
     package: string;
     code: string;
   };
+  language: string;
 }>();
 
 defineEmits(useDialogPluginComponent.emitsObject);
@@ -71,6 +72,8 @@ defineEmits(useDialogPluginComponent.emitsObject);
 const $q = useQuasar();
 const configStore = useConfigStore();
 const { dialogRef, onDialogOK } = useDialogPluginComponent();
+
+const language = toRaw(props.language);
 
 const structure: CustomNodeStructure = reactive({
   package: toRaw(props.editorInfo.package),
@@ -96,6 +99,7 @@ if (structure.package != null) {
 }
 
 const getMatches = (str: string) => {
+  // TODO: change regex based on current programming languages
   const regex = /def (.+?)\(.+?,.+?\):/gm;
   const matches = [] as string[];
 
@@ -121,6 +125,7 @@ const onOKClick = async () => {
     .post('/nodes/custom', {
       function_name: structure.function_name,
       code: structure.code,
+      language: language,
     })
     .then((res: AxiosResponse) => {
       const data = res.data as {

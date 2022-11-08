@@ -58,7 +58,11 @@ import { useQuasar } from 'quasar';
 import Ace from 'ace-builds';
 import 'ace-builds/src-min-noconflict/theme-one_dark';
 import 'ace-builds/src-min-noconflict/mode-python';
+import 'ace-builds/src-min-noconflict/mode-r';
+import 'ace-builds/src-min-noconflict/mode-julia';
 import 'ace-builds/src-min-noconflict/snippets/python';
+import 'ace-builds/src-min-noconflict/snippets/r';
+import 'ace-builds/src-min-noconflict/snippets/julia';
 import 'ace-builds/src-min-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import 'ace-builds/src-min-noconflict/ext-prompt';
@@ -153,10 +157,13 @@ const saveCustomNode = () => {
     package: configStore.nodeStructures.has(nodePackage) ? nodePackage : null,
     code: editor.getValue(),
   };
+  const language = (
+    editor.getSession().getMode() as unknown as { $id: string }
+  ).$id.substring('ace/mode/'.length);
 
   $q.dialog({
     component: CustomNodeDialog,
-    componentProps: { editorInfo },
+    componentProps: { editorInfo, language },
   }).onOk((res: CustomNodeStructure) => {
     if (res.package == null) {
       res.package = getNextCustomNodeStructureId();

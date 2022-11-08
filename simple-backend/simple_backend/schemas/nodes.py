@@ -116,6 +116,12 @@ class UI(BaseModel):
     transform: str
 
 
+class CustomNodeSchema(BaseModel):
+    function_name: str
+    code: str
+    language: str
+
+
 class ConfigurationSchema(BaseModel):
     pipeline_uid: str
     nodes: list[Union[CustomNode, Node]]

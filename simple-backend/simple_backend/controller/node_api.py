@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from simple_backend.errors import BadRequestError
-from simple_backend.schemas.nodes import NodeStructure, CustomNodeIOParams
+from simple_backend.schemas.nodes import NodeStructure, CustomNodeIOParams, CustomNodeSchema
 from simple_backend.service import node_service
 from simple_backend.service.node_service import parse_custom_node_code
 
@@ -17,14 +17,14 @@ async def get_nodes():
 
 
 @router.post('/custom', response_model=CustomNodeIOParams)
-async def check_custom_node(request: Request):
+async def check_custom_node(custom: CustomNodeSchema):
     """
     Api used to manage a custom node
     """
-    function_name = (await request.json()).get("function_name")
-    code = (await request.json()).get("code")
-    parsed_code = parse_custom_node_code(code, function_name)
-    return node_service.find_custom_node_params(parsed_code, function_name)
+    language = custom.language
+    # TODO: use language variable to support and perform the correct analysis of other programming languages' code
+    parsed_code = parse_custom_node_code(custom.code, custom.function_name)
+    return node_service.find_custom_node_params(parsed_code, custom.function_name)
 
 
 @router.get('/{clazz}', responses={200: {"model": NodeStructure}, 404: {"schema": BadRequestError}})
