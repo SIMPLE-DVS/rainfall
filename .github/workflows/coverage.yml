@@ -7,7 +7,31 @@ on:
   workflow_dispatch:
 
 jobs:
-  codecov:
+  codecov-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4.3.0
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        working-directory: simple-backend
+        run: pip install -r requirements_dev.txt
+      - name: Run tests and collect coverage
+        working-directory: simple-backend
+        run: pytest --cov-report xml --cov=simple_backend tests/
+      - name: Upload coverage results to Codecov
+        uses: codecov/codecov-action@v3.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: simple-backend
+          flags: backend
+          file: coverage.xml
+          verbose: true
+
+  codecov-frontend:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
