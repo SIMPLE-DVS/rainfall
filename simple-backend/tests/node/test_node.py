@@ -34,7 +34,8 @@ class TestNode:
         assert response.status_code == 200
 
     def test_custom_node(self, custom_txt):
-        response = client.post('/api/v1/nodes/custom', json={"function_name": "print_dataset", "code": custom_txt})
+        response = client.post('/api/v1/nodes/custom', json={"function_name": "print_dataset", "code": custom_txt,
+                                                             "language": "python"})
         assert response.status_code == 200
         try:
             CustomNodeIOParams.parse_obj(response.json())
