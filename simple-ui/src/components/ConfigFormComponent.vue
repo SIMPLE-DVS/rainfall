@@ -76,12 +76,7 @@
 <script setup lang="ts">
 import { markRaw, ref, Ref, watch } from 'vue';
 import { useConfigStore } from 'stores/configStore';
-import {
-  AvailableComponents,
-  ComponentTypeRegexes,
-  NodeInfo,
-  SimpleNodeParameter,
-} from './models';
+import { ComponentTypeRegexes, NodeInfo, SimpleNodeParameter } from './models';
 import { useRouter } from 'vue-router';
 import { QInput } from 'quasar';
 
@@ -118,7 +113,7 @@ const getConfigComponent = (type: string) => {
   let component = null;
   for (const [k, v] of ComponentTypeRegexes) {
     if (v.test(type)) {
-      component = AvailableComponents.get(k + 'ConfigComponent');
+      component = k + 'ConfigComponent';
       break;
     }
   }

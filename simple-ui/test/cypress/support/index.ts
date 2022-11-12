@@ -19,7 +19,7 @@ import '@cypress/code-coverage/support';
 Cypress.Commands.add('dropNode', (library, name, x?, y?) => {
   cy.url().then((url) => {
     if (!url.endsWith('#/') && !url.endsWith('#/canvas')) {
-      cy.visit('/');
+      cy.get('.q-tab[href="#/canvas"]').click();
     }
   });
   cy.get('.q-drawer').then((drawer) => {
@@ -50,4 +50,39 @@ Cypress.Commands.add('dropNode', (library, name, x?, y?) => {
   if (!(library == 'Base' && name == 'CustomNode')) {
     cy.dataCy('okBtn').click();
   }
+});
+
+Cypress.Commands.add('createOrEditCustomNode', (code, name, edit) => {
+  cy.url().then((url) => {
+    if (!url.endsWith('#/editor')) {
+      cy.get('.q-tab[href="#/editor"]').click();
+    }
+  });
+  if (edit) {
+    cy.dataCy('leftDrawer')
+      .click()
+      .then(() => {
+        const dataTransfer = new DataTransfer();
+        cy.dataCy('customNode')
+          .contains(name)
+          .trigger('dragstart', { dataTransfer });
+        cy.dataCy('editor').trigger('drop', {
+          dataTransfer,
+        });
+
+        cy.dataCy('leftDrawer').click();
+      });
+    cy.dataCy('editor').type('{selectAll}{backspace}');
+  }
+  cy.dataCy('editor').type(code);
+  cy.dataCy('saveCustomNode')
+    .click()
+    .then(() => {
+      cy.dataCy('customNodeName')
+        .type('{selectAll}{backspace}')
+        .type(name)
+        .then(() => {
+          cy.dataCy('createCustomNode').click();
+        });
+    });
 });

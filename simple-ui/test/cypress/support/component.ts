@@ -30,6 +30,7 @@ import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-e2e-cy
 import { config } from '@vue/test-utils';
 import { Dialog, Notify } from 'quasar';
 import { createPinia, Pinia, setActivePinia } from 'pinia';
+import { getFormComponents } from 'src/boot/components';
 
 // Example to import i18n from boot and use as plugin
 // import { i18n } from 'src/boot/i18n';
@@ -46,5 +47,9 @@ config.global.mocks = {
 config.global.stubs = {};
 
 config.global.plugins.push(setActivePinia(createPinia()) as Pinia);
+
+getFormComponents().forEach((c) => {
+  config.global.components[c.name] = c.component;
+});
 
 installQuasarPlugin({ plugins: { Dialog, Notify } });

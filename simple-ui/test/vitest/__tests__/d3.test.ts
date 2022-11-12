@@ -7,7 +7,7 @@ import MockAdapter from 'axios-mock-adapter';
 
 installQuasar();
 
-describe('Prova test', () => {
+describe('d3 test', () => {
   it('successfully loads the UI state from JSON file', async () => {
     const ui = require('../fixtures/ui.json');
     const file = new File([JSON.stringify(ui)], 'ui.json', {

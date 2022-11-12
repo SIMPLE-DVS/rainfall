@@ -35,17 +35,31 @@ declare global {
     interface Chainable {
       /**
        * Custom command to drop a node in the canvas
-       * @param library
-       * @param name
-       * @param x
-       * @param y
-       * @example cy.dropNode('Base', 'CustomNode')
+       * @param library the library of the node
+       * @param name the name of the node
+       * @param x the x position on the canvas
+       * @param y the y position on the canvas
+       * @example cy.dropNode('Base', 'CustomNode', 100, 100)
        */
       dropNode(
         library: string,
         name: string,
         x?: number,
         y?: number,
+        options?: Partial<TypeOptions>
+      ): Chainable<unknown>;
+
+      /**
+       * Create or edit a custom node in the editor
+       * @param code the code of the custom node
+       * @param name the name of the custom node
+       * @param edit whether the custom node has already been created
+       * @example cy.createOrEditCustomNode('def custom_function(i, o, p):\no["o1"] = i["i1"] + i["i2"]', 'CustomNodeName', false);
+       */
+      createOrEditCustomNode(
+        code: string,
+        name: string,
+        edit?: boolean,
         options?: Partial<TypeOptions>
       ): Chainable<unknown>;
     }

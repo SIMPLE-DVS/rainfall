@@ -5,7 +5,6 @@ import { SimpleNodeParameter } from '../../models';
 import { useConfigStore } from 'src/stores/configStore';
 import IntConfigComponent from '../IntConfigComponent.vue';
 
-// TODO: fix circular dependency: AnyConfigComponent -> src/components/models.ts -> AnyConfigComponent
 describe('AnyConfigComponent', () => {
   let configStore: ReturnType<typeof useConfigStore>;
   beforeEach(() => {

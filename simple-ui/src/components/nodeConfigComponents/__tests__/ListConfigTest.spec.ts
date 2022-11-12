@@ -3,7 +3,6 @@ import { VueWrapper } from '@vue/test-utils';
 import ListConfigComponent from '../ListConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
 
-// TODO: fix circular dependency: ListConfigComponent -> src/components/models.ts -> ListConfigComponent
 describe('ListConfigComponent', () => {
   it('has an initial value and works with integers', () => {
     mount(ListConfigComponent, {

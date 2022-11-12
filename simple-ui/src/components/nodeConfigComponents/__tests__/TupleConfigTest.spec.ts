@@ -4,7 +4,6 @@ import TupleConfigComponent from '../TupleConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
 import IntConfigComponent from '../IntConfigComponent.vue';
 
-// TODO: fix circular dependency: TupleConfigComponent -> src/components/models.ts -> TupleConfigComponent
 describe('TupleConfigComponent', () => {
   it('has an initial value and options', () => {
     mount(TupleConfigComponent, {

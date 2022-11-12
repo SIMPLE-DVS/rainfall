@@ -3,6 +3,7 @@ describe('Editor Page tests', () => {
     cy.intercept('GET', '**/api/v1/nodes', {
       fixture: '../fixtures/nodes.json',
     });
+    cy.visit('/');
   });
 
   it('goes to the editor page when dropping the CustomNode', () => {
@@ -11,7 +12,7 @@ describe('Editor Page tests', () => {
   });
 
   it('has 0 custom nodes at the beginning', () => {
-    cy.visit('#/editor');
+    cy.get('.q-tab[href="#/editor"]').click();
     cy.dataCy('leftDrawer').click();
     cy.dataCy('customNode').should('have.length', 0);
   });
@@ -20,13 +21,10 @@ describe('Editor Page tests', () => {
     cy.intercept('POST', '**/api/v1/nodes/custom', {
       fixture: '../fixtures/custom.json',
     });
-    cy.visit('#/editor');
-    cy.dataCy('editor').type(
-      'def custom_function(i, o):\no["o1"] = i["i1"] + i["i2"]'
+    cy.createOrEditCustomNode(
+      'def custom_function(i, o, p):\no["o1"] = i["i1"] + i["i2"]',
+      'CustomNodeName'
     );
-    cy.dataCy('saveCustomNode').click();
-    cy.dataCy('customNodeName').type('CustomNodeName');
-    cy.dataCy('createCustomNode').click();
     cy.dataCy('leftDrawer').click();
     cy.dataCy('customNode').should('have.length', 1);
     cy.dataCy('deleteCustomNode').click();
@@ -37,13 +35,11 @@ describe('Editor Page tests', () => {
     cy.intercept('POST', '**/api/v1/nodes/custom', {
       fixture: '../fixtures/custom.json',
     });
-    cy.visit('#/editor');
-    cy.dataCy('editor').type(
-      'def custom_function(i, o):\no["o1"] = i["i1"] + i["i2"]'
+    cy.createOrEditCustomNode(
+      'def custom_function(i, o, p):\no["o1"] = i["i1"] + i["i2"]',
+      'CustomNodeName',
+      false
     );
-    cy.dataCy('saveCustomNode').click();
-    cy.dataCy('customNodeName').type('CustomNodeName');
-    cy.dataCy('createCustomNode').click();
     cy.get('.q-tab[href="#/canvas"]').click();
     cy.dropNode('Base', 'CustomNodeName');
     cy.dataCy('rightDrawer').click();
@@ -52,53 +48,35 @@ describe('Editor Page tests', () => {
   });
 
   it('creates and changes custom nodes', () => {
-    cy.intercept('POST', '**/api/v1/nodes/custom', {
-      fixture: '../fixtures/custom.json',
+    const replies = [
+      {
+        fixture: '../fixtures/custom.json',
+      },
+      {
+        fixture: '../fixtures/custom2.json',
+      },
+    ];
+    let count = 0;
+    cy.intercept('POST', '**/api/v1/nodes/custom', (req) => {
+      req.reply(replies[count++]);
     });
-    cy.visit('#/editor');
-    cy.dataCy('editor').type(
-      'def custom_function(i, o, p):\no["o1"] = i["i1"] + i["i2"]'
+
+    cy.createOrEditCustomNode(
+      'def custom_function(i, o, p):\no["o1"] = i["i1"] + i["i2"]',
+      'CustomNodeName',
+      false
     );
-    cy.dataCy('saveCustomNode').click();
-    cy.dataCy('customNodeName').type('CustomNodeName');
-    cy.intercept('POST', '**/api/v1/nodes/custom', {
-      fixture: '../fixtures/custom.json',
-    });
-    cy.dataCy('createCustomNode').click();
-
-    cy.get('.q-tab[href="#/canvas"]')
-      .click()
-      .then(() => {
-        cy.dropNode('Base', 'CustomNodeName');
-        cy.get('.q-tab[href="#/editor"]').click();
-      });
-
-    cy.dataCy('leftDrawer').click();
-    const dataTransfer = new DataTransfer();
-    cy.dataCy('customNode').trigger('dragstart', { dataTransfer });
-    cy.dataCy('editor').trigger('drop', {
-      dataTransfer,
-    });
-    cy.dataCy('leftDrawer').click();
-    cy.dataCy('editor')
-      .type('{selectAll}{backspace}')
-      .type(
-        'def custom_function(i, o, p):\no["o4"] = i["i3"]\no["o2"] = i["i0"]'
-      );
-    cy.dataCy('saveCustomNode').click();
-    cy.dataCy('customNodeName')
-      .type('{selectAll}{backspace}')
-      .type('CustomNodeName');
-    cy.dataCy('customNode').should('have.length', 1);
-    cy.intercept('POST', '**/api/v1/nodes/custom', {
-      fixture: '../fixtures/custom2.json',
-    });
-    cy.dataCy('createCustomNode').click();
+    cy.dropNode('Base', 'CustomNodeName');
+    cy.createOrEditCustomNode(
+      'def custom_function(i, o, p):\no["o4"] = i["i3"]\no["o2"] = i["i0"]',
+      'CustomNodeName',
+      true
+    );
     cy.dataCy('customNode').should('have.length', 1);
   });
 
   it('clears editor text', () => {
-    cy.visit('#/editor');
+    cy.get('.q-tab[href="#/editor"]').click();
     const text = 'def custom_function(i, o):';
     cy.dataCy('editor').type(text);
     cy.dataCy('editor').should('contain.text', text);
