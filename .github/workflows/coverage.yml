@@ -17,16 +17,16 @@ jobs:
         with:
           node-version: 18.12.0
       - name: Install dependencies
-        working-directory: frontend
+        working-directory: simple-ui
         run: yarn
       - name: Run tests and collect coverage
-        working-directory: frontend
+        working-directory: simple-ui
         run: yarn coverage
       - name: Upload coverage results to Codecov
         uses: codecov/codecov-action@v3.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: frontend/coverage/cypress/
+          directory: simple-ui/coverage/cypress/
           flags: frontend
           file: lcov.info
           verbose: true
