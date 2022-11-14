@@ -1,11 +1,10 @@
-import { mount } from '@cypress/vue';
 import { VueWrapper } from '@vue/test-utils';
 import BoolConfigComponent from '../BoolConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
 
 describe('BoolConfigComponent', () => {
   it('has an initial value', () => {
-    mount(BoolConfigComponent, {
+    cy.mount(BoolConfigComponent, {
       props: {
         modelValue: true,
         param: {} as SimpleNodeParameter,
@@ -13,7 +12,7 @@ describe('BoolConfigComponent', () => {
       },
     });
     cy.dataCy('toggle').then((toggle) => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof BoolConfigComponent>
       >;
       expect(v.vm.modelValue).to.be.true;
@@ -22,7 +21,7 @@ describe('BoolConfigComponent', () => {
   });
 
   it('supports null value', () => {
-    mount(BoolConfigComponent, {
+    cy.mount(BoolConfigComponent, {
       props: {
         modelValue: null,
         param: {} as SimpleNodeParameter,
@@ -31,7 +30,7 @@ describe('BoolConfigComponent', () => {
     });
 
     cy.dataCy('toggle').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof BoolConfigComponent>
       >;
       expect(v.vm.modelValue).to.equal(null);

@@ -1,11 +1,10 @@
-import { mount } from '@cypress/vue';
 import { VueWrapper } from '@vue/test-utils';
 import SelectConfigComponent from '../SelectConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
 
 describe('SelectConfigComponent', () => {
   it('has an initial value and options', () => {
-    mount(SelectConfigComponent, {
+    cy.mount(SelectConfigComponent, {
       props: {
         modelValue: 'a',
         param: { type: '{a,b,c}' } as SimpleNodeParameter,
@@ -13,7 +12,7 @@ describe('SelectConfigComponent', () => {
       },
     });
     cy.dataCy('select').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof SelectConfigComponent>
       >;
       expect(v.vm.value).to.equal('a');
@@ -22,7 +21,7 @@ describe('SelectConfigComponent', () => {
   });
 
   it('supports null value', () => {
-    mount(SelectConfigComponent, {
+    cy.mount(SelectConfigComponent, {
       props: {
         modelValue: null,
         param: { type: '{a,b,c}' } as SimpleNodeParameter,
@@ -31,7 +30,7 @@ describe('SelectConfigComponent', () => {
     });
 
     cy.dataCy('select').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof SelectConfigComponent>
       >;
       expect(v.vm.value).to.equal(null);
@@ -39,7 +38,7 @@ describe('SelectConfigComponent', () => {
   });
 
   it('selects different values', () => {
-    mount(SelectConfigComponent, {
+    cy.mount(SelectConfigComponent, {
       props: {
         modelValue: null,
         param: { type: '{a,b,c}' } as SimpleNodeParameter,
@@ -51,7 +50,7 @@ describe('SelectConfigComponent', () => {
     cy.dataCy('select')
       .select('a')
       .then(() => {
-        const v = Cypress.vueWrapper as VueWrapper<
+        const v = Cypress.vueWrapper as unknown as VueWrapper<
           InstanceType<typeof SelectConfigComponent>
         >;
         expect(v.vm.value).to.equal('a');
@@ -64,7 +63,7 @@ describe('SelectConfigComponent', () => {
   });
 
   it('requires a value if the parameter is mandatory', () => {
-    mount(SelectConfigComponent, {
+    cy.mount(SelectConfigComponent, {
       props: {
         modelValue: null,
         param: { type: '{a,b,c}', is_mandatory: true } as SimpleNodeParameter,

@@ -1,11 +1,10 @@
-import { mount } from '@cypress/vue';
 import { VueWrapper } from '@vue/test-utils';
 import FloatConfigComponent from '../FloatConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
 
 describe('FloatConfigComponent', () => {
   it('has an initial value', () => {
-    mount(FloatConfigComponent, {
+    cy.mount(FloatConfigComponent, {
       props: {
         modelValue: 123.45,
         param: {} as SimpleNodeParameter,
@@ -13,7 +12,7 @@ describe('FloatConfigComponent', () => {
       },
     });
     cy.dataCy('input').then((input) => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof FloatConfigComponent>
       >;
       expect(v.vm.value).to.equal('123.45');
@@ -31,7 +30,7 @@ describe('FloatConfigComponent', () => {
   });
 
   it('supports null value', () => {
-    mount(FloatConfigComponent, {
+    cy.mount(FloatConfigComponent, {
       props: {
         modelValue: null,
         param: {} as SimpleNodeParameter,
@@ -40,7 +39,7 @@ describe('FloatConfigComponent', () => {
     });
 
     cy.dataCy('input').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof FloatConfigComponent>
       >;
       expect(v.vm.value).to.equal('');
@@ -48,7 +47,7 @@ describe('FloatConfigComponent', () => {
   });
 
   it('converts values if needed', () => {
-    mount(FloatConfigComponent, {
+    cy.mount(FloatConfigComponent, {
       props: {
         modelValue: null,
         param: {} as SimpleNodeParameter,
@@ -57,7 +56,7 @@ describe('FloatConfigComponent', () => {
     });
 
     cy.dataCy('input').then((input) => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof FloatConfigComponent>
       >;
       cy.wrap(input)
@@ -70,7 +69,7 @@ describe('FloatConfigComponent', () => {
   });
 
   it('requires a value if the parameter is mandatory', () => {
-    mount(FloatConfigComponent, {
+    cy.mount(FloatConfigComponent, {
       props: {
         modelValue: null,
         param: { is_mandatory: true } as SimpleNodeParameter,

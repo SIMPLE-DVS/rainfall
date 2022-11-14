@@ -1,11 +1,10 @@
-import { mount } from '@cypress/vue';
 import { VueWrapper } from '@vue/test-utils';
 import ListConfigComponent from '../ListConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
 
 describe('ListConfigComponent', () => {
   it('has an initial value and works with integers', () => {
-    mount(ListConfigComponent, {
+    cy.mount(ListConfigComponent, {
       props: {
         modelValue: [1, 2, 3],
         param: { type: 'list[int]' } as SimpleNodeParameter,
@@ -13,7 +12,7 @@ describe('ListConfigComponent', () => {
       },
     });
     cy.dataCy('list').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof ListConfigComponent>
       >;
       expect(v.vm.modelValue).to.deep.equal([1, 2, 3]);
@@ -31,7 +30,7 @@ describe('ListConfigComponent', () => {
   });
 
   it('supports null values', () => {
-    mount(ListConfigComponent, {
+    cy.mount(ListConfigComponent, {
       props: {
         modelValue: null,
         param: { type: 'list[int]' } as SimpleNodeParameter,
@@ -39,7 +38,7 @@ describe('ListConfigComponent', () => {
       },
     });
     cy.dataCy('list').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof ListConfigComponent>
       >;
       expect(v.vm.modelValue).to.equal(null);
@@ -48,7 +47,7 @@ describe('ListConfigComponent', () => {
   });
 
   it('works with floats', () => {
-    mount(ListConfigComponent, {
+    cy.mount(ListConfigComponent, {
       props: {
         modelValue: [1.2, 2.3, 3.4],
         param: { type: 'list[float]' } as SimpleNodeParameter,
@@ -56,7 +55,7 @@ describe('ListConfigComponent', () => {
       },
     });
     cy.dataCy('list').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof ListConfigComponent>
       >;
       cy.dataCy('list')
@@ -77,7 +76,7 @@ describe('ListConfigComponent', () => {
   });
 
   it('works with booleans', () => {
-    mount(ListConfigComponent, {
+    cy.mount(ListConfigComponent, {
       props: {
         modelValue: [true, false],
         param: { type: 'list[bool]' } as SimpleNodeParameter,
@@ -85,7 +84,7 @@ describe('ListConfigComponent', () => {
       },
     });
     cy.dataCy('list').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof ListConfigComponent>
       >;
       expect(v.vm.modelValue).to.deep.equal([true, false]);
@@ -111,7 +110,7 @@ describe('ListConfigComponent', () => {
   });
 
   it('works with strings', () => {
-    mount(ListConfigComponent, {
+    cy.mount(ListConfigComponent, {
       props: {
         modelValue: ['a', 'b', 'c'],
         param: { type: 'list[str]' } as SimpleNodeParameter,
@@ -119,7 +118,7 @@ describe('ListConfigComponent', () => {
       },
     });
     cy.dataCy('list').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof ListConfigComponent>
       >;
       expect(v.vm.modelValue).to.deep.equal(['a', 'b', 'c']);

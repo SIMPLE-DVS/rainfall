@@ -1,4 +1,3 @@
-import { mount } from '@cypress/vue';
 import { VueWrapper } from '@vue/test-utils';
 import AnyConfigComponent from '../AnyConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
@@ -14,7 +13,7 @@ describe('AnyConfigComponent', () => {
   });
 
   it('has an initial value', () => {
-    mount(AnyConfigComponent, {
+    cy.mount(AnyConfigComponent, {
       props: {
         modelValue: 5,
         param: { name: 'param' } as SimpleNodeParameter,
@@ -24,7 +23,7 @@ describe('AnyConfigComponent', () => {
     configStore.nodeConfigs.set('node', { param: 5 });
     configStore.nodeAnyConfigs.set('node$param', 'int');
     cy.dataCy('input').then((input) => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof IntConfigComponent>
       >;
       expect(v.vm.value).to.equal(5);
@@ -42,7 +41,7 @@ describe('AnyConfigComponent', () => {
   });
 
   it('supports null values', () => {
-    mount(AnyConfigComponent, {
+    cy.mount(AnyConfigComponent, {
       props: {
         modelValue: null,
         param: { name: 'param' } as SimpleNodeParameter,
@@ -70,7 +69,7 @@ describe('AnyConfigComponent', () => {
   });
 
   it('changes values', () => {
-    mount(AnyConfigComponent, {
+    cy.mount(AnyConfigComponent, {
       props: {
         modelValue: 123,
         param: { name: 'param' } as SimpleNodeParameter,

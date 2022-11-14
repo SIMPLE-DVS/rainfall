@@ -27,10 +27,14 @@ import 'quasar/dist/icon-set/material-icons.umd.prod';
 import '@quasar/extras/material-icons/material-icons.css';
 
 import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-e2e-cypress';
-import { config } from '@vue/test-utils';
 import { Dialog, Notify } from 'quasar';
+
+// Since Cypress v10 we cannot import `config` directly from VTU as Cypress bundles its own version of it
+// See https://github.com/cypress-io/cypress/issues/22611
+import { VueTestUtils } from 'cypress/vue';
 import { createPinia, Pinia, setActivePinia } from 'pinia';
 import { getFormComponents } from 'src/boot/components';
+const { config } = VueTestUtils;
 
 // Example to import i18n from boot and use as plugin
 // import { i18n } from 'src/boot/i18n';

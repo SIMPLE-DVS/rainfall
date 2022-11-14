@@ -39,7 +39,7 @@ describe('D3 Canvas tests', () => {
     cy.dataCy('loadFromJSON').selectFile('test/cypress/fixtures/ui.json', {
       force: true,
     });
-    cy.visit('#/editor');
+    cy.get('.q-tab[href="#/editor"]').click();
     cy.dataCy('leftDrawer')
       .click()
       .then(() => {

@@ -6,19 +6,17 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // https://vitejs.dev/config/
 export default defineConfig({
   test: {
-    globals: true,
     environment: 'happy-dom',
     setupFiles: 'test/vitest/setup-file.ts',
     include: [
-      // Matches vitest tests in any subfolder of 'src' or into 'test/vitest/__tests__'
+      // Matches vitest tests in any subfolder of 'test/vitest/__tests__'
       // Matches all files with extension '.test.ts'
-      'src/**/*.test.ts',
       'test/vitest/__tests__/**/*.test.ts',
     ],
     coverage: {
       exclude: [
         'src/i18n/',
-        'src/**/*.{d.ts,spec.ts}',
+        'src/**/*.{cy.ts,d.ts,spec.ts}',
         'test/**/*.{js,ts,vue}',
       ],
       include: ['src/**/*.{js,ts,vue}'],

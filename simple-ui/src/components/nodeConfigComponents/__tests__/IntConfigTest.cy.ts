@@ -1,11 +1,10 @@
-import { mount } from '@cypress/vue';
 import { VueWrapper } from '@vue/test-utils';
 import IntConfigComponent from '../IntConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
 
 describe('IntConfigComponent', () => {
   it('has an initial value', () => {
-    mount(IntConfigComponent, {
+    cy.mount(IntConfigComponent, {
       props: {
         modelValue: 123,
         param: {} as SimpleNodeParameter,
@@ -13,7 +12,7 @@ describe('IntConfigComponent', () => {
       },
     });
     cy.dataCy('input').then((input) => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof IntConfigComponent>
       >;
       expect(v.vm.value).to.equal('123');
@@ -31,7 +30,7 @@ describe('IntConfigComponent', () => {
   });
 
   it('supports null value', () => {
-    mount(IntConfigComponent, {
+    cy.mount(IntConfigComponent, {
       props: {
         modelValue: null,
         param: {} as SimpleNodeParameter,
@@ -40,7 +39,7 @@ describe('IntConfigComponent', () => {
     });
 
     cy.dataCy('input').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof IntConfigComponent>
       >;
       expect(v.vm.value).to.equal('');
@@ -48,7 +47,7 @@ describe('IntConfigComponent', () => {
   });
 
   it('converts values if needed', () => {
-    mount(IntConfigComponent, {
+    cy.mount(IntConfigComponent, {
       props: {
         modelValue: null,
         param: {} as SimpleNodeParameter,
@@ -57,7 +56,7 @@ describe('IntConfigComponent', () => {
     });
 
     cy.dataCy('input').then((input) => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof IntConfigComponent>
       >;
       cy.wrap(input)
@@ -70,7 +69,7 @@ describe('IntConfigComponent', () => {
   });
 
   it('requires a value if the parameter is mandatory', () => {
-    mount(IntConfigComponent, {
+    cy.mount(IntConfigComponent, {
       props: {
         modelValue: null,
         param: { is_mandatory: true } as SimpleNodeParameter,

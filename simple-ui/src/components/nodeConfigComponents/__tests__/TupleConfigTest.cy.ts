@@ -1,4 +1,3 @@
-import { mount } from '@cypress/vue';
 import { VueWrapper } from '@vue/test-utils';
 import TupleConfigComponent from '../TupleConfigComponent.vue';
 import { SimpleNodeParameter } from '../../models';
@@ -6,7 +5,7 @@ import IntConfigComponent from '../IntConfigComponent.vue';
 
 describe('TupleConfigComponent', () => {
   it('has an initial value and options', () => {
-    mount(TupleConfigComponent, {
+    cy.mount(TupleConfigComponent, {
       props: {
         modelValue: [123, '45'],
         param: {
@@ -18,7 +17,7 @@ describe('TupleConfigComponent', () => {
       },
     });
     cy.dataCy('tuple').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof TupleConfigComponent>
       >;
       expect(v.vm.types).to.have.length(2);
@@ -27,7 +26,7 @@ describe('TupleConfigComponent', () => {
   });
 
   it('supports null values', () => {
-    mount(TupleConfigComponent, {
+    cy.mount(TupleConfigComponent, {
       props: {
         modelValue: null,
         param: {
@@ -39,7 +38,7 @@ describe('TupleConfigComponent', () => {
       },
     });
     cy.dataCy('tuple').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof TupleConfigComponent>
       >;
       expect(v.vm.types).to.have.length(2);
@@ -48,7 +47,7 @@ describe('TupleConfigComponent', () => {
   });
 
   it('changes values', () => {
-    mount(TupleConfigComponent, {
+    cy.mount(TupleConfigComponent, {
       props: {
         modelValue: [1, null],
         param: {
@@ -60,14 +59,14 @@ describe('TupleConfigComponent', () => {
       },
     });
     cy.dataCy('tuple').then(() => {
-      const v = Cypress.vueWrapper as VueWrapper<
+      const v = Cypress.vueWrapper as unknown as VueWrapper<
         InstanceType<typeof TupleConfigComponent>
       >;
       expect(v.vm.types).to.have.length(2);
       cy.dataCy('input')
         .first()
         .then((input) => {
-          const i = Cypress.vueWrapper as VueWrapper<
+          const i = Cypress.vueWrapper as unknown as VueWrapper<
             InstanceType<typeof IntConfigComponent>
           >;
           cy.wrap(input)

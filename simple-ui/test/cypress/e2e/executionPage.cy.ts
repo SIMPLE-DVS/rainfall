@@ -38,7 +38,7 @@ describe('Execution Page tests', () => {
   });
 
   it('shows the same nodes and edges of the ui page', () => {
-    cy.visit('/');
+    cy.get('.q-tab[href="#/canvas"]').click();
     cy.dataCy('loadFromJSON').selectFile('test/cypress/fixtures/ui.json', {
       force: true,
     });
