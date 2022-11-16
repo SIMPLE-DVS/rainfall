@@ -519,17 +519,17 @@
   resolved "https://registry.yarnpkg.com/@quasar/fastclick/-/fastclick-1.1.5.tgz#948e79c44098cced6c3d1645315683ebc29ed834"
   integrity sha512-p3JKgTjRlJ1YQXbqTw3Bsa4j0mQdt5dq+WfYvyb7MgKGdephHCKdR/kxA5PCTAmJanGJuDKqRdyGYX/hYN4KGw==
 
-"@quasar/quasar-app-extension-testing-e2e-cypress@^5.0.0-beta.6":
-  version "5.0.0-beta.6"
-  resolved "https://registry.yarnpkg.com/@quasar/quasar-app-extension-testing-e2e-cypress/-/quasar-app-extension-testing-e2e-cypress-5.0.0-beta.6.tgz#b40e21c515e0a33a1b1eae8685e1c8af02d9f93d"
-  integrity sha512-7Rxp2G2sFbax1R8nfYcBax6cauGUacN8jNyDQzk5fTWb0I52NlrFVMBtVVfP7OQEymnO9WL83keDX1cHYXsjrA==
+"@quasar/quasar-app-extension-testing-e2e-cypress@^5.0.0-beta.7":
+  version "5.0.0-beta.7"
+  resolved "https://registry.yarnpkg.com/@quasar/quasar-app-extension-testing-e2e-cypress/-/quasar-app-extension-testing-e2e-cypress-5.0.0-beta.7.tgz#c587e734d7b838b3b62ca62a7bbb5d17fbf35464"
+  integrity sha512-yF0rej2Y1JM5Rvb/SQUXabg3latIPCa9/9SvMl16mokjC7PABNPx6I6LWK4re6/QnNQx3KTuLZhsIg08Laj73w==
   dependencies:
     "@cypress/code-coverage" "^3.10.0"
     cross-env "^7.0.3"
     lodash "^4.17.21"
     nyc "^15.1.0"
     start-server-and-test "^1.14.0"
-    vite-plugin-istanbul "^2.7.3"
+    vite-plugin-istanbul "^3.0.2"
 
 "@quasar/quasar-app-extension-testing-unit-vitest@^0.1.2":
   version "0.1.2"
@@ -5522,10 +5522,10 @@ vite-jsconfig-paths@^2.0.1:
     recrawl-sync "^2.0.3"
     tsconfig-paths "^3.9.0"
 
-vite-plugin-istanbul@^2.7.3:
-  version "2.9.0"
-  resolved "https://registry.yarnpkg.com/vite-plugin-istanbul/-/vite-plugin-istanbul-2.9.0.tgz#25d34b71b03d6d51e9c01d6392d70addc713452d"
-  integrity sha512-b5h1C/rqnpAairKnu1feHHynZLbWpllxig349/BdN6Y5g9Cac+6o9Gz0FU0dtyEygGLJ8sjVhInx2U6NzrKmDA==
+vite-plugin-istanbul@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/vite-plugin-istanbul/-/vite-plugin-istanbul-3.0.2.tgz#abb01b337bbd3a20666d9d82d472688a99ba2796"
+  integrity sha512-eOKedaeciqJTLEAUo7mkMqXjjeAXGhHUYuiLLBUaBwj8AdO31uVOsZvKeVViRqHKyhi5YlarmGh8r7jJVlX0VQ==
   dependencies:
     "@istanbuljs/load-nyc-config" "^1.1.0"
     istanbul-lib-instrument "^5.1.0"

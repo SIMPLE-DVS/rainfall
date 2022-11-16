@@ -7,6 +7,7 @@
         color="secondary"
         label="Save DataFlow"
         @click="saveDataFlow()"
+        data-cy="saveDataflow"
       ></q-btn>
     </div>
 

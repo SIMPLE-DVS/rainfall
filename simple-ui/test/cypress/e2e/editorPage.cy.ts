@@ -25,6 +25,8 @@ describe('Editor Page tests', () => {
       'def custom_function(i, o, p):\no["o1"] = i["i1"] + i["i2"]',
       'CustomNodeName'
     );
+    cy.dropNode('Base', 'CustomNodeName');
+    cy.get('.q-tab[href="#/editor"]').click();
     cy.dataCy('leftDrawer').click();
     cy.dataCy('customNode').should('have.length', 1);
     cy.dataCy('deleteCustomNode').click();

@@ -16,6 +16,7 @@
         { value: ViewMode.TYPE, slot: 'type' },
       ]"
       @update:model-value="organizeNodesByViewMode()"
+      data-cy="viewToggle"
     >
       <template v-slot:library>
         <div class="row items-center no-wrap">
@@ -46,6 +47,7 @@
       label="Search nodes"
       @clear="expandTree(false)"
       @update:model-value="$event !== '' ? expandTree(true) : expandTree(false)"
+      data-cy="searchBar"
     >
       <template v-slot:append>
         <q-icon name="search" />
