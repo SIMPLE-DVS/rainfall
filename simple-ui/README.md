@@ -1,6 +1,15 @@
-# RAINFALL Frontend (rainfall-frontend)
+# RAINFALL Frontend
 
 Frontend for RAINFALL
+
+## Features
+
+RAINFALL frontend is composed of four main pages:
+
+- Canvas: is the main focus of the application and also acts as the homepage. This page permits the creation of DataFlows;
+- Custom Node Editor: this page gives the possibility to define custom nodes by writing Python code in an integrated editor;
+- Execution & Monitoring: when the DataFlow has been successfully defined and the parameters of the nodes have been correctly set, this page allows to launch the DataFlow and monitor its progress and the logs produced;
+- Repository & DataFlow Management: the page permits to manage previously created DataFlows, as well as their associated metadata. These DataFlows are grouped into repositories for an easier access and better organization.
 
 ## Install the dependencies
 
