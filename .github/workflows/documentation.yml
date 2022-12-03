@@ -1,0 +1,40 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [master]
+
+  workflow_dispatch:
+
+jobs:
+  generate-api-documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4.3.0
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        working-directory: simple-backend
+        run: pip install -r requirements.txt
+      - name: Clone GitHub Pages Repository
+        uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+          path: gh
+      - name: Generate openapi.json
+        working-directory: simple-backend
+        run: python simple_backend/app.py generate
+      - name: Move openapi.json to gh folder
+        working-directory: simple-backend
+        run: mv openapi.json ../gh
+      - name: Update gh-pages branch
+        uses: s0/git-publish-subdir-action@v2.6.0
+        env:
+          REPO: self
+          BRANCH: gh-pages
+          FOLDER: gh
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MESSAGE: "Update gh-pages branch with commit {sha}"

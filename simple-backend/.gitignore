@@ -113,3 +113,5 @@ tests/output_repositories/*
 !tests/output_repositories/.gitkeep
 tests/output_execution/*
 !tests/output_execution/.gitkeep
+
+openapi.json

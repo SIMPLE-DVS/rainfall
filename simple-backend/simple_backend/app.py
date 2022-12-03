@@ -1,10 +1,12 @@
 import sys
 sys.path.append('.')
+import json
 import os
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from simple_backend.config import here
 from simple_backend.controller.routes import initialize_api_routes, initialize_ws_routes
 from simple_backend.errors import register_errors
 
@@ -25,6 +27,12 @@ def create_app():
         static_files_folder = os.path.join(os.path.dirname(__file__), 'static')
         if os.path.exists(static_files_folder) and os.path.isdir(static_files_folder):
             app.mount("/", StaticFiles(directory=static_files_folder, html=True), name="static")
+
+    if 'generate' in sys.argv:
+        with open(file=here('../openapi.json'), mode='w') as f:
+            f.write(json.dumps(app.openapi(), separators=(',', ':')))
+            print('openapi.json generated successfully!')
+        sys.exit(0)
 
     return app
 
