@@ -15,7 +15,7 @@ The [Frontend README](simple-ui/README.md) contains more instructions on how to 
 
 ### Docker
 
-RAINFALL-UI is available as a Docker image by creating it from the [Dockerfile](Dockerfile) or pulling it from [DockerHub](https://hub.docker.com/repository/docker/dragonalex98/rainfall).
+RAINFALL-UI is available as a Docker image by creating it from the [Dockerfile](Dockerfile) or pulling it from [DockerHub](https://hub.docker.com/r/dragonalex98/rainfall).
 
 ## Examples
 
