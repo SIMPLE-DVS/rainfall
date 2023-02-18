@@ -164,3 +164,9 @@ where:
 - the user-defined functions for the custom nodes are shown;
 - the nodes are created and configured with their parameters;
 - the nodes are connected.
+
+## Authors
+- Alessandro Antinori, Rosario Cappruccia, Riccardo Coltrinari, Flavio Corradini, Marco Piangerelli, Barbara Re, Marco Scarpetta
+
+## Copyright
+- Università degli Studi di Camerino and Sigma S.p.A
