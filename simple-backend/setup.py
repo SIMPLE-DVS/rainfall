@@ -15,12 +15,12 @@ requirements = [ ]
 test_requirements = ['pytest>=3', ]
 
 setup(
-    author="Marco Scarpetta",
-    author_email='marco.scarpetta@studenti.unicam.it',
+    author="Università degli Studi di Camerino and Sigma S.p.A",
     python_requires='>=3.6',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
+        'LICENSE :: OSI APPROVED :: GNU AFFERO GENERAL PUBLIC LICENSE V3 OR LATER (AGPLV3+)',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
@@ -29,6 +29,7 @@ setup(
     ],
     description="This is the repository for Simple backend",
     install_requires=requirements,
+    license="GNU Affero General Public License v3 or later (AGPLv3+)",
     long_description=readme + '\n\n' + history,
     include_package_data=True,
     keywords='simple_backend',

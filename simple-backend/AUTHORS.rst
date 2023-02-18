@@ -2,10 +2,10 @@
 Credits
 =======
 
-Development Lead
+Authors
 ----------------
 
-* Marco Scarpetta <marco.scarpetta@studenti.unicam.it>
+Università degli Studi di Camerino and Sigma S.p.A
 
 Contributors
 ------------

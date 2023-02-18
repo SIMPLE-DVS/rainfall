@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "Frontend for RAINFALL",
   "productName": "RAINFALL Frontend",
-  "author": "DragonAlex98 <alessandro.antinori@studenti.unicam.it>",
+  "author": "Università degli Studi di Camerino and Sigma S.p.A",
+  "license": "AGPLV3+",
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
