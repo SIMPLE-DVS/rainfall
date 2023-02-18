@@ -5,7 +5,7 @@ especially since many employees of one corporation may be contributing.
 To see the full list of contributors, see the revision history in
 source control.
 
-Alessadro Antinori 
+Alessandro Antinori
 
 Rosario Capparuccia
 
@@ -18,4 +18,3 @@ Marco Piangerelli
 Barbara Re
 
 Marco Scarpetta
-
