@@ -19,6 +19,4 @@ jobs:
           registry: ${{secrets.DOCKER_REGISTRY}}
           username: ${{secrets.DOCKER_USERNAME}}
           password: ${{secrets.DOCKER_PASSWORD}}
-          buildArgs: |
-            SSH_KEY="${{secrets.DOCKER_RAIN_SSH_KEY}}"
           addLatest: true
