@@ -166,7 +166,9 @@ where:
 - the nodes are connected.
 
 ## Authors
-- Alessandro Antinori, Rosario Cappruccia, Riccardo Coltrinari, Flavio Corradini, Marco Piangerelli, Barbara Re, Marco Scarpetta
+
+- Alessandro Antinori, Rosario Capparuccia, Riccardo Coltrinari, Flavio Corradini, Marco Piangerelli, Barbara Re, Marco Scarpetta
 
 ## Copyright
-- Università degli Studi di Camerino and Sigma S.p.A
+
+- Università degli Studi di Camerino and Sigma S.p.A.
