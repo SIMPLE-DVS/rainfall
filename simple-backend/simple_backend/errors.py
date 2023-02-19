@@ -24,9 +24,9 @@ class CustomNodeConfigurationError(RainfallHTTPException):
         super(CustomNodeConfigurationError, self).__init__(msg, 400)
 
 
-class FirebaseNodesRetrievalError(RainfallHTTPException):
+class NodesRetrievalError(RainfallHTTPException):
     def __init__(self, msg):
-        super(FirebaseNodesRetrievalError, self).__init__(msg, 500)
+        super(NodesRetrievalError, self).__init__(msg, 500)
 
 
 class FileReadError(RainfallHTTPException):

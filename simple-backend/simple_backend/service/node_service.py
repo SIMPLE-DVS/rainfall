@@ -3,13 +3,13 @@ import re
 import sys
 from typing import List, Optional
 import requests
-from simple_backend.errors import CustomNodeConfigurationError, FirebaseNodesRetrievalError
+from simple_backend.errors import CustomNodeConfigurationError, NodesRetrievalError
 from simple_backend.schemas.nodes import CustomNode, NodeStructure, CustomNodeIOParams
 
 try:
-    nodes_request = requests.get(url="https://firebasestorage.googleapis.com/v0/b/rainfall-firebase.appspot.com/o/rain_structure.json?alt=media")
+    nodes_request = requests.get(url="https://raw.githubusercontent.com/SIMPLE-DVS/rain/json/rain_structure.json")
     if nodes_request.status_code != 200:
-        raise FirebaseNodesRetrievalError(f"Firebase nodes request failed: {nodes_request.reason}")
+        raise NodesRetrievalError(f"Nodes request failed: {nodes_request.reason}")
     rain_structure = nodes_request.json()
 except:
     print('Download of rain_structure.json failed!')
