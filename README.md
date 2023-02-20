@@ -1,5 +1,4 @@
-[![Codecov](https://img.shields.io/codecov/c/github/SIMPLE-DVS/rainfall?flag=backend&label=BACKEND%20COVERAGE&style=for-the-badge)](https://app.codecov.io/gh/SIMPLE-DVS/rainfall/tree/master/simple-backend)
-[![Codecov](https://img.shields.io/codecov/c/github/SIMPLE-DVS/rainfall?flag=frontend&label=FRONTEND%20COVERAGE&style=for-the-badge)](https://app.codecov.io/gh/SIMPLE-DVS/rainfall/tree/master/simple-ui)
+[![Codecov](https://img.shields.io/codecov/c/github/SIMPLE-DVS/rainfall?label=COVERAGE&style=for-the-badge)](https://app.codecov.io/gh/SIMPLE-DVS/rainfall)
 
 # RAINFALL-UI
 
