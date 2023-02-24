@@ -1,4 +1,5 @@
-[![Codecov](https://img.shields.io/codecov/c/github/SIMPLE-DVS/rainfall?label=COVERAGE&style=for-the-badge)](https://app.codecov.io/gh/SIMPLE-DVS/rainfall)
+[![Codecov](https://img.shields.io/codecov/c/github/SIMPLE-DVS/rainfall)](https://app.codecov.io/gh/SIMPLE-DVS/rainfall)
+![GitHub](https://img.shields.io/github/license/SIMPLE-DVS/rainfall)
 
 # RAINFALL-UI
 
