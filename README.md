@@ -13,9 +13,38 @@ The [Backend README](simple-backend/README.rst) contains more instructions on ho
 
 The [Frontend README](simple-ui/README.md) contains more instructions on how to launch/develop the frontend.
 
-### Docker
+## Docker
 
 RAINFALL-UI is available as a Docker image by creating it from the [Dockerfile](Dockerfile) or pulling it from [DockerHub](https://hub.docker.com/r/dragonalex98/rainfall).
+
+### Instructions for Docker
+
+In order to use a Docker image for instantiating a container you need to download [Docker Desktop](https://www.docker.com/products/docker-desktop/) by choosing the right one for your OS. When you deal with Docker it should be clear that a container is isolated from the local host.
+This makes containers very versatile and independent from the OS of the users but it also means that the container and the hostosting system are not able to share data.
+
+To do that both binds and volumes can be used. When you use a bind mount, a file or directory on the host machine is mounted into a container. The file or directory is referenced by its absolute path on the host machine. By contrast, when you use a volume, a new directory is created within Docker’s storage directory on the host machine, and Docker manages that directory’s contents.
+
+More on binds and volumes can be found [here](https://docs.docker.com/storage/bind-mounts/) and [here](https://docs.docker.com/storage/)
+
+We are going to use binds in the following way.
+
+First of all, a folder shold be created on your local host; it is named local_folder. Once the folder was created you have to bind it to the one in the container, in this case /tmp/results.
+
+To do that:
+
+- Run Docker Desktop and, if you are a Linux/MacOS user, open a Terminal and, making sure to be in the source directory, digit the following string:
+
+      $ docker run -it --name rainfall -v "$(pwd)"/Users/user/Desktop/local_folder:/tmp/results --rm -p [Local Port number]:5000 dragonalex98/rainfall:latest 
+ 
+- On the contrary, if you are a Windows user, make sure to be in the source directory and digit the following string:
+
+      > docker run -it --name rainfall -v C:\Users\user\local_folder:/tmp/results --rm -p [Local Port number]:5000 dragonalex98/rainfall:latest
+
+Where [Local Port number] is a placeholder for the port you are goig to use locally
+
+Then, open a browser and digit the following url:
+
+      localhost:[Local Port number]/
 
 ## Examples
 
@@ -64,6 +93,17 @@ df.execute()
 This script can then be executed by installing the [RAIN](https://github.com/SIMPLE-DVS/rain) library and all the other required dependencies.
 
 There is also the possibility to launch the computation directly from the execution page of RAINFALL, where the RAIN library and the requirements are automatically detected and installed in a virtual environment in a chosen folder.
+
+### Execute the pipeline
+
+Once the pipeline is created as shown above, you need to execute it.
+In order to do that you should go to the EXECUTE TAB, by pressing the EXECUTE BUTTON (shown in the figure), in the lower part of the window
+
+<img src="images/Execute_button.png" />
+
+By doing so, you will see a simplified view of your pipeline. Now, clicking on the Execute button in the upper right part of the Tab, the user will have to confirm the requirements (python libraries that are automatically identified by RAINFALL) and then to specify the path for the execution (figure below). Please pay attention, the path of execution is the same that you use for the binding operation /tmp/results/
+
+<img src="images/Execution_tab.png" />
 
 ## Non-trivial example
 
