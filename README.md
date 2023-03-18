@@ -101,17 +101,9 @@ In order to do that you should go to the EXECUTE TAB, by pressing the EXECUTE BU
 
 <img src="images/Execute_button.png" />
 
-By doing so, you will see a simplified view of your pipeline. Now, clicking on the Execute button in the upper right part of the Tab, the user will be required to confirm the requiremts (python libraries that are authomatically identified by Rainfall) and then to specify the path for the execution (figure below). Please pay attention, the path of execution is the same that you use for the binding operation /tmp/results/
+By doing so, you will see a simplified view of your pipeline. Now, clicking on the Execute button in the upper right part of the Tab, the user will have to confirm the requirements (python libraries that are automatically identified by RAINFALL) and then to specify the path for the execution (figure below). Please pay attention, the path of execution is the same that you use for the binding operation /tmp/results/
 
 <img src="images/Execution_tab.png" />
-
-
-
-## Non-trivial example
-
-A more complex example is provided as follows, where desired outcome of the analysis should be a model that is capable to distinguish whether a certain signal comes from a blade attached to a metalworking machine that is new, semi-new or worn-out:
-
-<img src="images/custom.png" />
 
 ## Non-trivial example
 
