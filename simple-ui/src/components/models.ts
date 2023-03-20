@@ -25,7 +25,7 @@ export const ComponentTypeRegexes = new Map<string, RegExp>([
     'List',
     /^list of (.+)$|^list\[(.+)\]$|^.+ or list of (.+)$|^.+ or list\[(.+)\]$/i,
   ],
-  ['Select', /^\{.+\}$/],
+  ['Select', /^\{.+\}$|^\[.+\]$/],
   ['Any', /^any$/i],
   ['Tuple', /^tuple\[(.+)\]$/i],
 ]);

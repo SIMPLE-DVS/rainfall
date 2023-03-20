@@ -24,6 +24,7 @@
     outlined
     :label="param.name"
     v-model="value"
+    :multiple="multiple"
     :options="options"
     lazy-rules
     :rules="[
@@ -49,6 +50,8 @@ const options = props.param.type
   .slice(0, -1)
   .replace(/, /g, ',')
   .split(',');
+
+const multiple = props.param.type.startsWith('[');
 
 const value = ref(props.modelValue);
 
