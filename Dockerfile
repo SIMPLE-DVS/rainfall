@@ -44,6 +44,6 @@ RUN pip install -r requirements.txt
 
 COPY --from=frontend /app/dist/spa /app/simple_backend/static
 
-CMD gunicorn --bind 0.0.0.0:${PORT} -t 0 -w 4 -k uvicorn.workers.UvicornWorker --pythonpath simple_backend app:create_app
+CMD gunicorn --bind 0.0.0.0:${PORT} -t 0 -w 4 -k uvicorn.workers.UvicornWorker --pythonpath simple_backend 'app:create_app(False)'
 
 EXPOSE ${PORT}

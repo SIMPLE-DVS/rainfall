@@ -144,7 +144,7 @@ class ConfigurationSchema(BaseModel):
     pipeline_uid: str
     nodes: list[Union[CustomNode, Node]]
     # dependencies are used only for execution
-    dependencies: list[str]
+    dependencies: list[str] = None
     ui: UI
     # repository is used only to save dataflow
     repository: str = None
