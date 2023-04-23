@@ -19,6 +19,7 @@
 import { exportFile, Notify } from 'quasar';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { useConfigStore } from 'src/stores/configStore';
+import { api } from 'src/boot/axios';
 import { UIState } from './d3/types';
 import { getUIState } from './d3/utils';
 import { CustomNodeStructure } from './models';
@@ -67,28 +68,26 @@ export const getNodesConfig = () => {
   });
 };
 
-export const getNodesRequirements = () => {
+export const getNodesRequirements = async () => {
   const canvasStore = useCanvasStore();
   const configStore = useConfigStore();
 
-  return [...canvasStore.canvasNodes.keys()]
-    .map((nodeName) => canvasStore.canvasNodes.get(nodeName).package)
-    .map((nodePackage) =>
-      configStore.nodeStructures.get(nodePackage).tags['library'].toLowerCase()
-    )
-    .reduce(
-      (acc, value) =>
-        value != 'custom' && acc.indexOf(value) == -1 ? acc.concat(value) : acc,
-      [] as string[]
-    );
+  const req = await api.post<string[]>('/nodes', {
+    ui_nodes: [...canvasStore.canvasNodes.values()],
+    ui_structures: [...configStore.nodeStructures.entries()],
+  });
+  return req.data;
 };
 
-export const getConfig = () => {
+export const getConfig = async (dependenciesNeeded: boolean) => {
   const config: { [index: string]: unknown } = {};
   config['pipeline_uid'] = Math.floor(100000 * Math.random()).toString();
   config['nodes'] = getNodesConfig();
-  config['dependencies'] = getNodesRequirements();
   config['ui'] = getUIState();
+
+  if (dependenciesNeeded) {
+    config['dependencies'] = await getNodesRequirements();
+  }
 
   return config;
 };

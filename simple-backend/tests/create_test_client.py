@@ -24,7 +24,7 @@ from simple_backend import config
 
 
 def create_test_client():
-    app = create_app()
+    app = create_app(True)
     return TestClient(app)
 
 

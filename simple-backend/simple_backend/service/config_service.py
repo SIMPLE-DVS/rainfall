@@ -22,12 +22,12 @@ import zipfile
 import yaml
 from datetime import datetime
 from pathlib import Path
-from typing import List, Union
+from typing import Union
 from simple_backend.errors import DagCycleError, FileWriteError
 from simple_backend.schemas.nodes import UI, CustomNode, Node, UINode, CustomNodeStructure, NodeStructure
 from simple_backend.service import node_service
 from simple_backend.service.dag_generator import DagCreator
-from simple_backend.service.node_service import parse_custom_node_requirements
+from simple_backend.service.node_service import parse_custom_node_requirements, get_nodes_requirements
 from simple_backend.service.script_generator import ScriptGenerator
 from simple_backend import config
 
@@ -62,29 +62,30 @@ def generate_script(nodes: list[Union[CustomNode, Node]]):
     return script
 
 
-def get_requirements(libs: List[str], ui_nodes: List[UINode],
-                     ui_structures: dict[str, Union[CustomNodeStructure, NodeStructure]]) -> List[str]:
+def get_requirements(ui_nodes: list[UINode],
+                     ui_structures: dict[str, Union[CustomNodeStructure, NodeStructure]]):
     """
     Method that returns the Python dependencies, useful to re-create the environment of a given Dataflow
     """
-    libs = [lib.lower() for lib in libs]
-    requirements = set(["git+https://github.com/SIMPLE-DVS/rain@master#egg=rain"])
+    requirements = ["git+https://github.com/SIMPLE-DVS/rain@master#egg=rain"]
 
-    # TODO: manage dependencies' versions and avoid duplicates
-    #       e.g. pandas and pandas~=1.3.0 shouldn't be two different dependencies
-    # for dep in rain_structure["dependencies"]:
-    #    if any(lib in dep for lib in libs):
-    #        requirements.add(dep)
+    all_modules_requirements = get_nodes_requirements()
 
-    for lib in libs:
-        if lib != 'base':
-            requirements.add(lib)
+    for node in ui_nodes:
+        if not node.package.startswith('rain.nodes.custom.custom.CustomNode'):
+            library = ui_structures.get(node.package).tags.library.lower()
+            if library in all_modules_requirements:
+                node_requirements = all_modules_requirements.get(library)
+                for node_requirement in node_requirements:
+                    if not node_requirement in requirements:
+                        requirements.append(node_requirement)
 
-    custom_structures = set([node.package for node in ui_nodes
-                             if node.package.startswith('rain.nodes.custom.custom.CustomNode')])
-    for structure in custom_structures:
-        for req in parse_custom_node_requirements(ui_structures[structure].code):
-            requirements.add(req)
+    for node in ui_nodes:
+        if node.package.startswith('rain.nodes.custom.custom.CustomNode'):
+            custom_requirements = parse_custom_node_requirements(ui_structures[node.package].code)
+            for custom_requirement in custom_requirements:
+                if not any(r for r in requirements if r.startswith(custom_requirement)):
+                    requirements.append(custom_requirement)
 
     return requirements
 
@@ -95,12 +96,12 @@ def get_repository_path(repository: str) -> Path:
     return repository_path
 
 
-def generate_artifacts(repository: str, script: str, dependencies: List[str], ui: UI) -> Path:
+def generate_artifacts(repository: str, script: str, ui: UI) -> Path:
     """
     Method that stores the artifacts (script, requirements, GUI configuration, other metadata)
     """
     timestamp = int(time.time() * 1000)
-    requirements = get_requirements(dependencies, ui.nodes.values(), ui.structures)
+    requirements = get_requirements(ui.nodes.values(), ui.structures)
     zip_buffer = io.BytesIO()
     try:
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:

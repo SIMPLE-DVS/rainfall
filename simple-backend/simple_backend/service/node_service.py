@@ -17,21 +17,33 @@
  """
 
 import ast
+import json
 import re
 import sys
-from typing import List, Optional
 import requests
+from typing import List, Optional
+from simple_backend.config import here
 from simple_backend.errors import CustomNodeConfigurationError, NodesRetrievalError
 from simple_backend.schemas.nodes import CustomNode, NodeStructure, CustomNodeIOParams
 
-try:
-    nodes_request = requests.get(url="https://raw.githubusercontent.com/SIMPLE-DVS/rain/json/rain_structure.json")
-    if nodes_request.status_code != 200:
-        raise NodesRetrievalError(f"Nodes request failed: {nodes_request.reason}")
-    rain_structure = nodes_request.json()
-except:
-    print('Download of rain_structure.json failed!')
-    sys.exit(1)
+
+rain_structure = {}
+
+
+def download_rain_structure(is_testing: bool):
+    try:
+        global rain_structure
+        if is_testing:
+            with open(file=here("../../tests/fixtures/rain_structure.json")) as structure:
+                rain_structure = json.loads(structure.read())
+        else:
+            nodes_request = requests.get(url="https://raw.githubusercontent.com/SIMPLE-DVS/rain/json/rain_structure.json")
+            if nodes_request.status_code != 200:
+                raise NodesRetrievalError(f"Nodes request failed: {nodes_request.reason}")
+            rain_structure = nodes_request.json()
+    except:
+        print('Download of rain_structure.json failed!')
+        sys.exit(1)
 
 
 def determine_value_type(v: any):
@@ -122,6 +134,13 @@ def check_custom_node_code(custom_nodes: List[CustomNode]):
             # as of now they are all CustomNode and rain.nodes.custom.custom.CustomNode
             if node.code not in nodes:
                 raise CustomNodeConfigurationError(f"Duplicated function name in node {node.node_id}!")
+
+
+def get_nodes_requirements() -> dict[str, list[str]]:
+    """
+    Returns the dependencies for the available Rain nodes
+    """
+    return rain_structure["dependencies"]
 
 
 def get_nodes_structure() -> list[NodeStructure]:

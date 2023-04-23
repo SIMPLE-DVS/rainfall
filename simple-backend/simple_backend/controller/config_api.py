@@ -44,7 +44,7 @@ async def post_config(config: ConfigurationSchema):
 
     script = config_service.generate_script(config.nodes)
 
-    zip_file = config_service.generate_artifacts(config.repository, script, config.dependencies, config.ui)
+    zip_file = config_service.generate_artifacts(config.repository, script, config.ui)
 
     return ConfigResponse(id=zip_file.stem, path=str(zip_file),
                           url=f"/repositories/{config.repository}/dataflows/{zip_file.stem}")

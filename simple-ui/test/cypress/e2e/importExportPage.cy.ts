@@ -20,6 +20,7 @@ describe('Import/Export Page tests', () => {
   it('notifies error if no repo is selected', () => {
     cy.intercept('GET', '**/api/v1/repositories', []);
     cy.intercept('GET', '**/api/v1/repositories/archived', []);
+    cy.intercept('POST', '**/api/v1/nodes', []);
     cy.intercept('POST', '**/api/v1/config', {});
     cy.visit('#/import_export');
     cy.dataCy('saveDataflow').click();
@@ -31,6 +32,7 @@ describe('Import/Export Page tests', () => {
   it('notifies success when saving a dataflow', () => {
     cy.intercept('GET', '**/api/v1/repositories', ['abc']);
     cy.intercept('GET', '**/api/v1/repositories/archived', []);
+    cy.intercept('POST', '**/api/v1/nodes', []);
     cy.intercept('POST', '**/api/v1/config', {
       body: { id: 'id', url: 'url' },
     });
@@ -44,6 +46,7 @@ describe('Import/Export Page tests', () => {
   it('notifies error in case of error when saving a dataflow', () => {
     cy.intercept('GET', '**/api/v1/repositories', ['abc']);
     cy.intercept('GET', '**/api/v1/repositories/archived', []);
+    cy.intercept('POST', '**/api/v1/nodes', []);
     cy.intercept('POST', '**/api/v1/config', { forceNetworkError: true });
     cy.visit('#/import_export');
     cy.dataCy('saveDataflow').click();

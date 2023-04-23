@@ -114,7 +114,7 @@ describe('Execution Page tests', () => {
   });
 
   it('executes and logs', () => {
-    cy.intercept('POST', '**/api/v1/execution', ['req1\nreq2\nreq3']);
+    cy.intercept('POST', '**/api/v1/nodes', ['req1\nreq2\nreq3']);
     cy.get('.q-tab[href="#/canvas"]').click();
     cy.dataCy('loadFromJSON').selectFile('test/cypress/fixtures/ui.json', {
       force: true,

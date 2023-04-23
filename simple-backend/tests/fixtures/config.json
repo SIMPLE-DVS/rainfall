@@ -109,7 +109,7 @@
     ],
     "dependencies": [
         "base",
-        "sklearn"
+        "scikit-learn"
     ],
     "ui": {
         "nodes": [
@@ -374,7 +374,7 @@
                     "package": "rain.nodes.sklearn.functions.DaviesBouldinScore",
                     "parameter": [],
                     "tags": {
-                        "library": "Sklearn",
+                        "library": "scikit-learn",
                         "type": "Metrics"
                     }
                 }
@@ -1124,7 +1124,7 @@
                         }
                     ],
                     "tags": {
-                        "library": "Sklearn",
+                        "library": "scikit-learn",
                         "type": "Transformer"
                     }
                 }
@@ -1202,7 +1202,7 @@
                         }
                     ],
                     "tags": {
-                        "library": "Sklearn",
+                        "library": "scikit-learn",
                         "type": "Estimator"
                     }
                 }
@@ -1324,7 +1324,7 @@
                         }
                     ],
                     "tags": {
-                        "library": "Sklearn",
+                        "library": "scikit-learn",
                         "type": "Classifier"
                     }
                 }
@@ -1922,7 +1922,7 @@
                         }
                     ],
                     "tags": {
-                        "library": "Sklearn",
+                        "library": "scikit-learn",
                         "type": "Input"
                     }
                 }
@@ -2295,7 +2295,7 @@
                         }
                     ],
                     "tags": {
-                        "library": "Sklearn",
+                        "library": "scikit-learn",
                         "type": "Clusterer"
                     }
                 }
@@ -2348,7 +2348,7 @@
                         }
                     ],
                     "tags": {
-                        "library": "Sklearn",
+                        "library": "scikit-learn",
                         "type": "Transformer"
                     }
                 }

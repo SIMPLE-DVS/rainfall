@@ -51,17 +51,10 @@
 <script setup lang="ts">
 import { onUnmounted, Ref, ref } from 'vue';
 import { QInput, useQuasar } from 'quasar';
-import {
-  destroyWebSocket,
-  getConfig,
-  getNodesRequirements,
-  getWebSocketURL,
-} from '../utils';
+import { destroyWebSocket, getConfig, getWebSocketURL } from '../utils';
 import { useLogStore } from 'src/stores/logStore';
-import { api } from 'src/boot/axios';
-import { useCanvasStore } from 'src/stores/canvasStore';
-import { useConfigStore } from 'src/stores/configStore';
 import { onBeforeRouteLeave } from 'vue-router';
+import { AxiosError } from 'axios';
 
 const $q = useQuasar();
 const container: Ref<Element> = ref(null);
@@ -107,24 +100,13 @@ const executionListener = (ev: MessageEvent<string>) => {
 };
 
 const execute = async () => {
-  const canvasStore = useCanvasStore();
-  const configStore = useConfigStore();
-  const config = getConfig();
-
-  await api
-    .post<string[]>('/execution', {
-      libs: getNodesRequirements(),
-      ui_nodes: [...canvasStore.canvasNodes.values()],
-      ui_structures: Object.fromEntries([
-        ...configStore.nodeStructures.entries(),
-      ]),
-    })
-    .then((res) => {
+  await getConfig(true)
+    .then((config) => {
       $q.dialog({
         title: 'Requirements',
         message: 'What are the requirements?',
         prompt: {
-          model: res.data.join('\n'),
+          model: (config['dependencies'] as string[]).join('\n'),
           isValid: (val) => {
             return val.trim() != '';
           },
@@ -158,9 +140,9 @@ const execute = async () => {
         });
       });
     })
-    .catch(() => {
+    .catch((err: AxiosError) => {
       $q.notify({
-        message: 'Error while determining requirements!',
+        message: err.message,
         type: 'negative',
       });
     });

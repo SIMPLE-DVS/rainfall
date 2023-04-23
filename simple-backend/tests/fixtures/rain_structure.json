@@ -1,0 +1,139 @@
+{
+  "nodes": [
+    {
+      "clazz": "CustomNode",
+      "package": "rain.nodes.custom.custom.CustomNode",
+      "input": {},
+      "output": {},
+      "parameter": [
+        {
+          "name": "use_function",
+          "type": null,
+          "is_mandatory": true,
+          "default_value": null,
+          "description": null
+        },
+        {
+          "name": "kwargs",
+          "type": null,
+          "is_mandatory": true,
+          "default_value": null,
+          "description": null
+        }
+      ],
+      "methods": null,
+      "tags": {
+        "library": "Base",
+        "type": "Custom"
+      },
+      "description": "A node that can contain user-defined Python code."
+    },
+    {
+      "clazz": "PandasCSVLoader",
+      "package": "rain.nodes.pandas.pandas_io.PandasCSVLoader",
+      "input": null,
+      "output": {
+        "dataset": "DataFrame"
+      },
+      "parameter": [
+        {
+          "name": "path",
+          "type": "str",
+          "is_mandatory": true,
+          "default_value": null,
+          "description": "Of the CSV file."
+        },
+        {
+          "name": "delim",
+          "type": "str",
+          "is_mandatory": false,
+          "default_value": ",",
+          "description": "Delimiter symbol of the CSV file."
+        },
+        {
+          "name": "index_col",
+          "type": "str",
+          "is_mandatory": false,
+          "default_value": null,
+          "description": "Column to use as the row labels of the DataFrame, given as string name"
+        }
+      ],
+      "methods": null,
+      "tags": {
+        "library": "Pandas",
+        "type": "Input"
+      },
+      "description": "Loads a pandas DataFrame from a CSV file."
+    },
+    {
+      "clazz": "TrainTestDatasetSplit",
+      "package": "rain.nodes.sklearn.functions.TrainTestDatasetSplit",
+      "input": {
+        "dataset": "DataFrame"
+      },
+      "output": {
+        "train_dataset": "DataFrame",
+        "test_dataset": "DataFrame"
+      },
+      "parameter": [
+        {
+          "name": "test_size",
+          "type": "float",
+          "is_mandatory": false,
+          "default_value": null,
+          "description": "The size as percentage of the test dataset (e.g. 0.3 is 30%)."
+        },
+        {
+          "name": "train_size",
+          "type": "float",
+          "is_mandatory": false,
+          "default_value": null,
+          "description": "The size as percentage of the train dataset (e.g. 0.7 is 70%)"
+        },
+        {
+          "name": "random_state",
+          "type": "int",
+          "is_mandatory": false,
+          "default_value": null,
+          "description": "Seed for the random generation."
+        },
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "is_mandatory": false,
+          "default_value": true,
+          "description": "Whether to shuffle the dataset before the splitting."
+        }
+      ],
+      "methods": [],
+      "tags": {
+        "library": "Scikit-Learn",
+        "type": "Transformer"
+      },
+      "description": "Node that uses the 'sklearn.model_selection.train_test_split' to split a dataset in two parts."
+    }
+  ],
+  "dependencies": {
+    "pandas": [
+      "pandas==1.3.5"
+    ],
+    "scikit-learn": [
+      "scikit-learn==0.24.2"
+    ],
+    "spark": [
+      "pyspark==3.1.3"
+    ],
+    "pymongo": [
+      "pymongo==3.12.3"
+    ],
+    "tpot": [
+      "tpot==0.11.7",
+      "numpy==1.23.5"
+    ],
+    "pysad": [
+      "pysad==0.1.1",
+      "combo==0.1.3",
+      "mmh3==3.0.0"
+    ]
+  }
+}

@@ -30,6 +30,8 @@ import { CustomNodeStructure } from 'src/components/models';
 import { useCanvasStore } from 'src/stores/canvasStore';
 import { useConfigStore } from 'src/stores/configStore';
 import { getUIState } from 'src/components/d3/utils';
+import { api } from 'src/boot/axios';
+import MockAdapter from 'axios-mock-adapter';
 
 installQuasar({ plugins: { Notify } });
 
@@ -109,7 +111,13 @@ describe('utils test', () => {
   });
 
   it('returns a valid config', async () => {
-    expect(getConfig()).not.toBeNull();
+    expect(await getConfig(false)).not.toBeNull();
+  });
+
+  it('returns a valid config with dependencies', async () => {
+    const mock = new MockAdapter(api);
+    void mock.onPost('/nodes').reply(200, ['dep1', 'dep2', 'dep3']);
+    expect(await getConfig(true)).not.toBeNull();
   });
 
   it('successfully downloads the UI state', async () => {

@@ -16,10 +16,13 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  """
 
+from typing import Union
 from fastapi import APIRouter
 from simple_backend.errors import BadRequestError
-from simple_backend.schemas.nodes import NodeStructure, CustomNodeIOParams, CustomNodeSchema
+from simple_backend.schemas.nodes import NodeStructure, CustomNodeIOParams, CustomNodeSchema, UINode, \
+    CustomNodeStructure
 from simple_backend.service import node_service
+from simple_backend.service.config_service import get_requirements
 from simple_backend.service.node_service import parse_custom_node_code
 
 
@@ -32,6 +35,15 @@ async def get_nodes():
     Api used to get all the available nodes
     """
     return node_service.get_nodes_structure()
+
+
+@router.post('', response_model=list[str])
+async def extract_nodes_requirements(ui_nodes: list[UINode],
+                                  ui_structures: dict[str, Union[CustomNodeStructure, NodeStructure]]):
+    """
+    Api used to retrieve the requirements
+    """
+    return get_requirements(ui_nodes, ui_structures)
 
 
 @router.post('/custom', response_model=CustomNodeIOParams)

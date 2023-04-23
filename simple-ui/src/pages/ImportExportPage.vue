@@ -50,7 +50,7 @@ const $q = useQuasar();
 const repoStore = useRepoStore();
 
 const saveDataFlow = async () => {
-  const config = getConfig();
+  const config = await getConfig(false);
   if (repoStore.currentRepo == null) {
     $q.notify({
       message:

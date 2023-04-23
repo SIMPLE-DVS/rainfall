@@ -24,12 +24,13 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from simple_backend.service import node_service
 from simple_backend.config import here
 from simple_backend.controller.routes import initialize_api_routes, initialize_ws_routes
 from simple_backend.errors import register_errors
 
 
-def create_app():
+def create_app(is_testing: bool):
     app = FastAPI(debug=os.environ.get("MODE", "DEBUG") == "DEBUG")
 
     app.add_middleware(
@@ -52,8 +53,10 @@ def create_app():
             print('openapi.json generated successfully!')
         sys.exit(0)
 
+    node_service.download_rain_structure(is_testing)
+
     return app
 
 
 if __name__ == '__main__':
-    uvicorn.run(create_app(), host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))
+    uvicorn.run(create_app(False), host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))

@@ -17,7 +17,7 @@
  """
 
 from fastapi import APIRouter
-from simple_backend.controller import node_api, config_api, script_api, repository_api, dataflow_api, execution_api
+from simple_backend.controller import node_api, config_api, script_api, repository_api, dataflow_api
 from simple_backend.ws import execution_ws
 
 
@@ -41,9 +41,6 @@ def initialize_api_routes():
 
     # Dataflow API
     router.include_router(dataflow_api.router, prefix="/repositories/{repository}/dataflows", tags=['dataflow'])
-
-    # Execution API
-    router.include_router(execution_api.router, prefix="/execution", tags=['execution'])
 
     return router
 
